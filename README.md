@@ -9,9 +9,9 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Configure future VMs to be reachable via browser, for consoles: Completed
 - Configure control node (Terraform & Ansible) by hand: Completed
 - Configure SIEM Node using Wazuh: Completed
-- Configure monitoring node (Prometheus + Grafana): In progress
+- Configure monitoring node (Prometheus + Grafana): Completed
 # Phase 2 - Get Hands Dirty
-- Deploy Virtual Machines using Terraform: Not begun
+- Deploy Virtual Machines using Terraform: In progress
 - Configure Virtual Machines using Ansible: Not begun
 - Write LAMP Stack Terrfaorm and Ansible Playbooks: Not begun
 # Phase 3 - Containerize
