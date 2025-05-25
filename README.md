@@ -21,7 +21,8 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Containerize Wazuh: Not begun
 - Containerize Prometheus: Not begun
 - Containerize Grafana: Not begun
-- Deploy VMs from Containerized master host
+- Deploy VMs from Containerized master host: Not begun
+- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: Not begun
 # Phase 4 - Write & Host Resume
-- Write HTML and CSS + JavaScript or Python to host a dybamic Resume
+- Write HTML and CSS + JavaScript or Python to host a dynnamic Resume
 - Write HTMl and CSS + JavaScript or Python to discuss the journey for this project
