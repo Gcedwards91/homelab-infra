@@ -12,7 +12,7 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Configure monitoring node (Prometheus + Grafana): Completed
 ## Lessons Learned - Phase 1
 - Proxmox VE is Debian-based but optimized for server use. As such it does not include WiFi drivers by default. To enable WiFi on the host, drivers were downloaded from a Debian-based WSL environment, transferred via USB, and installed using dpkg.
-- When provisioning virtual machines (VMs) in ProxMox, using the Intel E1000 network adapter ensures compatibility out of the box. Unlike virtio, E1000 does not require special drivers, allowing new VMs tto immediately access package mirrors for updates and installations.
+- When provisioning virtual machines (VMs) in Proxmox, using the Intel E1000 network adapter ensures compatibility out of the box. Unlike virtio, E1000 does not require special drivers, allowing new VMs tto immediately access package mirrors for updates and installations.
 - In my environment the Proxmox host is a mini-pc that is assigned a static IP, while all VMs use DHCP. To make VMs reachable via hostname or IP from other devices and MobaXterm/VSCode, the following network design was used:
     - The WiFi NIC (wlp2s0) is configured as the primary network interface with a static IP for internet access.
     - A virtual bridge (vmbr0) is configured with no physical ports, using a static IP in the X.X.100.0/24 subnet, where X.X can be whichever octets you prefer. This serves as the internal network interface for all VMS.
