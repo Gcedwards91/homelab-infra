@@ -1,7 +1,7 @@
-# Homelab Infrastructure 
+# Homelab Infrastructure (Started 5/20/2025)
 This is a homelab project meant to be used to learn and deploy software leveraging DevOps pricinples. It will manifest in several phases. 
 
-# Phase 1 - Initial Lab Setup
+# Phase 1 - Initial Lab Setup (Completed 5/25/2025)
 - Install Proxmox on Mini-PC: Completed
 - Configure Mini-PC and Proxmox to use built in Wi-Fi 6 Card: Completed
 - Install and configure base image snapshots of: Ubuntu, Debian, and AlmaLinux: Completed
@@ -10,7 +10,7 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Configure control node (Terraform & Ansible) by hand: Completed
 - Configure SIEM Node using Wazuh: Completed
 - Configure monitoring node (Prometheus + Grafana): Completed
-## Lessons Learned - Phase 1
+## Lessons Learned - Phase 1 (5/20/2025 - 5/25/2025)
 - Proxmox VE is Debian-based but optimized for server use. As such it does not include WiFi drivers by default. To enable WiFi on the host, drivers were downloaded from a Debian-based WSL environment, transferred via USB, and installed using dpkg.
 - When provisioning virtual machines (VMs) in Proxmox, using the Intel E1000 network adapter ensures compatibility out of the box. Unlike virtio, E1000 does not require special drivers, allowing new VMs tto immediately access package mirrors for updates and installations.
 - In my environment the Proxmox host is a mini-pc that is assigned a static IP, while all VMs use DHCP. To make VMs reachable via hostname or IP from other devices and MobaXterm/VSCode, the following network design was used:
