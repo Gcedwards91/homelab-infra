@@ -2,7 +2,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
   name        = "debian-test-01"
   target_node = "proxmox"
 
-  clone       = "base-100-disk-0"
+  clone       = "highcommand"
   full_clone  = true
 
   cores       = 2
