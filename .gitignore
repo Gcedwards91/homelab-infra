@@ -1,6 +1,6 @@
-".DS_Store" 
-"*.retry" 
-"*.log" 
-"*.tfstate*" 
-".terraform/" 
-"*.tfvars"
+.DS_Store
+*.retry
+*.log
+*.tfstate*
+.terraform/
+*.tfvars
