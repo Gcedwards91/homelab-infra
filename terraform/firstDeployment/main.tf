@@ -19,7 +19,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
     size     = "10G"
     type     = "scsi"
     storage  = "local-lvm"
-    iothread = true
+    iothread = 1
   }
 
   os_type = "cloud-init"
@@ -27,5 +27,5 @@ resource "proxmox_vm_qemu" "debian_vm" {
   ipconfig0 = "ip=dhcp"
 
   ssh_user     = "debian"
-  ssh_private_key = file("~/.ssh/id_rsa")
+  ssh_private_key = file("/root/.ssh/id_ed25519")
 }
