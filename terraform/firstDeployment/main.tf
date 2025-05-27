@@ -16,7 +16,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
 
   disk {
     slot     = 0
-    size     = "10G"
+    size     = 10
     type     = "scsi"
     storage  = "local-lvm"
     iothread = 1
