@@ -19,7 +19,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
     size     = "10G"
     type     = "scsi"
     storage  = "local-lvm"
-    iothread = 1
+    # iothread = 1
   }
 
   os_type = "cloud-init"
