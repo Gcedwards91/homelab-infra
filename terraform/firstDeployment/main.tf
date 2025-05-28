@@ -18,14 +18,17 @@ resource "proxmox_vm_qemu" "debian_vm" {
     bridge = "vmbr0"
   }
 
-  disk {
-    type      = "disk"
+  #disk {
+    #type      = "disk"
     #interface = "scsi"
-    slot      = "scsi0"
-    size      = "16G"
-    storage   = "local-lvm"
+    #slot      = "scsi0"
+    #size      = "16G"
+    #storage   = "local-lvm"
     #format    = "qcow2"
-  }
+  #}
+
+  bootdisk = "scsi0"
+  boot = "order=scsi0"
 
  # os_type = "cloud-init"
 
