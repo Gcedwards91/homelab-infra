@@ -16,12 +16,12 @@ resource "proxmox_vm_qemu" "debian_vm" {
   }
 
   disk {
-    id = 0
-    slot     = 0
-    size     = "10G"
-    type     = "scsi"
-    storage  = "local-lvm"
-    # iothread = 1
+    type      = "disk"
+    interface = "scsi"
+    slot      = "scsi0"
+    size      = "16G"
+    storage   = "local-lvm"
+    format    = "qcow2"
   }
 
  # os_type = "cloud-init"
