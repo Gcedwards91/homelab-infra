@@ -5,9 +5,12 @@ resource "proxmox_vm_qemu" "debian_vm" {
   clone       = "highcommand"
   full_clone  = true
 
-  cores       = 2
+  cpu {
+    cores   = 2
+    sockets = 1
+  }
+
   memory      = 2048
-  sockets     = 1
 
   network {
     id = 0
@@ -17,7 +20,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
 
   disk {
     type      = "disk"
-    interface = "scsi"
+#   interface = "scsi"
     slot      = "scsi0"
     size      = "16G"
     storage   = "local-lvm"
