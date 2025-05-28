@@ -1,6 +1,6 @@
 resource "proxmox_vm_qemu" "debian_vm" {
   count = 3
-  name        = "debian-test-01"
+  name        = "debian-test-${count.index +1}"
   target_node = "anorlondo"
 
   clone       = "debian-template"
