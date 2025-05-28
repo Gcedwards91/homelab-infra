@@ -10,11 +10,13 @@ resource "proxmox_vm_qemu" "debian_vm" {
   sockets     = 1
 
   network {
+    id = 0
     model  = "e1000"
     bridge = "vmbr0"
   }
 
   disk {
+    id = 0
     slot     = 0
     size     = "10G"
     type     = "scsi"
