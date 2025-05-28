@@ -21,7 +21,8 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - To enable internal hostname resolution across the lab, and with my workstation, the desktop client was confgigured with the X.X.100.1 IP as part of its DNS, ensuring the homelab's domain lookups resolve through dnsmasq.
 - Tools & Software used: Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.
 # Phase 2 - Get Hands Dirty
-- Deploy Virtual Machines using Terraform: In progress
+- Deploy Virtual Machines using Terraform: Completed
+- Deploy Varied Virtual Machines using Terraform: Not begun
 - Configure Virtual Machines using Ansible: Not begun
 - Write LAMP Stack Terrfaorm and Ansible Playbooks: Not begun
 # Phase 3 - Containerize
@@ -34,5 +35,5 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Deploy VMs from Containerized master host: Not begun
 - Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: Not begun
 # Phase 4 - Write & Host Resume
-- Write HTML and CSS + JavaScript or Python to host a dynnamic Resume
-- Write HTMl and CSS + JavaScript or Python to discuss the journey for this project
+- Write HTML and CSS + JavaScript or Python to host my dynnamic Resume
+- Write HTML and CSS + JavaScript or Python to create a blog that discusses the journey for this project
