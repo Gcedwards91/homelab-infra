@@ -2,7 +2,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
   name        = "debian-test-01"
   target_node = "anorlondo"
 
-  clone       = "highcommand"
+  clone       = "debian-base-image"
   full_clone  = true
 
   cpu {
