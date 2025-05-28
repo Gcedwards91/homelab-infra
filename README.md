@@ -20,7 +20,7 @@ This is a homelab project meant to be used to learn and deploy software leveragi
     - A static route was added at my desktop to ensure any traffic to the X.X.100.0/24 subnet would be routed through the Proxmox host and to the VMs.
 - To enable internal hostname resolution across the lab, and with my workstation, the desktop client was confgigured with the X.X.100.1 IP as part of its DNS, ensuring the homelab's domain lookups resolve through dnsmasq.
 - Tools & Software used: Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.
-# Phase 2 - Get Hands Dirty
+# Phase 2 - Get Hands Dirty (5/27/2025 - TBD)
 - Deploy Virtual Machines using Terraform: Completed
 - Deploy Varied Virtual Machines using Terraform: Not begun
 - Configure Virtual Machines using Ansible: Not begun
