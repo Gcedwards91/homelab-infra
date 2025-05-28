@@ -28,7 +28,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
   #}
 
   bootdisk = "scsi0"
-  boot = "order=scsi0"
+ #  boot = "order=scsi0"
 
  # os_type = "cloud-init"
 
