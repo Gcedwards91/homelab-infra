@@ -22,7 +22,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
     # iothread = 1
   }
 
-  os_type = "cloud-init"
+ # os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
 
