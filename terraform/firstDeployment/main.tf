@@ -23,7 +23,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
 #   interface = "scsi"
     slot      = "scsi0"
     size      = "16G"
-    storage   = "local-lvm"
+    storage   = "local"
     format    = "qcow2"
   }
 
