@@ -38,5 +38,5 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Deploy VMs from Containerized master host: Not begun
 - Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: Not begun
 # Phase 4 - Write & Host Resume
-- Write HTML and CSS + JavaScript or Python to host my dynnamic Resume
+- Write HTML and CSS + JavaScript or Python to host my dynamic Resume
 - Write HTML and CSS + JavaScript or Python to create a blog that discusses the journey for this project
