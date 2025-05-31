@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Log output to a timestamped log file
-LOGFILE="template_prep_$(date +%F_%H-%M-%S).log"
+LOGFILE="template_config_$(date +%F_%H-%M-%S).log"
 exec > >(tee -a "$LOGFILE") 2>&1
 
 # Ensure the script is run as root
