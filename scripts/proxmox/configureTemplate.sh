@@ -87,8 +87,8 @@ echo "Cleaning cloud-init cache..."
 cloud-init clean --logs
 
 # Remove SSH host keys for regeneration on clone
-echo "Removing existing SSH host keys..."
-rm -f /etc/ssh/ssh_host_*
+# echo "Removing existing SSH host keys..."
+# rm -f /etc/ssh/ssh_host_*
 
 # Clean temp and logs
 echo "Cleaning temporary files and logs..."
