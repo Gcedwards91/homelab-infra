@@ -22,7 +22,7 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Tools & Software used: Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.
 # Phase 2 - Get Hands Dirty (5/27/2025 - TBD)
 - Deploy Virtual Machines using Terraform: Completed
-- Automated VM Template Configuration via Bash: Completed
+- Automated VM Template Configuration via bash: Completed
 - Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash: Completed
 - Leverage cloud-init within Terraform to assign temporary hostnames for Ansible: Not begun
 - Deploy Varied Virtual Machines using Terraform: Not begun
