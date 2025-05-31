@@ -42,10 +42,10 @@ while true; do
                     echo ">>> Cloud Init Drive already exists. Skipping."
                 fi
 
-                sleep 1s
+                #sleep 1s
 
-                echo ">>> Setting boot order"
-                qm set "$i" --boot order=scsi0
+                #echo ">>> Setting boot order"
+                #qm set "$i" --boot order=scsi0,ide2
 
                 sleep 1s
 

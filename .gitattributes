@@ -1,0 +1,10 @@
+# Enforce LF line endings for shell scripts
+*.sh text eol=lf
+
+# Optional: normalize text files in general (you can omit this if you want fine-grained control)
+*.yml text eol=lf
+*.yaml text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.tf text eol=lf
