@@ -1,6 +1,9 @@
-# Homelab Infrastructure (Started 5/20/2025)
-This is a homelab project meant to be used to learn and deploy software leveraging DevOps pricinples. It will manifest in several phases. 
-
+# Homelab Infrastructure Project (Started 5/20/2025)
+This is a homelab project I spun up to get familiar with:
+- Building an enterprise-like environment from scratch.
+- Building familiarity with IaC tools like Terraform and Ansible.
+- Building familiarity with containerization practices, Docker, and Kubernetes.
+- Building familiarity with GitHub, git, and CI/CD. 
 ## Phase 1 - Initial Lab Setup (Completed 5/25/2025)
 - Install Proxmox on Mini-PC: Completed
 - Configure Mini-PC and Proxmox to use built in Wi-Fi 6 Card: Completed
@@ -37,6 +40,11 @@ This is a homelab project meant to be used to learn and deploy software leveragi
 - Containerize Grafana: Not begun
 - Deploy VMs from Containerized master host: Not begun
 - Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: Not begun
-## Phase 4 - Write & Host Resume
+## Phase 4 - Build CI/CD Pipeline
+- Research common CI/CD practices: Not begun
+- Implement a CI/CD pipeline for Phase 5: Not begun
+## Phase 5 - Write & Host Resume
 - Write HTML and CSS + JavaScript or Python to host my dynamic Resume: Not begun
-- Write HTML and CSS + JavaScript or Python to create a blog that discusses the journey for this project: Not begun
+- Write HTML and CSS + JavaScript or Python to create a blog/project cover letter that discusses the journey for this project: Not begun
+- Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack built in the spirit of the Cloud Resume Challenge: Not begun
+- Implement CI/CD best practices in this phase: Not begun
