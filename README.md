@@ -23,7 +23,7 @@ This is a homelab project I spun up to get familiar with:
     - dnsmasq was installed and configured to serve DHCP leases and internal DNS resoltution on vmbr0, allowing VMS to be accessed byu Fully Qualified Domain Names (FQDN).
     - A static route was added at my desktop to ensure any traffic to the X.X.100.0/24 subnet would be routed through the Proxmox host and to the VMs.
 - To enable internal hostname resolution across the lab, and with my workstation, the desktop client was confgigured with the X.X.100.1 IP as part of its DNS, ensuring the homelab's domain lookups resolve through dnsmasq.
-- Tools & Software used: Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.
+- <b>Tools & Software used:</b> Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.
 ## Phase 2 - Get Hands Dirty (5/27/2025 - TBD)
 - Deploy Virtual Machines using Terraform: Completed
 - Automated VM Template Configuration via bash: Completed
