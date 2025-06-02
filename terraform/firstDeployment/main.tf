@@ -31,7 +31,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
 
- # os_type = "cloud-init"
+  os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
 
@@ -72,7 +72,7 @@ resource "proxmox_vm_qemu" "alma_vm" {
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
 
- # os_type = "cloud-init"
+  os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
 
