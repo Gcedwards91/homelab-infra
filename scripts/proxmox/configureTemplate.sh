@@ -74,6 +74,7 @@ if [[ "$ID_LIKE" == *"rhel"* || "$ID" == "almalinux" ]]; then
     echo 'add_drivers+=" virtio_pci virtio_scsi virtio_blk virtio_net "' > /etc/dracut.conf.d/virtio.conf
     dracut -f --regenerate-all
     systemctl enable --now qemu-guest-agent
+    usermod -aG wheel iacadmin
 elif [[ "$ID_LIKE" == *"debian"* || "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
     echo ">>> Using apt..."
     apt update && apt full-upgrade -y
