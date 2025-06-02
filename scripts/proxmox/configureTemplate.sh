@@ -82,6 +82,10 @@ else
     exit 1
 fi
 
+# Enabling cloud-init
+echo "enabling cloud-init..."
+systemctl enable cloud-init cloud-init-local cloud-config cloud-final
+
 # Clean up cloud-init data
 echo "Cleaning cloud-init cache..."
 cloud-init clean --logs
