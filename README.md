@@ -4,6 +4,7 @@ This is a homelab project I spun up to get familiar with:
 - Building familiarity with IaC tools like Terraform and Ansible.
 - Building familiarity with containerization practices, Docker, and Kubernetes.
 - Building familiarity with GitHub, git, and CI/CD. 
+- Building familiarity with general DevOps and SRE best practices. 
 ## Phase 1 - Initial Lab Setup (Completed 5/25/2025)
 - Install Proxmox on Mini-PC: Completed
 - Configure Mini-PC and Proxmox to use built in Wi-Fi 6 Card: Completed
