@@ -1,5 +1,5 @@
 resource "proxmox_vm_qemu" "debian_vm" {
-  count = 3
+  count = 1
   name        = "debian-test-${count.index +1}"
   target_node = "anorlondo"
 
@@ -40,7 +40,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
 }
 
 resource "proxmox_vm_qemu" "alma_vm" {
-  count = 3
+  count = 1
   name        = "alma-test-${count.index +1}"
   target_node = "anorlondo"
 
@@ -81,7 +81,7 @@ resource "proxmox_vm_qemu" "alma_vm" {
 }
 
 resource "proxmox_vm_qemu" "ubuntu_vm" {
-  count = 3
+  count = 1
   name        = "ubuntu-test-${count.index +1}"
   target_node = "anorlondo"
 
