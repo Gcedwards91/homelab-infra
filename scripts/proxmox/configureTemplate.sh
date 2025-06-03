@@ -71,7 +71,7 @@ if [[ "$ID_LIKE" == *"rhel"* || "$ID" == "almalinux" ]]; then
     echo ">>> Using dnf..."
     dnf update -y
     dnf install -y dracut-config-generic dracut-config-rescue lvm2 qemu-guest-agent sudo vim curl wget net-tools openssh-server cloud-init
-    echo 'add_drivers+=" virtio_pci virtio_scsi virtio_blk virtio_net "' > /etc/dracut.conf.d/virtio.conf
+    dracut -f --add-drivers "virtio_pci virtio_blk virtio_scsi virtio_net" --add "lvm dm multipath qemu" --hostonly /boot/initramfs-$(uname -r).img $(uname -r)
     #dracut -f --regenerate-all
     systemctl enable --now qemu-guest-agent
     usermod -aG wheel iacadmin
