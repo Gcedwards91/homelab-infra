@@ -74,6 +74,7 @@ if [[ "$ID_LIKE" == *"rhel"* || "$ID" == "almalinux" ]]; then
     dracut -f --add-drivers "virtio_pci virtio_blk virtio_scsi virtio_net" --add "lvm dm multipath qemu" --hostonly /boot/initramfs-$(uname -r).img $(uname -r)
     #dracut -f --regenerate-all
     systemctl enable --now qemu-guest-agent
+    systemctl enable lvm2-monitor
     usermod -aG wheel iacadmin
 elif [[ "$ID_LIKE" == *"debian"* || "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
     echo ">>> Using apt..."
