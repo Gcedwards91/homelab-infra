@@ -113,5 +113,7 @@ dd if=/dev/zero of=/zerofile bs=1M status=progress || true
 rm -f /zerofile
 
 # Final wipe of bash history and exit
+lsinitrd /boot/initramfs-$(uname -r).img | grep lvm
+lsinitrd /boot/initramfs-$(uname -r).img | grep virtio
 history -c
 echo "--- Template Configuration Complete ---"
