@@ -108,11 +108,11 @@ resource "proxmox_vm_qemu" "alma_db_01" {
   hostname        = "alma-db-01"
 
   cpu {
-    cores   = 2
+    cores   = 4
     sockets = 1
   }
 
-  memory      = 2048
+  memory      = 8192
 
   network {
     id = 0
