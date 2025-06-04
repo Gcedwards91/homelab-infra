@@ -23,8 +23,8 @@ This is a homelab project I spun up to get familiar with:
     - dnsmasq was installed and configured to serve DHCP leases and internal DNS resoltution on vmbr0, allowing VMS to be accessed byu Fully Qualified Domain Names (FQDN).
     - A static route was added at my desktop to ensure any traffic to the X.X.100.0/24 subnet would be routed through the Proxmox host and to the VMs.
 - To enable internal hostname resolution across the lab, and with my workstation, the desktop client was confgigured with the X.X.100.1 IP as part of its DNS, ensuring the homelab's domain lookups resolve through dnsmasq.
-- <b>Tools & Software used:</b> <i>Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.</i>
-## Phase 2 - Get Hands Dirty (5/27/2025 - 6/4/2025)
+- <b>Tools & Software used:</b> <i>VSCode, Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.</i>
+## Phase 2 - Get Hands Dirty (Completed 6/4/2025)
 - Deploy Virtual Machines using Terraform: <b>Completed</b>
 - Automated VM Template Configuration via bash: <b>Completed</b>
 - Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash: <b>Completed</b>
@@ -32,6 +32,15 @@ This is a homelab project I spun up to get familiar with:
 - Deploy Varied Virtual Machines using Terraform: <b>Completed</b>
 - Configure Virtual Machines using Ansible: <b>Completed</b>
 - Write LAMP Stack Terrfaorm and Ansible Playbooks: <b>Completed</b>
+### Lessons Learned - Phase 2 (5/27/2025 - 6/4/2025)
+- The bulk of the effort in this phase was getting good clean templates to deploy from with Terraform and Ansible. Leveraging cloud-init to enable grabbing a DHCP address from dnsmasq solved issues encountered with Ubuntu. AlmaLinux dropped into an emergency dracut shell because it could not find a bootable device. This came down to Terraform defaulting to LSI storage controllers when the VMs were built with VirtIO SCSI single storage controllers. 
+- Getting Terraform working with the Telmate provider took some doing. Intiially, the deployment was being done with 2.9.14. This ran into a showstopper bug, however, which caused me to divert to a different provider. I attempted to pull down the GH project by hand and build out the provider using GO. This was not overly successful. Eventually, as a Hail Mary attempt, we decided to use 3.0.1-rc9. The showstopper bug was not present, allowing me to continue with the project. I was facing the idea of having to deploy something other than Proxmox and starting over. 
+- Having OS config scripts to prime a newly created VM to become a template reduced the overall time to completion when it came to testing templates. 
+- Having a VM config script on the Proxmox side to enable the qemu agent as well as a cloud-init drive also cut down on testing. 
+- K.I.S.S. - The AlmaLinux issue mentioned above, when Terraform was defaulting to LSI storage controllers rather than VirtIO SCSI single, I went into the weeds instead of comparing like for like. Debian and Ubuntu are far older OSs and so they handle LSI storage controllers more gracefully than AlmaLinux. I was, instead, exploring regenerating everything with dracut and even recompiling the kernel. Keep it simple. Use qm config, compare working to non working. You may find some inconsistencies that do not require overly technical solutions to fix.
+- Terraform is, in concept, and at its most basic, simple. Ansible is even more so. That said, they can spiral into complexity rather quickly.
+- Default cloud-init behavior seems to differ among distros. 
+<b>Tools & Software used:</b> <i>Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
 ## Phase 3 - Containerize
 - Deploy a master host for control node, SIEM node, and monitoring node: <b>Not begun</b>
 - Containerize Terraform: <b>Not begun</b>
