@@ -1,0 +1,12 @@
+- name: Web server setup
+  hosts: web
+  become: yes
+  roles:
+    - apache
+    - php
+
+- name: Database server setup
+  hosts: db
+  become: yes
+  roles:
+    - mysql
