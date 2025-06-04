@@ -6,7 +6,7 @@ resource "proxmox_vm_qemu" "alma_web_01" {
   clone       = "debian-template"
   full_clone  = true
   scsihw = "virtio-scsi-single"
-  hostname        = "alma-web-01"
+  #hostname        = "alma-web-01"
 
   cpu {
     cores   = 2
@@ -56,7 +56,7 @@ resource "proxmox_vm_qemu" "alma_web_02" {
   clone       = "debian-template"
   full_clone  = true
   scsihw = "virtio-scsi-single"
-  hostname        = "alma-web-02"
+  #hostname        = "alma-web-02"
 
   cpu {
     cores   = 2
@@ -105,7 +105,7 @@ resource "proxmox_vm_qemu" "alma_db_01" {
   clone       = "debian-template"
   full_clone  = true
   scsihw = "virtio-scsi-single"
-  hostname        = "alma-db-01"
+  #hostname        = "alma-db-01"
 
   cpu {
     cores   = 4
