@@ -40,7 +40,7 @@ This is a homelab project I spun up to get familiar with:
 - K.I.S.S. - The AlmaLinux issue mentioned above, when Terraform was defaulting to LSI storage controllers rather than VirtIO SCSI single, I went into the weeds instead of comparing like for like. Debian and Ubuntu are far older OSs and so they handle LSI storage controllers more gracefully than AlmaLinux. I was, instead, exploring regenerating everything with dracut and even recompiling the kernel. Keep it simple. Use qm config, compare working to non working. You may find some inconsistencies that do not require overly technical solutions to fix.
 - Terraform is, in concept, and at its most basic, simple. Ansible is even more so. That said, they can spiral into complexity rather quickly.
 - Default cloud-init behavior seems to differ among distros. 
-<b>Tools & Software used:</b> <i>Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
+- <b>Tools & Software used:</b> <i>Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
 ## Phase 3 - Containerize
 - Deploy a master host for control node, SIEM node, and monitoring node: <b>Not begun</b>
 - Containerize Terraform: <b>Not begun</b>
