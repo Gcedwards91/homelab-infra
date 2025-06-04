@@ -46,6 +46,7 @@ resource "proxmox_vm_qemu" "alma_vm" {
 
   clone       = "almalinux-template"
   full_clone  = true
+  scsihw = "virtio-scsi-single"
 
   cpu {
     cores   = 2
@@ -67,7 +68,6 @@ resource "proxmox_vm_qemu" "alma_vm" {
     size      = "32G"
     storage   = "local-lvm"
     #format    = "qcow2"
-    scsihw = "virtio-scsi-single"
   }
 
   #bootdisk = "scsi0"
