@@ -31,7 +31,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
 
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
-
+  ide3    = "local-lvm:cloudinit"
   os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
@@ -77,6 +77,9 @@ resource "proxmox_vm_qemu" "alma_vm" {
   bios = "ovmf"
   machine = "q35"
 
+  # Explicit cloud-init drive attachment
+  ide3    = "local-lvm:cloudinit"
+
   os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
@@ -117,7 +120,7 @@ resource "proxmox_vm_qemu" "ubuntu_vm" {
 
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
-
+  ide3    = "local-lvm:cloudinit"
   os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
