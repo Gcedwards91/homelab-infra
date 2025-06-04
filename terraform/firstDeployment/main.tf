@@ -67,13 +67,14 @@ resource "proxmox_vm_qemu" "alma_vm" {
     size      = "32G"
     storage   = "local-lvm"
     #format    = "qcow2"
+    scsihw = "virtio-scsi-single"
   }
 
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
 
   bios = "ovmf"
-  #machine = "q35"
+  machine = "q35"
 
   os_type = "cloud-init"
 
