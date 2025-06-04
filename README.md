@@ -24,14 +24,14 @@ This is a homelab project I spun up to get familiar with:
     - A static route was added at my desktop to ensure any traffic to the X.X.100.0/24 subnet would be routed through the Proxmox host and to the VMs.
 - To enable internal hostname resolution across the lab, and with my workstation, the desktop client was confgigured with the X.X.100.1 IP as part of its DNS, ensuring the homelab's domain lookups resolve through dnsmasq.
 - <b>Tools & Software used:</b> <i>Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible, CMD, PowerShell, Bash.</i>
-## Phase 2 - Get Hands Dirty (5/27/2025 - TBD)
+## Phase 2 - Get Hands Dirty (5/27/2025 - 6/4/2025)
 - Deploy Virtual Machines using Terraform: <b>Completed</b>
 - Automated VM Template Configuration via bash: <b>Completed</b>
 - Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash: <b>Completed</b>
 - Leverage cloud-init within Terraform to assign temporary hostnames for Ansible: <b>Completed</b>
 - Deploy Varied Virtual Machines using Terraform: <b>Completed</b>
-- Configure Virtual Machines using Ansible: <b>Not begun</b>
-- Write LAMP Stack Terrfaorm and Ansible Playbooks: <b>Not begun</b>
+- Configure Virtual Machines using Ansible: <b>Completed</b>
+- Write LAMP Stack Terrfaorm and Ansible Playbooks: <b>Completed</b>
 ## Phase 3 - Containerize
 - Deploy a master host for control node, SIEM node, and monitoring node: <b>Not begun</b>
 - Containerize Terraform: <b>Not begun</b>
