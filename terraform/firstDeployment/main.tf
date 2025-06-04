@@ -31,7 +31,13 @@ resource "proxmox_vm_qemu" "debian_vm" {
 
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
-  ide3    = "local-lvm:cloudinit"
+  # Cloud-init disk
+  disk {
+    type      = "cloudinit"
+    slot      = "ide3"
+    storage   = "local-lvm"
+    size      = "4G"
+  }
   os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
@@ -78,7 +84,13 @@ resource "proxmox_vm_qemu" "alma_vm" {
   machine = "q35"
 
   # Explicit cloud-init drive attachment
-  ide3    = "local-lvm:cloudinit"
+   # Cloud-init disk
+  disk {
+    type      = "cloudinit"
+    slot      = "ide3"
+    storage   = "local-lvm"
+    size      = "4G"
+  }
 
   os_type = "cloud-init"
 
@@ -120,7 +132,13 @@ resource "proxmox_vm_qemu" "ubuntu_vm" {
 
   #bootdisk = "scsi0"
  #  boot = "order=scsi0"
-  ide3    = "local-lvm:cloudinit"
+  # Cloud-init disk
+  disk {
+    type      = "cloudinit"
+    slot      = "ide3"
+    storage   = "local-lvm"
+    size      = "4G"
+  }
   os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
