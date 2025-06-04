@@ -6,6 +6,8 @@ resource "proxmox_vm_qemu" "alma_web_01" {
   clone       = "debian-template"
   full_clone  = true
   scsihw = "virtio-scsi-single"
+  cicustom = "user=local:snippets/alma-web-01-user.yaml"
+
   #hostname        = "alma-web-01"
 
   cpu {
@@ -56,6 +58,7 @@ resource "proxmox_vm_qemu" "alma_web_02" {
   clone       = "debian-template"
   full_clone  = true
   scsihw = "virtio-scsi-single"
+  cicustom = "user=local:snippets/alma-web-02-user.yaml"
   #hostname        = "alma-web-02"
 
   cpu {
@@ -105,6 +108,7 @@ resource "proxmox_vm_qemu" "alma_db_01" {
   clone       = "debian-template"
   full_clone  = true
   scsihw = "virtio-scsi-single"
+  cicustom = "user=local:snippets/alma-db-01-user.yaml"
   #hostname        = "alma-db-01"
 
   cpu {
