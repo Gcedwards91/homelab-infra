@@ -114,7 +114,6 @@ dd if=/dev/zero of=/zerofile bs=1M status=progress || true
 rm -f /zerofile
 
 # Final wipe of bash history and exit
-lsinitrd /boot/initramfs-$(uname -r).img | grep lvm
-lsinitrd /boot/initramfs-$(uname -r).img | grep virtio
+lsinitrd /boot/initramfs-$(uname -r).img | grep -E "virtio|lvm|dm|sd_mod|sr_mod"
 history -c
 echo "--- Template Configuration Complete ---"
