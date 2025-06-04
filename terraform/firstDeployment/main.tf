@@ -73,8 +73,8 @@ resource "proxmox_vm_qemu" "alma_vm" {
  #  boot = "order=scsi0"
 
   bios = "ovmf"
-  machine = "q35"
-  
+  #machine = "q35"
+
   os_type = "cloud-init"
 
   ipconfig0 = "ip=dhcp"
