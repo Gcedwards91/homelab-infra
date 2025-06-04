@@ -28,8 +28,8 @@ This is a homelab project I spun up to get familiar with:
 - Deploy Virtual Machines using Terraform: <b>Completed</b>
 - Automated VM Template Configuration via bash: <b>Completed</b>
 - Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash: <b>Completed</b>
-- Leverage cloud-init within Terraform to assign temporary hostnames for Ansible: <b>Not begun</b>
-- Deploy Varied Virtual Machines using Terraform: <b>Not begun</b>
+- Leverage cloud-init within Terraform to assign temporary hostnames for Ansible: <b>Completed</b>
+- Deploy Varied Virtual Machines using Terraform: <b>Completed</b>
 - Configure Virtual Machines using Ansible: <b>Not begun</b>
 - Write LAMP Stack Terrfaorm and Ansible Playbooks: <b>Not begun</b>
 ## Phase 3 - Containerize
