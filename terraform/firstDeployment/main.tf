@@ -5,6 +5,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
 
   clone       = "debian-template"
   full_clone  = true
+  scsihw = "virtio-scsi-single"
 
   cpu {
     cores   = 2
@@ -91,7 +92,7 @@ resource "proxmox_vm_qemu" "ubuntu_vm" {
 
   clone       = "ubuntu-template"
   full_clone  = true
-
+  scsihw = "virtio-scsi-single"
   cpu {
     cores   = 2
     sockets = 1
