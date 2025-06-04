@@ -34,7 +34,7 @@ resource "proxmox_vm_qemu" "debian_vm" {
   # Cloud-init disk
   disk {
     type      = "cloudinit"
-    slot      = "ide3"
+    slot      = "ide2"
     storage   = "local-lvm"
     size      = "4G"
   }
@@ -87,7 +87,7 @@ resource "proxmox_vm_qemu" "alma_vm" {
    # Cloud-init disk
   disk {
     type      = "cloudinit"
-    slot      = "ide3"
+    slot      = "ide2"
     storage   = "local-lvm"
     size      = "4G"
   }
@@ -135,7 +135,7 @@ resource "proxmox_vm_qemu" "ubuntu_vm" {
   # Cloud-init disk
   disk {
     type      = "cloudinit"
-    slot      = "ide3"
+    slot      = "ide2"
     storage   = "local-lvm"
     size      = "4G"
   }
