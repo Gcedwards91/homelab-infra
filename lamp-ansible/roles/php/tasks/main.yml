@@ -15,7 +15,7 @@
     mode: '0644'
 
 - name: Deploy MariaDB test page
-  ansible.builtin.copy:
+  ansible.builtin.template:
     src: dbtest.php.j2
     dest: /var/www/html/dbtest.php
     owner: apache
