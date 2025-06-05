@@ -1,3 +1,10 @@
+- name: Allow MySQL traffic through firewalld
+  ansible.builtin.firewalld:
+    service: mysql
+    permanent: true
+    state: enabled
+    immediate: yes
+
 - name: Install MariaDB
   ansible.builtin.yum:
     name: mariadb-server
