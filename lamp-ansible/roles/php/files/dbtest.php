@@ -1,8 +1,8 @@
 <?php
 $servername = "alma-db-01";
-$username = "root";
-$password = "";
-$dbname = "mysql";
+$username = "webuser";
+$password = "webpass";
+$dbname = "appdb";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

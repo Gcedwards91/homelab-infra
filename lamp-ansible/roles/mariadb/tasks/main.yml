@@ -15,3 +15,17 @@
     name: mariadb
     state: started
     enabled: yes
+
+- name: Create app database
+  community.mysql.mysql_db:
+    name: appdb
+    state: present
+
+- name: Create webuser for app
+  community.mysql.mysql_user:
+    name: webuser
+    password: webpass
+    host: "%"
+    priv: "appdb.*:ALL"
+    state: present
+
