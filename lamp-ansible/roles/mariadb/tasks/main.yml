@@ -21,11 +21,16 @@
     name: appdb
     state: present
 
+- name: Create app database
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: present
+
 - name: Create webuser for app
   community.mysql.mysql_user:
-    name: webuser
-    password: webpass
+    name: "{{ db_user }}"
+    password: "{{ db_pass }}"
     host: "%"
-    priv: "appdb.*:ALL"
+    priv: "{{ db_name }}.*:ALL"
     state: present
 

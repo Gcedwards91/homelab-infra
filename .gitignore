@@ -4,3 +4,7 @@
 *.tfstate*
 .terraform/
 *.tfvars
+
+# Ansible secrets
+group_vars/*/secrets.yml
+.vault_pass.txt

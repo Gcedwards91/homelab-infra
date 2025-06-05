@@ -1,8 +1,8 @@
 <?php
 $servername = "alma-db-01";
-$username = "webuser";
-$password = "webpass";
-$dbname = "appdb";
+$username = "{{ db_user }}";
+$password = "{{ db_pass }}";
+$dbname = "{{ db_name }}";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
