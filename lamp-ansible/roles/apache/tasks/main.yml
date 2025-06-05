@@ -8,3 +8,17 @@
     name: httpd
     state: started
     enabled: yes
+
+- name: Allow HTTP traffic through firewalld
+  ansible.posix.firewalld:
+    service: http
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Allow HTTPS traffic through firewalld
+  ansible.posix.firewalld:
+    service: https
+    permanent: true
+    state: enabled
+    immediate: true
