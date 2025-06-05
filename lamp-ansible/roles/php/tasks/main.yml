@@ -6,6 +6,14 @@
       - php-fpm
     state: present
 
+- name: Deploy index.php
+  ansible.builtin.copy:
+    src: index.php
+    dest: /var/www/html/index.php
+    owner: root
+    group: root
+    mode: '0644'
+
 - name: Restart Apache to load PHP
   ansible.builtin.service:
     name: httpd
