@@ -15,12 +15,13 @@
     mode: '0644'
 
 - name: Deploy MariaDB test page
-  ansible.builtin.template:
+  ansible.builtin.copy:
     src: dbtest.php
     dest: /var/www/html/dbtest.php
     owner: apache
     group: apache
     mode: '0644'
+
 
 - name: Restart Apache to load PHP
   ansible.builtin.service:
