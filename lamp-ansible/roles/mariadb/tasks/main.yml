@@ -1,3 +1,10 @@
+- name: Ensure PyMySQL is installed for Ansible MySQL support
+  become: true
+  ansible.builtin.yum:
+    name: python3-PyMySQL
+    state: present
+
+
 - name: Allow MySQL traffic through firewalld
   ansible.builtin.firewalld:
     service: mysql
