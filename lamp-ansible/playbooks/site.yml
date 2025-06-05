@@ -8,5 +8,7 @@
 - name: Database server setup
   hosts: db
   become: yes
+  vars_files:
+    - ../group_vars/dbservers/secrets.yml
   roles:
     - mariadb
