@@ -1,6 +1,8 @@
 - name: Web server setup
   hosts: web
   become: yes
+  vars_files:
+    - ../group_vars/dbservers/main.yml
   roles:
     - apache
     - php
@@ -9,6 +11,6 @@
   hosts: db
   become: yes
   vars_files:
-    - ../group_vars/dbservers/secrets.yml
+    - ../group_vars/dbservers/main.yml
   roles:
     - mariadb
