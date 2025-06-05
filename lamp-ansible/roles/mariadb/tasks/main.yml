@@ -4,7 +4,6 @@
     name: python3-PyMySQL
     state: present
 
-
 - name: Allow MySQL traffic through firewalld
   ansible.builtin.firewalld:
     service: mysql
@@ -25,13 +24,11 @@
 
 - name: Create app database
   community.mysql.mysql_db:
-    name: appdb
+    name: app_db
     state: present
-
-- name: Create app database
-  community.mysql.mysql_db:
-    name: "{{ db_name }}"
-    state: present
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
+    login_host: localhost
 
 - name: Create webuser for app
   community.mysql.mysql_user:
