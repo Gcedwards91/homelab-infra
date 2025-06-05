@@ -26,8 +26,8 @@
   community.mysql.mysql_db:
     name: "{{ db_name }}"
     state: present
-    login_user: root
-    login_password: ""  
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
     login_host: localhost
 
 - name: Create webuser for app as root
@@ -37,6 +37,7 @@
     host: "%"
     priv: "{{ db_name }}.*:ALL"
     state: present
-    login_user: root
-    login_password: ""
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
     login_host: localhost
+
