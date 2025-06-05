@@ -1,9 +1,9 @@
-- name: Install MySQL server
+- name: Install MariaDB
   ansible.builtin.yum:
     name: mariadb-server
     state: present
 
-- name: Start and enable MySQL
+- name: Start and enable MariaDB
   ansible.builtin.service:
     name: mariadb
     state: started
