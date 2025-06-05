@@ -22,19 +22,21 @@
     state: started
     enabled: yes
 
-- name: Create app database
+- name: Create app database as root
   community.mysql.mysql_db:
-    name: app_db
+    name: "{{ db_name }}"
     state: present
-    login_user: "{{ mysql_user }}"
-    login_password: "{{ mysql_password }}"
+    login_user: root
+    login_password: ""  
     login_host: localhost
 
-- name: Create webuser for app
+- name: Create webuser for app as root
   community.mysql.mysql_user:
     name: "{{ db_user }}"
     password: "{{ db_pass }}"
     host: "%"
     priv: "{{ db_name }}.*:ALL"
     state: present
-
+    login_user: root
+    login_password: ""
+    login_host: localhost
