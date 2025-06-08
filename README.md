@@ -42,14 +42,14 @@ This is a homelab project I spun up to get familiar with:
 - Default cloud-init behavior seems to differ among distros. 
 - <b>Tools & Software used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
 ## Phase 3 - Containerize & Build Control Tower
-- Deploy a master host for control node, SIEM node, and monitoring node: <b>Not begun</b>
-- Containerize Terraform: <b>Not begun</b>
-- Containerize Ansible: <b>Not begun</b>
-- Containerize Wazuh: <b>Not begun</b>
-- Containerize Prometheus: <b>Not begun</b>
-- Containerize Grafana: <b>Not begun</b>
-- Deploy VMs from Containerized master host: <b>Not begun</b>
-- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: <b>Not begun</b>
+- Deploy a master host for control node, SIEM node, and monitoring node: <b>Completed</b>
+- Containerize Terraform: <b>Comnpleted - ruled unnecessary</b>
+- Containerize Ansible: <b>Completed - ruled unnecessary</b>
+- Containerize Wazuh: <b>In Progress</b>
+- Containerize Prometheus: <b>Completed</b>
+- Containerize Grafana: <b>Completed</b>
+- Deploy VMs from Containerized master host: <b>Completed</b>
+- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: <b>In Progress</b>
 ## Phase 4 - Build CI/CD Pipeline
 - Research common CI/CD practices: <b>Not begun</b>
 - Implement a CI/CD pipeline for Phase 5: <b>Not begun</b>
