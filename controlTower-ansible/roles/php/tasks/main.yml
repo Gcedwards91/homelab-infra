@@ -1,0 +1,29 @@
+- name: Install PHP
+  ansible.builtin.yum:
+    name:
+      - php
+      - php-mysqlnd
+      - php-fpm
+    state: present
+
+- name: Deploy index.php
+  ansible.builtin.copy:
+    src: index.php
+    dest: /var/www/html/index.php
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Deploy MariaDB test page
+  ansible.builtin.template:
+    src: dbtest.php.j2
+    dest: /var/www/html/dbtest.php
+    owner: apache
+    group: apache
+    mode: '0644'
+
+
+- name: Restart Apache to load PHP
+  ansible.builtin.service:
+    name: httpd
+    state: restarted
