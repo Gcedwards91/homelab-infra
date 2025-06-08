@@ -41,15 +41,21 @@ This is a homelab project I spun up to get familiar with:
 - Terraform is, in concept, and at its most basic, simple. Ansible is even more so. That said, they can spiral into complexity rather quickly.
 - Default cloud-init behavior seems to differ among distros. 
 - <b>Tools & Software used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
-## Phase 3 - Containerize & Build Control Tower
+## Phase 3 - Containerize & Build Control Tower (Completed 6/8/2025)
 - Deploy a master host for control node, SIEM node, and monitoring node: <b>Completed</b>
 - Containerize Terraform: <b>Comnpleted - ruled unnecessary</b>
 - Containerize Ansible: <b>Completed - ruled unnecessary</b>
-- Containerize Wazuh: <b>In Progress</b>
+- Containerize Wazuh: <b>Completed</b>
 - Containerize Prometheus: <b>Completed</b>
 - Containerize Grafana: <b>Completed</b>
 - Deploy VMs from Containerized master host: <b>Completed</b>
-- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: <b>In Progress</b>
+- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: <b>Completed</b>
+### Lessons Learned - Phase 3 (6/8/2025 - 6/8/2025)
+- This was surprisingly simple in concept and execution. Docker is, in its simplest form, very user friendly. Very, very user friendly.
+- Because this task was simple does not mean Docker in itself is simple, I am lucky in that everything I used already had a supported Image. 
+- Containerizing Terraform and Ansible seems like overkill. Likely useful to do so for strict version control, in the event that a deployment relies upon a very specific version of Terraform, the provider in use (since this changes based on the hypervisor/environment), or the version of Ansible. 
+- I am exploring making Phase 5, Phase 6 and then creating a new Phase 5 where I build my own docker images for Wazuh, Prometheus, Grafana, and maybe a few other pieces of software.
+- <b>Tools & Software used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, Docker.</i>
 ## Phase 4 - Build CI/CD Pipeline
 - Research common CI/CD practices: <b>Not begun</b>
 - Implement a CI/CD pipeline for Phase 5: <b>Not begun</b>
