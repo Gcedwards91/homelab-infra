@@ -1,0 +1,43 @@
+- name: Ensure PyMySQL is installed for Ansible MySQL support
+  become: true
+  ansible.builtin.yum:
+    name: python3-PyMySQL
+    state: present
+
+- name: Allow MySQL traffic through firewalld
+  ansible.builtin.firewalld:
+    service: mysql
+    permanent: true
+    state: enabled
+    immediate: yes
+
+- name: Install MariaDB
+  ansible.builtin.yum:
+    name: mariadb-server
+    state: present
+
+- name: Start and enable MariaDB
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Create app database as root
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
+    login_host: localhost
+
+- name: Create webuser for app as root
+  community.mysql.mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_pass }}"
+    host: "%"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
+    login_host: localhost
+

@@ -41,7 +41,7 @@ This is a homelab project I spun up to get familiar with:
 - Terraform is, in concept, and at its most basic, simple. Ansible is even more so. That said, they can spiral into complexity rather quickly.
 - Default cloud-init behavior seems to differ among distros. 
 - <b>Tools & Software used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
-## Phase 3 - Containerize
+## Phase 3 - Containerize & Build Control Tower
 - Deploy a master host for control node, SIEM node, and monitoring node: <b>Not begun</b>
 - Containerize Terraform: <b>Not begun</b>
 - Containerize Ansible: <b>Not begun</b>
