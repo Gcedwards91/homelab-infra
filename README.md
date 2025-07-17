@@ -56,7 +56,8 @@ This is a homelab project I spun up to get familiar with:
 - Containerizing Terraform and Ansible seems like overkill. Likely useful to do so for strict version control, in the event that a deployment relies upon a very specific version of Terraform, the provider in use (since this changes based on the hypervisor/environment), or the version of Ansible. 
 - I am exploring making Phase 5, Phase 6 and then creating a new Phase 5 where I build my own docker images for Wazuh, Prometheus, Grafana, and maybe a few other pieces of software.
 - <b>Tools & Software used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, Docker.</i>
-## Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD
+## Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD (7/16/2025 - TBD)
+I am back after a break enjoying Elden Ring Nightreign.
 - Build basic Weather App using Python/Flask: <b>Completed</b>
 - Deploy and test Weather App locally: <b>Completed</b>
 - Containerize Weather App w/ Docker: <b>Not begun</b>
