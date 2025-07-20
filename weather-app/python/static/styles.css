@@ -80,3 +80,18 @@ li {
     margin-bottom: 0.5rem;
     font-size: 1rem;
 }
+
+
+.note {
+    margin-bottom: 1em;
+    background-color: #f0f4ff;
+    padding: 10px;
+    border-left: 4px solid #007BFF;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.note a {
+    color: #007BFF;
+    text-decoration: underline;
+}
