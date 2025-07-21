@@ -1,0 +1,97 @@
+body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    padding: 2rem;
+    margin-top: 4rem;
+    width: 100%;
+    max-width: 500px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+label {
+    font-weight: 600;
+    color: #555;
+}
+
+input[type="text"],
+input[type="password"] {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+button {
+    padding: 0.75rem;
+    border: none;
+    background: #0058e6;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0044b3;
+}
+
+#error {
+    color: red;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+#weather-display {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+
+.note {
+    margin-bottom: 1em;
+    background-color: #f0f4ff;
+    padding: 10px;
+    border-left: 4px solid #007BFF;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.note a {
+    color: #007BFF;
+    text-decoration: underline;
+}
