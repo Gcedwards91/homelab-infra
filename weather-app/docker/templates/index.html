@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BYOWeather</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+</head>
+<body>
+    <div class="container">
+        <h1>Weather Finder</h1>
+
+            <p class="note">
+                <strong>Note:</strong> This app requires you to bring your own 
+                <a href="https://openweathermap.org/appid" target="_blank" rel="noopener noreferrer">OpenWeatherMap API key</a>. 
+                You can register for free and generate one from their website.
+            </p>
+
+
+        <form id="weather-form">
+            <label for="mode">Search By:</label>
+            <select id="mode" name="mode">
+                <option value="city" selected>City</option>
+                <option value="zip">ZIP Code</option>
+            </select>
+
+            <label for="location">City or ZIP Code:</label>
+            <input type="text" id="location" name="location" placeholder="e.g., Atlanta or 30301" required>
+
+            <label for="api_key">API Key:</label>
+            <input type="password" id="api_key" name="api_key" placeholder="Your OpenWeatherMap API Key" required>
+
+            <button type="submit">Get Weather</button>
+        </form>
+
+
+        <div id="error"></div>
+
+        <div id="weather-display"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById("weather-form");
+        const display = document.getElementById("weather-display");
+        const errorDiv = document.getElementById("error");
+
+        form.addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const location = document.getElementById("location").value.trim();
+            const api_key = document.getElementById("api_key").value.trim();
+            const mode = document.getElementById("mode").value;
+
+            // Clear previous results
+            display.innerHTML = "";
+            errorDiv.textContent = "";
+
+            try {
+                const response = await fetch("/weather", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ location, api_key, mode })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    errorDiv.textContent = data.error;
+                } else {
+                    display.innerHTML = `
+                        <h2>Weather in ${data.city}</h2>
+                        <ul>
+                            <li>Temperature: ${data.temp}°F</li>
+                            <li>Feels like: ${data.feels_like}°F</li>
+                            <li>Condition: ${data.description}</li>
+                            <li>Humidity: ${data.humidity}%</li>
+                            <li>Wind Speed: ${data.wind_speed} mph</li>
+                        </ul>
+                    `;
+                }
+            } catch (err) {
+                errorDiv.textContent = "Network error: " + err.message;
+            }
+        });
+    </script>
+
+</body>
+</html>
