@@ -60,7 +60,7 @@ This is a homelab project I spun up to get familiar with:
 I am back after a break enjoying Elden Ring Nightreign.
 - Build basic Weather App using Python/Flask: <b>Completed</b>
 - Deploy and test Weather App locally: <b>Completed</b>
-- Containerize Weather App w/ Docker: <b>Not begun</b>
+- Containerize Weather App w/ Docker: <b>Completed</b>
 - Implement further containerization with Kubernetes: <b>Not begun</b>
 - Research common CI/CD practices: <b>Not begun</b>
 - Implement a CI/CD pipeline for Weather App & Phase 5: <b>Not begun</b>
