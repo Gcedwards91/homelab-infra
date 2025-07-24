@@ -1,3 +1,4 @@
+---
 name: CI - Format, Lint, and Test
 
 on:

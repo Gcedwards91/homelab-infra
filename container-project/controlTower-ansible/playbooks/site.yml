@@ -1,3 +1,4 @@
+---
 - name: Web server setup
   hosts: web
   become: yes
