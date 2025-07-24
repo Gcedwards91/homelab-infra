@@ -1,0 +1,47 @@
+name: Format and Lint Check
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    # PYTHON - Black
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install Black
+      run: pip install black
+    - name: Run Black
+      run: black --check .
+
+    # WEB - Prettier (HTML, CSS, JS, JSON, Markdown, YAML)
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install Prettier
+      run: npm install --global prettier
+    - name: Run Prettier
+      run: prettier --check "**/*.{js,json,css,html,md,yml,yaml}"
+
+    # DOCKER - Hadolint
+    - name: Run Hadolint
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: '**/Dockerfile'
+
+    # YAML - Yamllint
+    - name: Install yamllint
+      run: sudo apt-get install -y yamllint
+    - name: Run yamllint
+      run: yamllint .
