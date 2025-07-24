@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential=12.9 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
