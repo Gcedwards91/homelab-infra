@@ -28,8 +28,14 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
         labels:
-         node: 'metric'
+          node: "metric"
 
-  - job_name: 'node_exporters'
+  - job_name: "node_exporters"
     static_configs:
-      - targets: ['localhost:9100','veritas.dreadnought.lab:9100', 'highcommand.dreadnought.lab:9100','anorlondo:9100']
+      - targets:
+          [
+            "localhost:9100",
+            "veritas.dreadnought.lab:9100",
+            "highcommand.dreadnought.lab:9100",
+            "anorlondo:9100",
+          ]

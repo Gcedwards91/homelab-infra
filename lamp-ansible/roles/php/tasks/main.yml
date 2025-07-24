@@ -12,7 +12,7 @@
     dest: /var/www/html/index.php
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: Deploy MariaDB test page
   ansible.builtin.template:
@@ -20,8 +20,7 @@
     dest: /var/www/html/dbtest.php
     owner: apache
     group: apache
-    mode: '0644'
-
+    mode: "0644"
 
 - name: Restart Apache to load PHP
   ansible.builtin.service:
