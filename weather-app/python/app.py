@@ -5,9 +5,11 @@ from flask import send_from_directory
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/weather", methods=["POST"])
 def weather():
@@ -22,9 +24,15 @@ def weather():
     weather_data = get_weather(location, api_key, mode)
     return jsonify(weather_data)
 
-@app.route('/favicon.ico')
+
+@app.route("/favicon.ico")
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
