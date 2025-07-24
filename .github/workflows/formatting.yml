@@ -38,7 +38,7 @@ jobs:
       - name: Run Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: "**/Dockerfile"
+          dockerfile: "weather-app/docker/Dockerfile"
 
       # YAML - Yamllint
       - name: Install yamllint
