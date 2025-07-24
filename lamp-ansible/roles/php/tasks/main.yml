@@ -1,3 +1,4 @@
+---
 - name: Install PHP
   ansible.builtin.yum:
     name:
