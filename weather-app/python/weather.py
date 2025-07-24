@@ -8,7 +8,11 @@ def get_weather(location, api_key, mode="city"):
     base_url = "https://api.openweathermap.org/data/2.5/weather"
 
     if mode == "zip":
-        params = {"zip": f"{location},us", "appid": api_key, "units": "imperial"}
+        params = {
+            "zip": f"{location},us",
+            "appid": api_key,
+            "units": "imperial",
+        }  # noqa: E501
     else:
         params = {"q": location, "appid": api_key, "units": "imperial"}
 
