@@ -1,0 +1,73 @@
+---
+name: Security Linting
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --------------------------
+      # Python Security - Bandit
+      # --------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit (Python security scan)
+        run: bandit -r weather-app/python -ll
+
+      # --------------------------
+      # Dockerfile Security - Trivy
+      # --------------------------
+      - name: Run Trivy (Dockerfile vulnerability scan)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+
+      # --------------------------
+      # Shell Script Scan - ShellCheck
+      # --------------------------
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on all .sh scripts
+        run: |
+          find . -type f -name "*.sh" | xargs -r shellcheck
+
+      # --------------------------
+      # Secrets Detection - Gitleaks
+      # --------------------------
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_LICENSE_KEY: ${{ secrets.GITLEAKS_LICENSE_KEY || '' }}
+
+      # --------------------------
+      # Node.js Dependency Audit (Optional)
+      # --------------------------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies (if package.json exists)
+        run: |
+          if [ -f package.json ]; then npm install --ignore-scripts; fi
+
+      - name: Run npm audit (if package.json exists)
+        run: |
+          if [ -f package.json ]; then npm audit --audit-level=moderate || true; fi
