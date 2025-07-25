@@ -46,7 +46,7 @@ jobs:
 
       - name: Run ShellCheck on all .sh scripts
         run: |
-          find . -type f -name "*.sh" | xargs -r shellcheck
+          find . -type f -name "*.sh" | xargs -r shellcheck -x
 
       # --------------------------
       # Secrets Detection - Gitleaks
