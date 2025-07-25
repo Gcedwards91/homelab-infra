@@ -16,12 +16,12 @@ if ! command -v qm &> /dev/null; then
     exit 1
 fi
 
-read -p "Enter a comma-separated list of VMIDs to configure (e.g., 700,800,900): " VMIDS
+read -r -p "Enter a comma-separated list of VMIDs to configure (e.g., 700,800,900): " VMIDS
 VMIDS=$(echo "$VMIDS" | tr -d '[:space:]')  # Trim whitespace
 
 while true; do
     echo -e "\nThe following VMIDs will be prepped: $VMIDS"
-    read -p "Is this correct? (y/n): " yesno
+    read -r -p "Is this correct? (y/n): " yesno
     case $yesno in
         [Yy]* )
             echo "Starting template prep for: $VMIDS"
