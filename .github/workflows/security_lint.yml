@@ -70,4 +70,6 @@ jobs:
 
       - name: Run npm audit (if package.json exists)
         run: |
-          if [ -f package.json ]; then npm audit --audit-level=moderate || true; fi
+          if [ -f package.json ]; then 
+            npm audit --audit-level=moderate || true; 
+          fi

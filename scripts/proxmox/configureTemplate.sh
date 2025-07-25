@@ -64,6 +64,7 @@ timedatectl set-timezone UTC
 localectl set-locale LANG=en_US.UTF-8
 
 # Detect OS and install packages
+# shellcheck source=/etc/os-release
 source /etc/os-release
 echo ">>> Detected Distribution: $ID $VERSION_ID"
 
@@ -71,7 +72,7 @@ if [[ "$ID_LIKE" == *"rhel"* || "$ID" == "almalinux" ]]; then
     echo ">>> Using dnf..."
     dnf update -y
     dnf install -y dracut-config-generic dracut-config-rescue lvm2 qemu-guest-agent sudo vim curl wget net-tools openssh-server cloud-init
-    dracut -f --add-drivers "virtio_pci virtio_blk virtio_scsi virtio_net" --add "lvm dm multipath qemu" --hostonly /boot/initramfs-$(uname -r).img $(uname -r)
+    dracut -f --add-drivers "virtio_pci virtio_blk virtio_scsi virtio_net" --add "lvm dm multipath qemu" --hostonly "/boot/initramfs-$(uname -r).img" "$(uname -r)"
     #dracut -f --regenerate-all
     systemctl enable --now qemu-guest-agent
     systemctl enable lvm2-monitor
@@ -114,6 +115,6 @@ dd if=/dev/zero of=/zerofile bs=1M status=progress || true
 rm -f /zerofile
 
 # Final wipe of bash history and exit
-lsinitrd /boot/initramfs-$(uname -r).img | grep -E "virtio|lvm|dm|sd_mod|sr_mod"
+lsinitrd "/boot/initramfs-$(uname -r).img" | grep -E "virtio|lvm|dm|sd_mod|sr_mod"
 history -c
 echo "--- Template Configuration Complete ---"
