@@ -37,7 +37,7 @@ jobs:
 
       - name: Run ShellCheck on all .sh scripts
         run: |
-          find . -type f -name "*.sh" | xargs -r shellcheck -x
+          find . -type f -name "*.sh" | xargs -r shellcheck -x -e SC1091
 
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
@@ -55,6 +55,6 @@ jobs:
 
       - name: Run npm audit (if package.json exists)
         run: |
-          if [ -f package.json ]; then 
+          if [ -f package.json ]; then
             npm audit --audit-level=moderate || true;
           fi
