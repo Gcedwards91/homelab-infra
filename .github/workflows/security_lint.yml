@@ -1,7 +1,7 @@
 ---
 name: Security Linting
 
-on:
+"on":
   push:
     branches: [master]
   pull_request:
@@ -15,9 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --------------------------
-      # Python Security - Bandit
-      # --------------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -29,18 +26,12 @@ jobs:
       - name: Run Bandit (Python security scan)
         run: bandit -r weather-app/python -ll
 
-      # --------------------------
-      # Dockerfile Security - Trivy
-      # --------------------------
       - name: Run Trivy (Dockerfile vulnerability scan)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "config"
           scan-ref: "."
 
-      # --------------------------
-      # Shell Script Scan - ShellCheck
-      # --------------------------
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
@@ -48,17 +39,11 @@ jobs:
         run: |
           find . -type f -name "*.sh" | xargs -r shellcheck -x
 
-      # --------------------------
-      # Secrets Detection - Gitleaks
-      # --------------------------
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITLEAKS_LICENSE_KEY: ${{ secrets.GITLEAKS_LICENSE_KEY || '' }}
 
-      # --------------------------
-      # Node.js Dependency Audit (Optional)
-      # --------------------------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

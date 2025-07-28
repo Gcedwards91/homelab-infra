@@ -1,7 +1,7 @@
 ---
 - name: Web server setup
   hosts: web
-  become: yes
+  become: true
   vars_files:
     - ../group_vars/web/main.yml
   roles:
@@ -10,7 +10,7 @@
 
 - name: Database server setup
   hosts: db
-  become: yes
+  become: true
   vars_files:
     - ../group_vars/dbservers/main.yml
   roles:
