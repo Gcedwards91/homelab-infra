@@ -86,9 +86,11 @@ This is a homelab project I spun up to get familiar with:
 - Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host
 
 ### <b>IN PROGRESS</b>
+
 - N/A
 
 ### <b>NOT BEGUN</b>
+
 - N/A
 
 ### Lessons Learned - Phase 3 (6/8/2025 - 6/8/2025)
@@ -99,7 +101,7 @@ This is a homelab project I spun up to get familiar with:
 - I am exploring making Phase 5, Phase 6 and then creating a new Phase 5 where I build my own docker images for Wazuh, Prometheus, Grafana, and maybe a few other pieces of software.
 - <b>Tools & Software used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, Docker.</i>
 
-## Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD (7/16/2025 - TBD)
+## Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD. Deploy App locally and to AWS. (7/16/2025 - TBD)
 
 I am back after a break enjoying Elden Ring Nightreign.
 
@@ -111,27 +113,15 @@ I am back after a break enjoying Elden Ring Nightreign.
 
 ### <b>IN PROGRESS</b>
 
-- Integrate Grafan + Loki into current webapp: <b>In Progress</b>
-- Research common CI/CD practices: <b>In Progress</b>
-- Implement a CI/CD pipeline for Weather App & Phase 5
-
-### <b>NOT BEGUN</b>
-
-- Implement further containerization with Kubernetes
-
-## Phase 5 - Write & Host Resume
-
-### <b>COMPLETED</b>
-
-- N/A
-
-### <b>IN PROGRESS</b>
-
-- N/A
-
-### <b>NOT BEGUN</b>
-
+- Integrate Grafana + Loki into current weather webapp
+- Research common CI/CD practices
 - Write HTML and CSS + JavaScript or Python to host my dynamic Resume
-- Write HTML and CSS + JavaScript or Python to create a blog/project cover letter that discusses the journey for this project
-- Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack built in the spirit of the Cloud Resume Challenge
+- Implement a CI/CD pipeline for Weather App & Phase 5
 - Implement CI/CD best practices in this phase
+
+### <b>NOT BEGUN</b>
+
+- Integrate Elastic + Kibana into current weather webapp
+- Implement further containerization with Kubernetes
+- Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack built in the spirit of the Cloud Resume Challenge
+- Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack in AWS built in the spirit of the Cloud Resume Challenge
