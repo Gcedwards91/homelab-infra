@@ -86,8 +86,10 @@ This is a homelab project I spun up to get familiar with:
 - Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host
 
 ### <b>IN PROGRESS</b>
+- N/A
 
 ### <b>NOT BEGUN</b>
+- N/A
 
 ### Lessons Learned - Phase 3 (6/8/2025 - 6/8/2025)
 
