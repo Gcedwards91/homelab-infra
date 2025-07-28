@@ -64,7 +64,7 @@ timedatectl set-timezone UTC
 localectl set-locale LANG=en_US.UTF-8
 
 # Detect OS and install packages
-# shellcheck source=/etc/os-release
+# shellcheck disable=SC1091
 source /etc/os-release
 echo ">>> Detected Distribution: $ID $VERSION_ID"
 
