@@ -1,37 +1,31 @@
 import logging
-import json
 import os
-from datetime import datetime
+import sys
+from pythonjsonlogger import jsonlogger
 
 
-class JSONFormatter(logging.Formatter):
-    def format(self, record):
-        log_entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-            "level": record.levelname,
-            "message": record.getMessage(),
-        }
-        return json.dumps(log_entry)
-
-
-def get_logger(name="weather_logger", log_file="logs/weather.log"):
+def get_logger(name="app"):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
-
     if logger.handlers:
         return logger
 
-    formatter = JSONFormatter()
+    logger.setLevel(logging.DEBUG)
 
-    # Detect container: look for /.dockerenv or env var you set in Dockerfile
-    is_container = os.path.exists("/.dockerenv") or os.environ.get("DOCKERIZED") == "1"
+    logHandler = logging.StreamHandler(sys.stdout)
 
-    if is_container:
-        handler = logging.StreamHandler()  # logs to STDOUT
-    else:
-        handler = logging.FileHandler(log_file)
+    # Customize fields for observability
+    formatter = jsonlogger.JsonFormatter(
+        "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d",
+        json_ensure_ascii=False,
+    )
 
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logHandler.setFormatter(formatter)
+    logger.addHandler(logHandler)
+
+    # Optional: add file logging outside container
+    if not (os.path.exists("/.dockerenv") or os.environ.get("DOCKERIZED") == "1"):
+        fileHandler = logging.FileHandler("logs/app.log")
+        fileHandler.setFormatter(formatter)
+        logger.addHandler(fileHandler)
 
     return logger

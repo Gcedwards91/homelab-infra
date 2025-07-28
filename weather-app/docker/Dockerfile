@@ -5,6 +5,7 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DOCKERIZED=1
+ENV FLASK_DEBUG=0
 
 # Create working directory
 WORKDIR /app
@@ -25,5 +26,5 @@ COPY . .
 EXPOSE 5000
 
 # Start the app using gunicorn
-CMD ["gunicorn", "--log-level", "debug", "-w", "1", "-b", "0.0.0.0:5000", "main:app"]
+CMD ["gunicorn", "--log-level", "debug", "-w", "2","-t", "60", "-b", "0.0.0.0:5000", "main:app"]
 
