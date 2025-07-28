@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Homelab Project Blog</title>
+    <title>Grafana Logs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
@@ -14,7 +14,6 @@
       type="image/x-icon"
     />
   </head>
-
   <body>
     <div class="container">
       <div class="navbar">
@@ -26,42 +25,13 @@
         <a href="{{ url_for('elastic_redirect') }}">Elastic + Kibana</a>
       </div>
 
-      <h1>Homelab Project Blog</h1>
+      <h1>Grafana Logs</h1>
       <p class="note">
-        Follow my journey building a modern DevOps homelab from scratch — using
-        Terraform, Ansible, Docker, and Kubernetes with observability tooling
-        like Grafana, Prometheus, and Elastic.
+        This page embeds or links to Grafana dashboards via reverse proxy.
       </p>
-
-      <div class="blog-post">
-        <h2>Phase 1 Complete: Core Infrastructure</h2>
-        <time>May 25, 2025</time>
-        <p>
-          Finished setting up Proxmox, Ubuntu/AlmaLinux templates, internal
-          DNS/DHCP, Wazuh, Grafana, and Prometheus. Everything is containerized
-          and browser-accessible.
-        </p>
-      </div>
-
-      <div class="blog-post">
-        <h2>Phase 2: IaC Automation</h2>
-        <time>June 5, 2025</time>
-        <p>
-          Implemented VM provisioning using Terraform and initial Ansible
-          playbooks for the LAMP stack. Prepped for cloud-init-based hostname
-          tagging.
-        </p>
-      </div>
-
-      <div class="blog-post">
-        <h2>What's Next?</h2>
-        <time>July 2025</time>
-        <p>
-          Phase 3 will containerize all core services, followed by CI/CD with
-          GitHub Actions and Docker Hub integration. Final phase will deploy my
-          interactive resume and cover letter.
-        </p>
-      </div>
+      <p>
+        <a href="/grafana" target="_blank">Open Grafana Dashboard</a>
+      </p>
 
       <div class="footer-icons">
         <a href="https://github.com/Gcedwards91" target="_blank">
