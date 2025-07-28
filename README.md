@@ -10,14 +10,24 @@ This is a homelab project I spun up to get familiar with:
 
 ## Phase 1 - Initial Lab Setup (Completed 5/25/2025)
 
-- Install Proxmox on Mini-PC: <b>Completed</b>
-- Configure Mini-PC and Proxmox to use built in Wi-Fi 6 Card: <b>Completed</b>
-- Install and configure base image snapshots of: Ubuntu, Debian, and AlmaLinux: <b>Completed</b>
-- Configure future VMs to be reachable via SSH: <b>Completed</b>
-- Configure future VMs to be reachable via browser, for consoles: <b>Completed</b>
-- Configure control node (Terraform & Ansible) by hand: <b>Completed</b>
-- Configure SIEM Node using Wazuh: <b>Completed</b>
-- Configure monitoring node (Prometheus + Grafana): <b>Completed</b>
+### <b>COMPLETED</b>
+
+- Install Proxmox on Mini-PC
+- Configure Mini-PC and Proxmox to use built in Wi-Fi 6 Card
+- Install and configure base image snapshots of: Ubuntu, Debian, and AlmaLinux
+- Configure future VMs to be reachable via SSH
+- Configure future VMs to be reachable via browser, for consoles
+- Configure control node (Terraform & Ansible) by hand
+- Configure SIEM Node using Wazuh
+- Configure monitoring node (Prometheus + Grafana)
+
+### <b>IN PROGRESS</b>
+
+- N/A
+
+### <b>NOT BEGUN</b>
+
+- N/A
 
 ### Lessons Learned - Phase 1 (5/20/2025 - 5/25/2025)
 
@@ -33,13 +43,23 @@ This is a homelab project I spun up to get familiar with:
 
 ## Phase 2 - Get Hands Dirty (Completed 6/4/2025)
 
-- Deploy Virtual Machines using Terraform: <b>Completed</b>
-- Automated VM Template Configuration via bash: <b>Completed</b>
-- Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash: <b>Completed</b>
-- Leverage cloud-init within Terraform to assign temporary hostnames for Ansible: <b>Completed</b>
-- Deploy Varied Virtual Machines using Terraform: <b>Completed</b>
-- Configure Virtual Machines using Ansible: <b>Completed</b>
-- Write LAMP Stack Terrfaorm and Ansible Playbooks: <b>Completed</b>
+### <b>COMPLETED</b>
+
+- Deploy Virtual Machines using Terraform
+- Automated VM Template Configuration via bash
+- Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash
+- Leverage cloud-init within Terraform to assign temporary hostnames for Ansible
+- Deploy Varied Virtual Machines using Terraform
+- Configure Virtual Machines using Ansible
+- Write LAMP Stack Terrfaorm and Ansible Playbooks
+
+### <b>IN PROGRESS</b>
+
+- N/A
+
+### <b>NOT BEGUN</b>
+
+- N/A
 
 ### Lessons Learned - Phase 2 (5/27/2025 - 6/4/2025)
 
@@ -54,14 +74,20 @@ This is a homelab project I spun up to get familiar with:
 
 ## Phase 3 - Containerize & Build Control Tower (Completed 6/8/2025)
 
-- Deploy a master host for control node, SIEM node, and monitoring node: <b>Completed</b>
-- Containerize Terraform: <b>Comnpleted - ruled unnecessary</b>
-- Containerize Ansible: <b>Completed - ruled unnecessary</b>
-- Containerize Wazuh: <b>Completed</b>
-- Containerize Prometheus: <b>Completed</b>
-- Containerize Grafana: <b>Completed</b>
-- Deploy VMs from Containerized master host: <b>Completed</b>
-- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host: <b>Completed</b>
+### <b>COMPLETED</b>
+
+- Deploy a master host for control node, SIEM node, and monitoring node
+- Containerize Terraform - <b>Comnpleted - ruled unnecessary</b>
+- Containerize Ansible - <b>Completed - ruled unnecessary</b>
+- Containerize Wazuh
+- Containerize Prometheus
+- Containerize Grafana
+- Deploy VMs from Containerized master host
+- Write IaC .yml files to automate via Terraform & Ansible the deployment of the newly containerized master host
+
+### <b>IN PROGRESS</b>
+
+### <b>NOT BEGUN</b>
 
 ### Lessons Learned - Phase 3 (6/8/2025 - 6/8/2025)
 
@@ -75,17 +101,35 @@ This is a homelab project I spun up to get familiar with:
 
 I am back after a break enjoying Elden Ring Nightreign.
 
-- Build basic Weather App using Python/Flask: <b>Completed</b>
-- Deploy and test Weather App locally: <b>Completed</b>
-- Containerize Weather App w/ Docker: <b>Completed</b>
-- Implement further containerization with Kubernetes: <b>Not begun</b>
-- Research common CI/CD practices: <b>Not begun</b>
-- Implement a CI/CD pipeline for Weather App & Phase 5: <b>Not begun</b>
-- Integrate CI/CD with the Weather App: <b>Not begun</b>
+### <b>COMPLETED</b>
+
+- Build basic Weather App using Python/Flask
+- Deploy and test Weather App locally
+- Containerize Weather App w/ Docker
+
+### <b>IN PROGRESS</b>
+
+- Integrate Grafan + Loki into current webapp: <b>In Progress</b>
+- Research common CI/CD practices: <b>In Progress</b>
+- Implement a CI/CD pipeline for Weather App & Phase 5
+
+### <b>NOT BEGUN</b>
+
+- Implement further containerization with Kubernetes
 
 ## Phase 5 - Write & Host Resume
 
-- Write HTML and CSS + JavaScript or Python to host my dynamic Resume: <b>Not begun</b>
-- Write HTML and CSS + JavaScript or Python to create a blog/project cover letter that discusses the journey for this project: <b>Not begun</b>
-- Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack built in the spirit of the Cloud Resume Challenge: <b>Not begun</b>
-- Implement CI/CD best practices in this phase: <b>Not begun</b>
+### <b>COMPLETED</b>
+
+- N/A
+
+### <b>IN PROGRESS</b>
+
+- N/A
+
+### <b>NOT BEGUN</b>
+
+- Write HTML and CSS + JavaScript or Python to host my dynamic Resume
+- Write HTML and CSS + JavaScript or Python to create a blog/project cover letter that discusses the journey for this project
+- Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack built in the spirit of the Cloud Resume Challenge
+- Implement CI/CD best practices in this phase
