@@ -103,7 +103,7 @@ This is a homelab project I spun up to get familiar with:
 
 ## Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD. Deploy App locally and to AWS. (7/16/2025 - TBD)
 
-I am back after a break enjoying Elden Ring Nightreign.
+I am back after a break enjoying Elden Ring Nightreign. I made the decision on 7/28/2025 to consolidate Phase 4 & 5 into one. After getting more hands on with this project at this stage it made more sense to make this phase a larger initiative because, ultimately, it should be all encompassing. To keep myself interested I have bounced around between initiatives (CI/CD, webapp structure, etc.).
 
 ### <b>COMPLETED</b>
 
