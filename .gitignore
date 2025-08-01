@@ -4,6 +4,7 @@
 *.tfstate*
 .terraform/
 *.tfvars
+.env
 
 # Ansible secrets
 group_vars/*/secrets.yml

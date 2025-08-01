@@ -1,0 +1,35 @@
+{
+  "id": null,
+  "uid": "weather-simple",
+  "title": "Weather App Logs",
+  "overwrite": true,
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Weather App Logs",
+      "targets": [
+        {
+          "expr": "{container=\"weather-app\"}",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  }
+}

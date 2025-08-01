@@ -110,10 +110,10 @@ I am back after a break enjoying Elden Ring Nightreign. I made the decision on 7
 - Build basic Weather App using Python/Flask
 - Deploy and test Weather App locally
 - Containerize Weather App w/ Docker
+- Integrate Grafana + Loki into current weather webapp
 
 ### <b>IN PROGRESS</b>
 
-- Integrate Grafana + Loki into current weather webapp
 - Research common CI/CD practices
 - Write HTML and CSS + JavaScript or Python to host my dynamic Resume
 - Implement a CI/CD pipeline for Weather App & Phase 5
@@ -125,3 +125,8 @@ I am back after a break enjoying Elden Ring Nightreign. I made the decision on 7
 - Implement further containerization with Kubernetes
 - Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack built in the spirit of the Cloud Resume Challenge
 - Deploy 'Dynamic Resume' and 'Project Coverletter' to a LAMP Stack in AWS built in the spirit of the Cloud Resume Challenge
+- Explore implementing log retention and log rotation settings
+- Explore failover process handling. Within the stack and a runbook as well.
+- Build and package an end-to-end demo.
+- Explore further SSH hardening of hosts of containers.
+- Create and close issues in GitHub to showcase bugfixes.
