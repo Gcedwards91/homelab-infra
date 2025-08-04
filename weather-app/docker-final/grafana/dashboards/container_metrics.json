@@ -1,0 +1,101 @@
+{
+  "id": null,
+  "uid": "container-metrics-fallback",
+  "title": "Docker Container Metrics (Fallback: ID Only)",
+  "tags": ["prometheus", "containers", "cadvisor", "homelab"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Container CPU Usage (%)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{id!=\"\"}[5m]) * 100",
+          "refId": "A",
+          "legendFormat": "{{id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent" },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Memory Usage (bytes)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "container_memory_working_set_bytes{id!=\"\"}",
+          "refId": "A",
+          "legendFormat": "{{id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes" },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Network RX (bytes)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_network_receive_bytes_total{id!=\"\"}[5m])",
+          "refId": "A",
+          "legendFormat": "{{id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes" },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 18 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Network TX (bytes)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_network_transmit_bytes_total{id!=\"\"}[5m])",
+          "refId": "A",
+          "legendFormat": "{{id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes" },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 27 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Uptime (seconds)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "time() - container_start_time_seconds{id!=\"\"}",
+          "refId": "A",
+          "legendFormat": "{{id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 36 }
+    }
+  ],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "annotations": { "list": [] }
+}
