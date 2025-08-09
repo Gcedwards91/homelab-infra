@@ -14,7 +14,11 @@
       "title": "Container CPU Usage (%)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "container_cpu_percent", "refId": "A", "legendFormat": "{{name}}" }
+        {
+          "expr": "container_cpu_percent",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
       ],
       "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
@@ -24,7 +28,11 @@
       "title": "Container Memory Usage (bytes)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "container_memory_usage_bytes", "refId": "A", "legendFormat": "{{name}}" }
+        {
+          "expr": "container_memory_usage_bytes",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
       ],
       "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
@@ -34,7 +42,11 @@
       "title": "Network RX (bytes/s)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "sum by (name) (rate(container_network_receive_bytes_total[5m]))", "refId": "A", "legendFormat": "{{name}}" }
+        {
+          "expr": "sum by (name) (rate(container_network_receive_bytes_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
       ],
       "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
@@ -44,7 +56,11 @@
       "title": "Network TX (bytes/s)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "sum by (name) (rate(container_network_transmit_bytes_total[5m]))", "refId": "A", "legendFormat": "{{name}}" }
+        {
+          "expr": "sum by (name) (rate(container_network_transmit_bytes_total[5m]))",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
       ],
       "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 }
@@ -54,7 +70,11 @@
       "title": "Memory Usage (%)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        { "expr": "container_memory_percent", "refId": "A", "legendFormat": "{{name}}" }
+        {
+          "expr": "container_memory_percent",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
       ],
       "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
