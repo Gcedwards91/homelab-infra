@@ -40,6 +40,10 @@ scrape_configs:
             status:
 
     relabel_configs:
+      - source_labels: [__meta_docker_container_label_logging]
+        regex: "true"
+        action: keep
+
       - source_labels: [__meta_docker_container_log_stream]
         target_label: stream
 
@@ -56,6 +60,6 @@ scrape_configs:
       - source_labels: [__meta_docker_container_name]
         target_label: job
 
-      - source_labels: [__meta_docker_container_label_logging]
-        regex: "true"
-        action: keep
+      - source_labels: [__meta_docker_container_id]
+        target_label: __path__
+        replacement: /var/lib/docker/containers/$1/$1-json.log

@@ -15,7 +15,6 @@ from logger import get_logger
 app = Flask(__name__)
 logger = get_logger("flask")
 
-# Optional hard overrides (e.g., when fronted by a proxy)
 GRAFANA_URL = os.getenv("GRAFANA_URL")  # e.g. http://grafana:3000
 ELASTIC_URL = os.getenv("ELASTIC_URL")  # e.g. http://kibana:5601
 
@@ -53,15 +52,12 @@ def weather_app():
 
 @app.route("/grafana")
 def grafana_redirect():
-    # Prefer an explicit override, else build from the current request
-    url = GRAFANA_URL or _external_url(3000)
-    return redirect(url, code=302)
+    return redirect("/grafana/", code=302)
 
 
 @app.route("/elastic")
 def elastic_redirect():
-    url = ELASTIC_URL or _external_url(5601)
-    return redirect(url, code=302)
+    return redirect("/elastic/", code=302)
 
 
 @app.route("/favicon.ico")
