@@ -1,6 +1,7 @@
 {
   "id": null,
   "uid": "container-metrics-statporter",
+  "overwrite": true,
   "title": "Docker Container Metrics (Statporter)",
   "tags": ["prometheus", "containers", "statporter", "homelab"],
   "timezone": "browser",
