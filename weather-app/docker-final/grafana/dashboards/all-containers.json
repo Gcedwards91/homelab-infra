@@ -2,6 +2,7 @@
   "id": null,
   "uid": "all-containers-logs",
   "title": "All Container Logs",
+  "overwrite": true,
   "tags": ["logs", "loki", "docker"],
   "timezone": "browser",
   "schemaVersion": 36,
