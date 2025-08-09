@@ -1,8 +1,8 @@
 {
   "id": null,
-  "uid": "container-metrics-fallback",
-  "title": "Docker Container Metrics (Fallback: ID Only)",
-  "tags": ["prometheus", "containers", "cadvisor", "homelab"],
+  "uid": "container-metrics-statporter",
+  "title": "Docker Container Metrics (Statporter)",
+  "tags": ["prometheus", "containers", "statporter", "homelab"],
   "timezone": "browser",
   "schemaVersion": 36,
   "version": 1,
@@ -11,91 +11,55 @@
     {
       "type": "timeseries",
       "title": "Container CPU Usage (%)",
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "rate(container_cpu_usage_seconds_total{id!=\"\"}[5m]) * 100",
-          "refId": "A",
-          "legendFormat": "{{id}}"
-        }
+        { "expr": "container_cpu_percent", "refId": "A", "legendFormat": "{{name}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "percent" },
-        "overrides": []
-      },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 }
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
     },
     {
       "type": "timeseries",
       "title": "Container Memory Usage (bytes)",
-      "datasource": "Prometheus",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "container_memory_working_set_bytes{id!=\"\"}",
-          "refId": "A",
-          "legendFormat": "{{id}}"
-        }
+        { "expr": "container_memory_usage_bytes", "refId": "A", "legendFormat": "{{name}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "bytes" },
-        "overrides": []
-      },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 9 }
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
     },
     {
       "type": "timeseries",
-      "title": "Container Network RX (bytes)",
-      "datasource": "Prometheus",
+      "title": "Network RX (bytes/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "rate(container_network_receive_bytes_total{id!=\"\"}[5m])",
-          "refId": "A",
-          "legendFormat": "{{id}}"
-        }
+        { "expr": "sum by (name) (rate(container_network_receive_bytes_total[5m]))", "refId": "A", "legendFormat": "{{name}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "bytes" },
-        "overrides": []
-      },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 18 }
+      "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
     },
     {
       "type": "timeseries",
-      "title": "Container Network TX (bytes)",
-      "datasource": "Prometheus",
+      "title": "Network TX (bytes/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "rate(container_network_transmit_bytes_total{id!=\"\"}[5m])",
-          "refId": "A",
-          "legendFormat": "{{id}}"
-        }
+        { "expr": "sum by (name) (rate(container_network_transmit_bytes_total[5m]))", "refId": "A", "legendFormat": "{{name}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "bytes" },
-        "overrides": []
-      },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 27 }
+      "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 }
     },
     {
       "type": "timeseries",
-      "title": "Container Uptime (seconds)",
-      "datasource": "Prometheus",
+      "title": "Memory Usage (%)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "time() - container_start_time_seconds{id!=\"\"}",
-          "refId": "A",
-          "legendFormat": "{{id}}"
-        }
+        { "expr": "container_memory_percent", "refId": "A", "legendFormat": "{{name}}" }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "s" },
-        "overrides": []
-      },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 36 }
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
     }
   ],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
-  "timepicker": {},
   "annotations": { "list": [] }
 }
