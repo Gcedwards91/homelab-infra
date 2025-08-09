@@ -78,6 +78,8 @@ services:
     image: burningstar4/statporter:latest
     container_name: statporter
     restart: unless-stopped
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
     ports:
       - "9800:9800"
     volumes:

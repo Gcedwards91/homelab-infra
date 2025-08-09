@@ -9,6 +9,7 @@ import sys
 app = Flask(__name__)
 print("Statporter is starting...")
 
+
 def get_docker_client():
     system = platform.system()
     in_container = os.path.exists("/.dockerenv")
@@ -16,7 +17,9 @@ def get_docker_client():
         return docker.DockerClient(base_url="npipe:////./pipe/docker_engine")
     return docker.DockerClient(base_url="unix://var/run/docker.sock")
 
+
 client = get_docker_client()
+
 
 def get_metrics():
     lines = []
@@ -59,7 +62,9 @@ def get_metrics():
                     percpu = cpu_stats.get("cpu_usage", {}).get("percpu_usage", [])
                     cpu_percent = (cpu_delta / system_delta) * len(percpu) * 100.0
             else:
-                lines.append(f'# {name} missing system_cpu_usage (cpu_system={cpu_system}, precpu_system={precpu_system})')
+                lines.append(
+                    f"# {name} missing system_cpu_usage (cpu_system={cpu_system}, precpu_system={precpu_system})"
+                )
 
             mem_usage = stats.get("memory_stats", {}).get("usage", 0)
             mem_limit = stats.get("memory_stats", {}).get("limit", 1)
@@ -73,18 +78,24 @@ def get_metrics():
             lines.append(f'container_cpu_percent{{name="{name}"}} {cpu_percent}')
             lines.append(f'container_memory_usage_bytes{{name="{name}"}} {mem_usage}')
             lines.append(f'container_memory_percent{{name="{name}"}} {mem_percent}')
-            lines.append(f'container_network_receive_bytes_total{{name="{name}"}} {net_rx}')
-            lines.append(f'container_network_transmit_bytes_total{{name="{name}"}} {net_tx}')
+            lines.append(
+                f'container_network_receive_bytes_total{{name="{name}"}} {net_rx}'
+            )
+            lines.append(
+                f'container_network_transmit_bytes_total{{name="{name}"}} {net_tx}'
+            )
         except Exception as e:
             lines.append(f"# Error processing metrics for {name}: {e}")
 
     return "\n".join(lines) + "\n"
+
 
 @app.route("/metrics")
 def metrics():
     print("Endpoint hit!")
     sys.stdout.flush()
     return Response(get_metrics(), mimetype="text/plain")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9800, debug=True)
