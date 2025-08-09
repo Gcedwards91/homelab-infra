@@ -15,6 +15,21 @@ from logger import get_logger
 app = Flask(__name__)
 logger = get_logger("flask")
 
+# Optional hard overrides (e.g., when fronted by a proxy)
+GRAFANA_URL = os.getenv("GRAFANA_URL")  # e.g. http://grafana:3000
+ELASTIC_URL = os.getenv("ELASTIC_URL")  # e.g. http://kibana:5601
+
+
+def _external_url(port: int, path: str = "") -> str:
+    """
+    Build a URL using the incoming request's host and scheme,
+    so redirects work from any client (not just localhost).
+    Honors X-Forwarded-Proto if present (reverse proxies).
+    """
+    scheme = request.headers.get("X-Forwarded-Proto", request.scheme or "http")
+    host_only = (request.headers.get("X-Forwarded-Host") or request.host).split(":")[0]
+    return f"{scheme}://{host_only}:{port}{path}"
+
 
 @app.route("/")
 def index():
@@ -38,12 +53,15 @@ def weather_app():
 
 @app.route("/grafana")
 def grafana_redirect():
-    return redirect("http://localhost:3000", code=302)
+    # Prefer an explicit override, else build from the current request
+    url = GRAFANA_URL or _external_url(3000)
+    return redirect(url, code=302)
 
 
 @app.route("/elastic")
 def elastic_redirect():
-    return redirect("http://localhost:5601", code=302)
+    url = ELASTIC_URL or _external_url(5601)
+    return redirect(url, code=302)
 
 
 @app.route("/favicon.ico")
@@ -57,7 +75,7 @@ def favicon():
 
 @app.route("/weather", methods=["POST"])
 def weather():
-    data = request.json
+    data = request.json or {}
     location = data.get("location")
     api_key = data.get("api_key")
     mode = data.get("mode", "city")
