@@ -1,30 +1,45 @@
 # Use Python 3.11 slim image
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV DOCKERIZED=1
-ENV FLASK_DEBUG=0
+# Environment
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DOCKERIZED=1 \
+    FLASK_DEBUG=0
 
-# Create working directory
+# Workdir
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential=12.9 \
-    && rm -rf /var/lib/apt/lists/*
+# System deps (temporary) → pip install → purge to slim image
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
+# Python deps first (better layer caching)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the app
-COPY . .
+# --- Copy app explicitly so templates/static definitely land in image ---
+# Adjust this list if you have more modules
+COPY main.py logger.py weather.py ./
+COPY templates/ ./templates/
+COPY static/ ./static/
 
-# Expose the port the app runs on
+# Optional: prove they exist at build time (helps debug missing templates)
+# RUN ls -la /app && ls -la /app/templates && ls -la /app/static
+
+# Expose Flask/Gunicorn port
 EXPOSE 5000
 
-# Start the app using gunicorn
-CMD ["gunicorn", "--log-level", "debug", "-w", "2","-t", "60", "-b", "0.0.0.0:5000", "main:app"]
+# Healthcheck (expects your /healthz route)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import sys, urllib.request; \
+r=0; \
+import traceback; \
+url='http://127.0.0.1:5000/healthz'; \
+try: resp=urllib.request.urlopen(url, timeout=2); r=0 if resp.status==200 else 1 \
+except Exception: r=1; \
+sys.exit(r)"
 
+
+# Start the app with gunicorn
+CMD ["gunicorn", "--log-level", "debug", "-w", "2", "-t", "60", "-b", "0.0.0.0:5000", "main:app"]
