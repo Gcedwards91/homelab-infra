@@ -1,65 +1,88 @@
 import os
 import uuid
+
 from flask import (
     Flask,
+    Response,
+    g,
+    jsonify,
     render_template,
     request,
-    jsonify,
     send_from_directory,
-    redirect,
-    g,
 )
-from weather import get_weather
+from jinja2 import TemplateNotFound
 from logger import get_logger
+from weather import get_weather
 
-app = Flask(__name__)
+# Explicit folders ensure Flask looks in /app/templates and /app/static
+app = Flask(__name__, template_folder="templates", static_folder="static")
 logger = get_logger("flask")
 
-GRAFANA_URL = os.getenv("GRAFANA_URL")  # e.g. http://grafana:3000
-ELASTIC_URL = os.getenv("ELASTIC_URL")  # e.g. http://kibana:5601
+GRAFANA_URL = os.getenv("GRAFANA_URL")
+ELASTIC_URL = os.getenv("ELASTIC_URL")
 
 
 def _external_url(port: int, path: str = "") -> str:
-    """
-    Build a URL using the incoming request's host and scheme,
-    so redirects work from any client (not just localhost).
-    Honors X-Forwarded-Proto if present (reverse proxies).
-    """
     scheme = request.headers.get("X-Forwarded-Proto", request.scheme or "http")
     host_only = (request.headers.get("X-Forwarded-Host") or request.host).split(":")[0]
     return f"{scheme}://{host_only}:{port}{path}"
 
 
+# --- helper to render safely ---
+def safe_render(name):
+    try:
+        return render_template(name)
+    except TemplateNotFound:
+        logger.error("Template not found", extra={"template": name})
+        return Response(f"<h1>Missing template: {name}</h1>", status=200, mimetype="text/html")
+
+
+# ---------------- UI ----------------
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return safe_render("index.html")
 
 
 @app.route("/about_me")
 def about_me():
-    return render_template("about_me.html")
+    return safe_render("about_me.html")
 
 
 @app.route("/resume")
 def resume():
-    return render_template("resume.html")
+    return safe_render("resume.html")
 
 
 @app.route("/weather_app")
 def weather_app():
-    return render_template("weather_app.html")
+    return safe_render("weather_app.html")
 
 
-@app.route("/grafana")
-def grafana_redirect():
-    return redirect("/grafana/", code=302)
+# ------------- health/metrics -------------
+@app.route("/healthz")
+def healthz():
+    return jsonify({"status": "ok"}), 200
 
 
-@app.route("/elastic")
-def elastic_redirect():
-    return redirect("/elastic/", code=302)
+@app.route("/metrics")
+def metrics():
+    return Response("app_up 1\n", status=200, mimetype="text/plain")
 
 
+# --------------- API ----------------
+@app.route("/weather", methods=["POST"])
+def weather():
+    data = request.get_json(silent=True) or {}
+    location = data.get("location")
+    api_key = data.get("api_key")
+    mode = data.get("mode", "city")
+    if not location or not api_key:
+        return jsonify({"error": "Location and API key are required."}), 400
+    weather_data = get_weather(location, api_key, mode)
+    return jsonify(weather_data), 200
+
+
+# -------------- static --------------
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory(
@@ -69,50 +92,24 @@ def favicon():
     )
 
 
-@app.route("/weather", methods=["POST"])
-def weather():
-    data = request.json or {}
-    location = data.get("location")
-    api_key = data.get("api_key")
-    mode = data.get("mode", "city")
-
-    if not location or not api_key:
-        return jsonify({"error": "Location and API key are required."}), 400
-
-    weather_data = get_weather(location, api_key, mode)
-    return jsonify(weather_data)
-
-
+# ----------- logging ----------
 @app.before_request
 def log_request():
     g.request_id = str(uuid.uuid4())
-
     path = request.path
     method = request.method
-
-    if path == "/":
-        message = "Homepage requested"
-    elif path == "/about_me":
-        message = "About Me page requested"
-    elif path == "/resume":
-        message = "Resume page requested"
-    elif path == "/weather_app":
-        message = "Weather App page requested"
-    elif path == "/grafana":
-        message = "Grafana redirect triggered"
-    elif path == "/elastic":
-        message = "Elastic redirect triggered"
-    elif path == "/weather" and method == "POST":
-        message = "Weather API request received"
+    if path in ("/", "/about_me", "/resume", "/weather_app"):
+        msg = f"{path} requested"
+    elif path in ("/favicon.ico", "/healthz", "/metrics"):
+        msg = f"Utility endpoint requested: {path}"
     elif path.startswith("/static/"):
-        message = f"Static asset requested: {path}"
-    elif path == "/favicon.ico":
-        message = "Favicon requested"
+        msg = f"Static asset requested: {path}"
+    elif path == "/weather" and method == "POST":
+        msg = "Weather API request received"
     else:
-        message = f"Unhandled request path: {path}"
-
+        msg = f"Unhandled request path: {path}"
     logger.info(
-        message,
+        msg,
         extra={
             "event": "request_received",
             "request_id": g.request_id,
@@ -126,42 +123,18 @@ def log_request():
 
 @app.after_request
 def log_response(response):
-    path = request.path
-    method = request.method
-
-    if path == "/":
-        message = "Homepage response sent"
-    elif path == "/about_me":
-        message = "About Me page response sent"
-    elif path == "/resume":
-        message = "Resume page response sent"
-    elif path == "/weather_app":
-        message = "Weather App page response sent"
-    elif path == "/grafana":
-        message = "Grafana redirect response sent"
-    elif path == "/elastic":
-        message = "Elastic redirect response sent"
-    elif path == "/weather" and method == "POST":
-        message = "Weather API response sent"
-    elif path.startswith("/static/"):
-        message = f"Static asset response sent: {path}"
-    elif path == "/favicon.ico":
-        message = "Favicon response sent"
-    else:
-        message = f"Unhandled response path: {path}"
-
+    req_id = getattr(g, "request_id", None) or str(uuid.uuid4())
+    response.headers["X-Request-ID"] = req_id
     logger.info(
-        message,
+        "response sent",
         extra={
             "event": "response_sent",
-            "request_id": getattr(g, "request_id", None),
-            "method": method,
-            "path": path,
-            "status": response.status_code,
+            "request_id": req_id,
+            "method": request.method,
+            "path": request.path,
+            "status": getattr(response, "status_code", None),
         },
     )
-
-    response.headers["X-Request-ID"] = g.request_id
     return response
 
 
