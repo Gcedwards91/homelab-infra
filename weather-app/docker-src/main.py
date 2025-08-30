@@ -19,7 +19,6 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 logger = get_logger("flask")
 
 GRAFANA_URL = os.getenv("GRAFANA_URL")
-ELASTIC_URL = os.getenv("ELASTIC_URL")
 
 
 def _external_url(port: int, path: str = "") -> str:
