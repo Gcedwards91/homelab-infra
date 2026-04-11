@@ -5,6 +5,7 @@ __pycache__/
 *.log
 *.db
 .env
+.venv
 .vscode/
 .idea/
 .git/

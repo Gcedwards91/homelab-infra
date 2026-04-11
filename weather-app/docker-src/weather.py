@@ -4,44 +4,42 @@ from logger import get_logger
 logger = get_logger()
 
 
-def get_weather(location, api_key, mode="city"):
+def get_weather(location: str, api_key: str, mode: str = "city") -> dict:
+    """Fetch current weather from OpenWeatherMap and return a summary dict."""
     base_url = "https://api.openweathermap.org/data/2.5/weather"
 
     if mode == "zip":
-        params = {
-            "zip": f"{location},us",
-            "appid": api_key,
-            "units": "imperial",
-        }  # noqa: E501
+        params = {"zip": f"{location},us", "appid": api_key, "units": "imperial"}
     else:
         params = {"q": location, "appid": api_key, "units": "imperial"}
 
     # Redact the API key before logging
-    safe_params = params.copy()
-    if "appid" in safe_params:
-        safe_params["appid"] = "***REDACTED***"
+    safe_params = {**params, "appid": "***REDACTED***"}
 
+    logger.info(
+        "Sending weather request",
+        extra={
+            "event": "request_sent",
+            "mode": mode,
+            "location": location,
+            "params": safe_params,
+        },
+    )
+
+    response = None
     try:
-        logger.info(
-            {
-                "event": "request_sent",
-                "mode": mode,
-                "location": location,
-                "params": safe_params,
-            }
-        )
-
         response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
 
         logger.info(
-            {
+            "Weather response received",
+            extra={
                 "event": "response_received",
                 "status_code": response.status_code,
                 "city": data.get("name"),
                 "summary": data.get("weather", [{}])[0].get("description"),
-            }
+            },
         )
 
         return {
@@ -54,17 +52,22 @@ def get_weather(location, api_key, mode="city"):
         }
 
     except requests.exceptions.HTTPError as http_err:
+        status_code = response.status_code if response is not None else None
         logger.error(
-            {
+            "HTTP error fetching weather",
+            extra={
                 "event": "http_error",
-                "status_code": response.status_code,
+                "status_code": status_code,
                 "message": str(http_err),
-            }
+            },
         )
-        if response.status_code == 404:
+        if status_code == 404:
             return {"error": "Location not found."}
         return {"error": f"HTTP error: {http_err}"}
 
     except Exception as err:
-        logger.error({"event": "general_error", "message": str(err)})
+        logger.error(
+            "Unexpected error fetching weather",
+            extra={"event": "general_error", "message": str(err)},
+        )
         return {"error": f"Unexpected error: {err}"}

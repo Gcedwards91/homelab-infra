@@ -1,18 +1,17 @@
 services:
   reverse-proxy:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
     container_name: reverse-proxy
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # mask the default site to avoid hidden redirects
       - ./nginx/empty.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - weather-app
       - grafana
       - prometheus
-      # - kibana  # for later
     networks:
       - monitoring
     labels:
@@ -21,6 +20,7 @@ services:
   weather-app:
     image: burningstar4/weather-app:latest
     container_name: weather-app
+    restart: unless-stopped
     expose:
       - "5000"
     labels:
@@ -35,19 +35,27 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.3.1
     container_name: prometheus
+    restart: unless-stopped
     expose:
       - "9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       - "logging=true"
     networks:
       - monitoring
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.6.1
     container_name: grafana
     restart: unless-stopped
     expose:
@@ -58,45 +66,63 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
     depends_on:
-      - prometheus
-      - loki
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_LOG_LEVEL=debug
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SERVER_ROOT_URL=http://localhost/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    labels:
+      - "logging=true"
     networks:
       - monitoring
 
-
-
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.5.0
     container_name: loki
+    restart: unless-stopped
     expose:
       - "3100"
     volumes:
       - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     labels:
       - "logging=true"
     networks:
       - monitoring
 
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:3.5.0
     container_name: promtail
+    restart: unless-stopped
     volumes:
       - ./promtail/promtail-config.yaml:/etc/promtail/promtail.yaml
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /tmp:/tmp
+      - promtail-positions:/tmp
     command: -config.file=/etc/promtail/promtail.yaml
     depends_on:
-      - loki
+      loki:
+        condition: service_healthy
     labels:
       - "logging=true"
     networks:
@@ -112,6 +138,12 @@ services:
       - "9800"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9800/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       - "logging=true"
     networks:
@@ -120,6 +152,8 @@ services:
 volumes:
   grafana-data:
   loki-data:
+  prometheus-data:
+  promtail-positions:
 
 networks:
   monitoring:

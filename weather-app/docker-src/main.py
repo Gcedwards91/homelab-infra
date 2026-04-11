@@ -18,17 +18,9 @@ from weather import get_weather
 app = Flask(__name__, template_folder="templates", static_folder="static")
 logger = get_logger("flask")
 
-GRAFANA_URL = os.getenv("GRAFANA_URL")
 
-
-def _external_url(port: int, path: str = "") -> str:
-    scheme = request.headers.get("X-Forwarded-Proto", request.scheme or "http")
-    host_only = (request.headers.get("X-Forwarded-Host") or request.host).split(":")[0]
-    return f"{scheme}://{host_only}:{port}{path}"
-
-
-# --- helper to render safely ---
-def safe_render(name):
+def safe_render(name: str) -> str | Response:
+    """Render a template by name, returning a 200 error page if not found."""
     try:
         return render_template(name)
     except TemplateNotFound:
@@ -57,7 +49,7 @@ def weather_app():
     return safe_render("weather_app.html")
 
 
-# ------------- health/metrics -------------
+# ------------- health / metrics -------------
 @app.route("/healthz")
 def healthz():
     return jsonify({"status": "ok"}), 200
@@ -91,12 +83,13 @@ def favicon():
     )
 
 
-# ----------- logging ----------
+# ----------- request / response logging -----------
 @app.before_request
 def log_request():
     g.request_id = str(uuid.uuid4())
     path = request.path
     method = request.method
+
     if path in ("/", "/about_me", "/resume", "/weather_app"):
         msg = f"{path} requested"
     elif path in ("/favicon.ico", "/healthz", "/metrics"):
@@ -107,6 +100,7 @@ def log_request():
         msg = "Weather API request received"
     else:
         msg = f"Unhandled request path: {path}"
+
     logger.info(
         msg,
         extra={
@@ -115,7 +109,6 @@ def log_request():
             "method": method,
             "path": path,
             "remote_addr": request.remote_addr,
-            "headers": dict(request.headers),
         },
     )
 
@@ -131,12 +124,11 @@ def log_response(response):
             "request_id": req_id,
             "method": request.method,
             "path": request.path,
-            "status": getattr(response, "status_code", None),
+            "status": response.status_code,
         },
     )
     return response
 
 
-if __name__ == "__main__":
-    debug_mode = os.getenv("FLASK_DEBUG", "0") == "1"
-    app.run(debug=debug_mode, host="0.0.0.0")
+# Gunicorn serves this app — see Dockerfile CMD.
+# Run locally with: gunicorn --bind 0.0.0.0:5000 main:app

@@ -33,22 +33,39 @@
       </p>
 
       <div class="blog-post">
-        <h2>Phase 1 Complete: Core Infrastructure</h2>
-        <time>May 25, 2025</time>
+        <h2>Phase 1: Intitial Lab Setup</h2>
+        <time>Completed on May 25, 2025</time>
         <p>
           Finished setting up Proxmox, Ubuntu/AlmaLinux templates, internal
-          DNS/DHCP, Wazuh, Grafana, and Prometheus. Everything is containerized
-          and browser-accessible.
+          DNS/DHCP, Wazuh, Grafana, and Prometheus. Grafana, Prometheus, and Wazuh
+          exist in the lab on dedicated machines as well as containerized on a single machine.
+          This phase was an exercise in understanding the quirks of Proxmox and subsequently qemu,
+          virtual networking, and VM templating.
+          <br />
+          Many lessons were learned. How to use dnsmasq properly, the quirks of virtual networking
+          and drivers that are shipped with .isos are chiefe among them. IaC, especially Terraform,
+          was used heavily when templating and testing deployments.
+          <br />
+          <b>Technology Used:</b> <i>VSCode, Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana,
+            Terraform, Ansible, CMD, SSH, PowerShell, Bash.
+          </i>
         </p>
       </div>
 
       <div class="blog-post">
-        <h2>Phase 2: IaC Automation</h2>
-        <time>June 5, 2025</time>
+        <h2>Phase 2: Get Hands Dirty (IaC Automation)</h2>
+        <time>Completed on June 4, 2025</time>
         <p>
-          Implemented VM provisioning using Terraform and initial Ansible
-          playbooks for the LAMP stack. Prepped for cloud-init-based hostname
+          Terraform served a dual purpose in this phase. The first was during VM Templated, mostly
+          when dealing with Cloud-Init's quirks. It was also used in conjuction with Ansible to
+          deploy a very barebones LAMP Stack. Prepped for cloud-init-based hostname
           tagging.
+          <br />
+          Another lesson learned in the virtualization world - some OSes are too new to leverage
+          legacy storage controllers and so it must be set in main.tf or you will have a bad time.
+          <br />
+          <b>Technology Used:</b> <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible,
+            cloud-init, dnsmasq, CMD, PowerShell, Bash, SSH, nmcli.</i>
         </p>
       </div>
 

@@ -1,31 +1,34 @@
 import logging
 import os
 import sys
-from pythonjsonlogger import jsonlogger
+
+from pythonjsonlogger.json import JsonFormatter
 
 
-def get_logger(name="app"):
+def get_logger(name: str = "app") -> logging.Logger:
+    """Return a JSON-structured logger, creating it on first call."""
     logger = logging.getLogger(name)
     if logger.handlers:
         return logger
 
-    logger.setLevel(logging.DEBUG)
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    logger.setLevel(level)
 
-    logHandler = logging.StreamHandler(sys.stdout)
-
-    # Customize fields for observability
-    formatter = jsonlogger.JsonFormatter(
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = JsonFormatter(
         "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d",
         json_ensure_ascii=False,
     )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
-    logHandler.setFormatter(formatter)
-    logger.addHandler(logHandler)
-
-    # Optional: add file logging outside container
-    if not (os.path.exists("/.dockerenv") or os.environ.get("DOCKERIZED") == "1"):
-        fileHandler = logging.FileHandler("logs/app.log")
-        fileHandler.setFormatter(formatter)
-        logger.addHandler(fileHandler)
+    # File logging when running outside a container (local dev only)
+    in_container = os.path.exists("/.dockerenv") or os.getenv("DOCKERIZED") == "1"
+    if not in_container:
+        os.makedirs("logs", exist_ok=True)
+        file_handler = logging.FileHandler("logs/app.log")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     return logger
