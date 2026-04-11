@@ -21,21 +21,21 @@ A full-stack observability and application platform running on a single Proxmox 
 
 ```
                         ┌─────────────────────────────────────┐
-                        │           Docker Host                │
-                        │                                      │
-  Browser ──── :80 ──▶ │  nginx (reverse proxy)               │
-                        │     │                                │
-                        │     ├──▶ weather-app  :5000          │
-                        │     ├──▶ grafana       :3000          │
-                        │     └──▶ prometheus    :9090          │
-                        │                                      │
-                        │  prometheus ◀── statporter  :9800    │
-                        │  prometheus ◀── weather-app          │
-                        │  prometheus ◀── grafana              │
-                        │  prometheus ◀── loki                 │
-                        │                                      │
-                        │  loki ◀── promtail                   │
-                        │  promtail ── /var/run/docker.sock    │
+                        │           Docker Host               │
+                        │                                     │
+  Browser ──── :80 ──▶  │  nginx (reverse proxy)              │
+                        │     │                               │
+                        │     ├──▶ weather-app  :5000         │
+                        │     ├──▶ grafana       :3000        │
+                        │     └──▶ prometheus    :9090        │
+                        │                                     │
+                        │  prometheus ◀── statporter  :9800   │
+                        │  prometheus ◀── weather-app         │
+                        │  prometheus ◀── grafana             │
+                        │  prometheus ◀── loki                │
+                        │                                     │
+                        │  loki ◀── promtail                  │
+                        │  promtail ── /var/run/docker.sock   │
                         └─────────────────────────────────────┘
 ```
 
