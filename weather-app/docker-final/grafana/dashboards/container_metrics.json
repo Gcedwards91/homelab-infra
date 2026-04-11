@@ -6,7 +6,7 @@
   "tags": ["prometheus", "containers", "statporter", "homelab"],
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 3,
   "refresh": "10s",
   "panels": [
     {
@@ -39,6 +39,20 @@
     },
     {
       "type": "timeseries",
+      "title": "Memory Usage (%)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "container_memory_percent{name=~\"$container\"}",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
+    },
+    {
+      "type": "timeseries",
       "title": "Network RX (bytes/s)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
@@ -49,7 +63,7 @@
         }
       ],
       "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 }
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 }
     },
     {
       "type": "timeseries",
@@ -63,21 +77,35 @@
         }
       ],
       "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 }
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
     },
     {
       "type": "timeseries",
-      "title": "Memory Usage (%)",
+      "title": "Disk I/O Read (bytes/s)",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "container_memory_percent{name=~\"$container\"}",
+          "expr": "sum by (name) (rate(container_blkio_read_bytes_total{name=~\"$container\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{name}}"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 }
+      "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 40 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk I/O Write (bytes/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(container_blkio_write_bytes_total{name=~\"$container\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 48 }
     }
   ],
   "templating": {
