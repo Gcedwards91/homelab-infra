@@ -153,7 +153,7 @@ homelab-infra/
 
 ## Build Journal
 
-The full phase-by-phase build notes, lessons learned, and troubleshooting log are documented in the [Wiki](https://github.com/Gcedwards91/homelab-infra/wiki).
+The full phase-by-phase build notes, lessons learned, and troubleshooting log are documented in the [Wiki](https://github.com/Gcedwards91/homelab-infra/wiki/Lessons-Learned-&-Journey).
 
 ---
 
