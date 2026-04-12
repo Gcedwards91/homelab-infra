@@ -1,4 +1,4 @@
-# homelab-infra
+# Homelab Infrastructure Project
 
 A structured homelab project built to apply modern DevOps and SRE practices in a self-managed environment. This is not a tutorial stack — every component was configured, debugged, and wired together from scratch.
 
@@ -160,4 +160,4 @@ The full phase-by-phase build notes, lessons learned, and troubleshooting log ar
 ## Author
 
 **George Edwards**
-[GitHub](https://github.com/Gcedwards91) · [LinkedIn](https://linkedin.com/in/your-profile)
+[GitHub](https://github.com/Gcedwards91) · [LinkedIn]([https://linkedin.com/in/your-profile](https://www.linkedin.com/in/gcedwards91/))
