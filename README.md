@@ -160,4 +160,4 @@ The full phase-by-phase build notes, lessons learned, and troubleshooting log ar
 ## Author
 
 **George Edwards**
-[GitHub](https://github.com/Gcedwards91) · [LinkedIn]([https://linkedin.com/in/your-profile](https://www.linkedin.com/in/gcedwards91/))
+[GitHub](https://github.com/Gcedwards91) · [LinkedIn](https://linkedin.com/in/your-profile](https://www.linkedin.com/in/gcedwards91/)
