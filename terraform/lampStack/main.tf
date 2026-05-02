@@ -115,7 +115,7 @@ resource "proxmox_vm_qemu" "alma_db_01" {
   cicustom = "user=local:snippets/alma-db-01-user.yaml"
   bios = "ovmf"
   machine = "q35"
- 
+
   #hostname        = "alma-db-01"
 
   cpu {
