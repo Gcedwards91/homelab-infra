@@ -11,3 +11,4 @@ group_vars/*/secrets.yml
 .vault_pass.txt
 weather-app/docker-final/statporter/.venv/
 .claude/
+node_modules/
