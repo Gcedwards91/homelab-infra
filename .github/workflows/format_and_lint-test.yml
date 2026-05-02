@@ -27,10 +27,10 @@ jobs:
           pip install black flake8
 
       - name: Run Black (format check)
-        run: black --check .
+        run: black --check weather-app/docker-src/ weather-app/docker-final/statporter/
 
       - name: Run Flake8 (lint)
-        run: flake8 weather-app/python
+        run: flake8 weather-app/docker-src/ weather-app/docker-final/statporter/
 
       # ---- FRONTEND/WEB ----
       - name: Set up Node.js
@@ -44,7 +44,7 @@ jobs:
       - name: Run Prettier
         run: prettier --check "**/*.{js,json,css,html,md,yml,yaml}"
 
-# ---- DOCKER ----
+      # ---- DOCKER ----
       - name: Run Hadolint (docker-src)
         uses: hadolint/hadolint-action@v3.1.0
         with:
