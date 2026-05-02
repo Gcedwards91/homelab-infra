@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Log output to a file with timestamp
 LOGFILE="template_prep_$(date +%F_%H-%M-%S).log"

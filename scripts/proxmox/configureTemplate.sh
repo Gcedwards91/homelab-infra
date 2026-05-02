@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Log output to a timestamped log file
 LOGFILE="template_config_$(date +%F_%H-%M-%S).log"
@@ -18,46 +19,6 @@ fi
 
 echo "--- Beginning Template Configuration Process ---"
 
-# Create iacadmin user
-echo ">>> Creating iacadmin user..."
-id iacadmin &>/dev/null || adduser iacadmin
-
-# Add to sudo group
-echo ">>> Adding iacadmin to sudo group..."
-usermod -aG sudo iacadmin
-
-# Set up SSH key
-echo ">>> Setting up SSH key authentication for iacadmin..."
-mkdir -p /home/iacadmin/.ssh
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPyoZb0BO56lXd/4uh4rKHC145tpj3QJ52Om6qLzBNiC iacadmin@homelab" > /home/iacadmin/.ssh/authorized_keys
-chmod 700 /home/iacadmin/.ssh
-chmod 600 /home/iacadmin/.ssh/authorized_keys
-chown -R iacadmin:iacadmin /home/iacadmin/.ssh
-
-# Harden SSH
-echo ">>> Hardening SSH config..."
-sed -i 's/^#*PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
-sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sed -i 's/^#*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
-systemctl restart ssh
-
-# Set bash shell and prompt for iacadmin
-echo ">>> Configuring shell and aliases for iacadmin..."
-chsh -s /bin/bash iacadmin
-cat <<EOF >> /home/iacadmin/.bashrc
-
-# Custom Aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-alias cls='clear'
-
-# Colored prompt and timestamped history
-force_color_prompt=yes
-export HISTTIMEFORMAT="%F %T "
-EOF
-chown iacadmin:iacadmin /home/iacadmin/.bashrc
-
 # Set timezone and locale
 echo ">>> Setting timezone and locale..."
 timedatectl set-timezone UTC
@@ -76,16 +37,52 @@ if [[ "$ID_LIKE" == *"rhel"* || "$ID" == "almalinux" ]]; then
     #dracut -f --regenerate-all
     systemctl enable --now qemu-guest-agent
     systemctl enable lvm2-monitor
+    id iacadmin &>/dev/null || useradd -m iacadmin
     usermod -aG wheel iacadmin
 elif [[ "$ID_LIKE" == *"debian"* || "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
     echo ">>> Using apt..."
     apt update && apt full-upgrade -y
     apt install -y qemu-guest-agent sudo vim curl wget net-tools openssh-server cloud-init
+    id iacadmin &>/dev/null || adduser --disabled-password --gecos "" iacadmin
+    usermod -aG sudo iacadmin
     systemctl enable --now qemu-guest-agent
 else
     echo ">>> Unrecognized distro. Exiting."
     exit 1
 fi
+
+
+# Set up SSH key
+echo ">>> Setting up SSH key authentication for iacadmin..."
+mkdir -p /home/iacadmin/.ssh
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPyoZb0BO56lXd/4uh4rKHC145tpj3QJ52Om6qLzBNiC iacadmin@homelab" > /home/iacadmin/.ssh/authorized_keys
+chmod 700 /home/iacadmin/.ssh
+chmod 600 /home/iacadmin/.ssh/authorized_keys
+chown -R iacadmin:iacadmin /home/iacadmin/.ssh
+
+# Harden SSH
+echo ">>> Hardening SSH config..."
+sed -i 's/^#*PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+sed -i 's/^#*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+sshd -t && systemctl restart ssh || { echo ">>> sshd config invalid, not restarting"; exit 1; }
+
+# Set bash shell and prompt for iacadmin
+echo ">>> Configuring shell and aliases for iacadmin..."
+chsh -s /bin/bash iacadmin
+cat <<EOF >> /home/iacadmin/.bashrc
+
+# Custom Aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias cls='clear'
+
+# Colored prompt and timestamped history
+force_color_prompt=yes
+export HISTTIMEFORMAT="%F %T "
+EOF
+chown iacadmin:iacadmin /home/iacadmin/.bashrc
 
 # Enabling cloud-init
 echo ">>> enabling cloud-init..."
@@ -105,7 +102,6 @@ cloud-init clean --logs
 
 # Clean temp and logs
 echo ">>> Cleaning temporary files and logs..."
-apt clean || dnf clean all
 rm -rf /tmp/*
 find /var/log -type f -exec truncate -s 0 {} \;
 
@@ -114,7 +110,16 @@ echo ">>> Zeroing free disk space (this may take time)..."
 dd if=/dev/zero of=/zerofile bs=1M status=progress || true
 rm -f /zerofile
 
+if [[ "$ID_LIKE" == *"rhel"* || "$ID" == "almalinux" ]]; then
+    lsinitrd "/boot/initramfs-$(uname -r).img" | grep -E "virtio|lvm|dm|sd_mod|sr_mod"
+    dnf clean all
+elif [[ "$ID_LIKE" == *"debian"* || "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+    apt clean
+else
+    echo ">>> Unrecognized distro. Exiting."
+    exit 1
+fi
+
 # Final wipe of bash history and exit
-lsinitrd "/boot/initramfs-$(uname -r).img" | grep -E "virtio|lvm|dm|sd_mod|sr_mod"
 history -c
 echo "--- Template Configuration Complete ---"
