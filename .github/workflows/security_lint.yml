@@ -24,10 +24,10 @@ jobs:
         run: pip install bandit
 
       - name: Run Bandit (Python security scan)
-        run: bandit -r weather-app/python -ll
+        run: bandit -r weather-app/docker-src/ weather-app/docker-final/statporter/ -ll
 
       - name: Run Trivy (Dockerfile vulnerability scan)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           scan-type: "config"
           scan-ref: "."
@@ -56,5 +56,5 @@ jobs:
       - name: Run npm audit (if package.json exists)
         run: |
           if [ -f package.json ]; then
-            npm audit --audit-level=moderate || true;
+            npm audit --audit-level=moderate
           fi
