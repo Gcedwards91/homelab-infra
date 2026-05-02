@@ -3,7 +3,7 @@ groups:
   - name: container_alerts
     rules:
       - alert: ContainerDown
-        expr: absent(container_cpu_usage_seconds_total)
+        expr: absent(container_cpu_percent)
         for: 2m
         labels:
           severity: critical
@@ -12,7 +12,7 @@ groups:
           description: "Statporter has stopped reporting container metrics for more than 2 minutes."
 
       - alert: ContainerHighMemory
-        expr: container_memory_usage_bytes / container_memory_limit_bytes > 0.80
+        expr: container_memory_percent > 80
         for: 5m
         labels:
           severity: warning
@@ -21,7 +21,7 @@ groups:
           description: "Container {{ $labels.name }} memory usage is above 80% for 5 minutes."
 
       - alert: ContainerHighCPU
-        expr: rate(container_cpu_usage_seconds_total[5m]) > 0.90
+        expr: container_cpu_percent > 90
         for: 5m
         labels:
           severity: warning
