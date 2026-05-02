@@ -1,0 +1,50 @@
+---
+groups:
+  - name: container_alerts
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_cpu_usage_seconds_total)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container metrics missing"
+          description: "Statporter has stopped reporting container metrics for more than 2 minutes."
+
+      - alert: ContainerHighMemory
+        expr: container_memory_usage_bytes / container_memory_limit_bytes > 0.80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container memory above 80%"
+          description: "Container {{ $labels.name }} memory usage is above 80% for 5 minutes."
+
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total[5m]) > 0.90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container CPU sustained above 90%"
+          description: "Container {{ $labels.name }} CPU usage has been above 90% for 5 minutes."
+
+  - name: stack_alerts
+    rules:
+      - alert: LokiIngestStopped
+        expr: rate(loki_distributor_lines_received_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Loki not receiving logs"
+          description: "Loki has not ingested any log lines in the last 5 minutes."
+
+      - alert: WeatherAppHighErrorRate
+        expr: rate(flask_http_request_total{status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Weather app error rate elevated"
+          description: "Weather app is returning 5xx errors at more than 5% of requests."
