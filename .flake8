@@ -1,0 +1,8 @@
+[flake8]
+exclude =
+    .venv,
+    __pycache__,
+    .git
+max-line-length = 100
+per-file-ignores =
+    # Allow long lines in generated/config files
