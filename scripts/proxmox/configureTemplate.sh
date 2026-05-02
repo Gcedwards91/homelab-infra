@@ -65,7 +65,12 @@ echo ">>> Hardening SSH config..."
 sed -i 's/^#*PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
 sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^#*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
-sshd -t && systemctl restart ssh || { echo ">>> sshd config invalid, not restarting"; exit 1; }
+if sshd -t; then
+    systemctl restart ssh
+else
+    echo ">>> sshd config invalid, not restarting"
+    exit 1
+fi
 
 # Set bash shell and prompt for iacadmin
 echo ">>> Configuring shell and aliases for iacadmin..."
