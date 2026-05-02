@@ -4,6 +4,14 @@ services:
     image: nginx:1.27-alpine
     container_name: reverse-proxy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
     ports:
       - "80:80"
     volumes:
@@ -22,6 +30,14 @@ services:
     image: burningstar4/weather-app:latest
     container_name: weather-app
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
     expose:
       - "5000"
     labels:
@@ -39,6 +55,14 @@ services:
     image: prom/prometheus:v3.3.1
     container_name: prometheus
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
     expose:
       - "9090"
     volumes:
@@ -59,6 +83,14 @@ services:
     image: grafana/grafana:11.6.1
     container_name: grafana
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
     expose:
       - "3000"
     volumes:
@@ -94,6 +126,14 @@ services:
     image: grafana/loki:3.5.0
     container_name: loki
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
     expose:
       - "3100"
     volumes:
@@ -115,6 +155,14 @@ services:
     image: grafana/promtail:3.5.0
     container_name: promtail
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
     volumes:
       - ./promtail/promtail-config.yaml:/etc/promtail/promtail.yaml
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -133,6 +181,14 @@ services:
     image: burningstar4/statporter:latest
     container_name: statporter
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     expose:
