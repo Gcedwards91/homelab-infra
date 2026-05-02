@@ -2,7 +2,7 @@
 
 A structured homelab project built to apply modern DevOps and SRE practices in a self-managed environment. This is not a tutorial stack — every component was configured, debugged, and wired together from scratch.
 
-> **Live demo:** `http://your-domain.com` *(coming soon — AWS deployment in progress)*
+> **Live demo:** `http://your-domain.com` _(coming soon — AWS deployment in progress)_
 
 ---
 
@@ -43,15 +43,15 @@ A full-stack observability and application platform running on a single Proxmox 
 
 ## Stack
 
-| Service | Image | Purpose |
-|---|---|---|
-| nginx | `nginx:1.27-alpine` | Reverse proxy, sub-path routing |
-| weather-app | `burningstar4/weather-app` | Flask app — UI + OpenWeatherMap API |
-| prometheus | `prom/prometheus:v3.3.1` | Metrics collection and storage |
-| grafana | `grafana/grafana:11.6.1` | Metrics and log visualization |
-| loki | `grafana/loki:3.5.0` | Log aggregation |
-| promtail | `grafana/promtail:3.5.0` | Log shipping — Docker socket autodiscovery |
-| statporter | `burningstar4/statporter` | Custom Prometheus exporter for Docker stats |
+| Service     | Image                      | Purpose                                     |
+| ----------- | -------------------------- | ------------------------------------------- |
+| nginx       | `nginx:1.27-alpine`        | Reverse proxy, sub-path routing             |
+| weather-app | `burningstar4/weather-app` | Flask app — UI + OpenWeatherMap API         |
+| prometheus  | `prom/prometheus:v3.3.1`   | Metrics collection and storage              |
+| grafana     | `grafana/grafana:11.6.1`   | Metrics and log visualization               |
+| loki        | `grafana/loki:3.5.0`       | Log aggregation                             |
+| promtail    | `grafana/promtail:3.5.0`   | Log shipping — Docker socket autodiscovery  |
+| statporter  | `burningstar4/statporter`  | Custom Prometheus exporter for Docker stats |
 
 ---
 
@@ -61,24 +61,26 @@ A full-stack observability and application platform running on a single Proxmox 
 
 It collects the following metrics per container by querying the Docker socket directly:
 
-| Metric | Description |
-|---|---|
-| `container_cpu_percent` | CPU usage % |
-| `container_memory_usage_bytes` | Memory usage in bytes |
-| `container_memory_percent` | Memory usage % |
-| `container_network_receive_bytes_total` | Cumulative network bytes received |
+| Metric                                   | Description                          |
+| ---------------------------------------- | ------------------------------------ |
+| `container_cpu_percent`                  | CPU usage %                          |
+| `container_memory_usage_bytes`           | Memory usage in bytes                |
+| `container_memory_percent`               | Memory usage %                       |
+| `container_network_receive_bytes_total`  | Cumulative network bytes received    |
 | `container_network_transmit_bytes_total` | Cumulative network bytes transmitted |
-| `container_blkio_read_bytes_total` | Cumulative disk I/O bytes read |
-| `container_blkio_write_bytes_total` | Cumulative disk I/O bytes written |
+| `container_blkio_read_bytes_total`       | Cumulative disk I/O bytes read       |
+| `container_blkio_write_bytes_total`      | Cumulative disk I/O bytes written    |
 
 ---
 
 ## Screenshots
 
 ### Weather App
+
 ![Weather App](docs/screenshots/weather-app.png)
 
 ### Grafana — Container Metrics Dashboard
+
 ![Grafana Dashboard](docs/screenshots/grafana-dashboard.png)
 
 ---
@@ -111,11 +113,11 @@ docker compose ps
 
 Once running:
 
-| Service | URL |
-|---|---|
-| Weather App | http://localhost |
-| Grafana | http://localhost/grafana |
-| Prometheus | http://localhost/prometheus |
+| Service     | URL                         |
+| ----------- | --------------------------- |
+| Weather App | http://localhost            |
+| Grafana     | http://localhost/grafana    |
+| Prometheus  | http://localhost/prometheus |
 
 Grafana is accessible without login in read-only mode. To make changes, log in with the credentials from your `.env` file.
 
