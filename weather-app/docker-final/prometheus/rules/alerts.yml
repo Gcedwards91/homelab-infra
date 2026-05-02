@@ -3,13 +3,13 @@ groups:
   - name: container_alerts
     rules:
       - alert: ContainerDown
-        expr: absent(container_cpu_percent)
+        expr: up{job="statporter"} == 0
         for: 2m
         labels:
           severity: critical
         annotations:
-          summary: "Container metrics missing"
-          description: "Statporter has stopped reporting container metrics for more than 2 minutes."
+          summary: "Statporter is down"
+          description: "Statporter has been unreachable for more than 2 minutes."
 
       - alert: ContainerHighMemory
         expr: container_memory_percent > 80
@@ -45,6 +45,3 @@ groups:
         for: 2m
         labels:
           severity: critical
-        annotations:
-          summary: "Weather app error rate elevated"
-          description: "Weather app is returning 5xx errors at more than 5% of requests."
