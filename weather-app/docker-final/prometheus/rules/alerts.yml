@@ -45,3 +45,6 @@ groups:
         for: 2m
         labels:
           severity: critical
+        annotations:
+          summary: "Weather app 5xx error rate elevated"
+          description: "The weather app is returning 5xx errors at more than 0.05 req/s over the last 5 minutes."

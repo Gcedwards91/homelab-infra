@@ -12,10 +12,12 @@ from flask import (
 )
 from jinja2 import TemplateNotFound
 from logger import get_logger
+from prometheus_flask_exporter import PrometheusMetrics
 from weather import get_weather
 
 # Explicit folders ensure Flask looks in /app/templates and /app/static
 app = Flask(__name__, template_folder="templates", static_folder="static")
+PrometheusMetrics(app)
 logger = get_logger("flask")
 
 
@@ -55,11 +57,6 @@ def weather_app():
 @app.route("/healthz")
 def healthz():
     return jsonify({"status": "ok"}), 200
-
-
-@app.route("/metrics")
-def metrics():
-    return Response("app_up 1\n", status=200, mimetype="text/plain")
 
 
 # --------------- API ----------------
