@@ -3,7 +3,7 @@ groups:
   - name: container_alerts
     rules:
       - alert: ContainerDown
-        expr: up{job="statporter"} == 0
+        expr: up{job=~"weather_app|loki|prometheus|grafana|statporter"} == 0
         for: 2m
         labels:
           severity: critical
