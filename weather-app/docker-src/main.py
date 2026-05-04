@@ -130,4 +130,4 @@ def log_response(response):
 
 
 # Gunicorn serves this app — see Dockerfile CMD.
-# Run locally with: gunicorn --bind 0.0.0.0:5000 main:app
+# Run locally with: gunicorn --bind 0.0.0.0:5000 main:app.
