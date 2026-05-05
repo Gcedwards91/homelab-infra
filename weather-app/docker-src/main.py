@@ -22,17 +22,16 @@ logger = get_logger("flask")
 
 
 def safe_render(name: str) -> str | Response:
-    """Render a template by name, returning a 200 error page if not found."""
     try:
         return render_template(name)
     except TemplateNotFound:
         logger.error("Template not found", extra={"template": name})
         return Response(
-            f"<h1>Missing template: {name}</h1>", status=200, mimetype="text/html"
+            f"<h1>Missing template: {name}</h1>", status=404, mimetype="text/html"
         )
 
 
-# ---------------- UI ----------------
+# -------- UI --------
 @app.route("/")
 def index():
     return safe_render("index.html")
@@ -53,13 +52,13 @@ def weather_app():
     return safe_render("weather_app.html")
 
 
-# ------------- health / metrics -------------
+# -------- health / metrics --------
 @app.route("/healthz")
 def healthz():
     return jsonify({"status": "ok"}), 200
 
 
-# --------------- API ----------------
+# -------- API --------
 @app.route("/weather", methods=["POST"])
 def weather():
     data = request.get_json(silent=True) or {}
@@ -72,7 +71,7 @@ def weather():
     return jsonify(weather_data), 200
 
 
-# -------------- static --------------
+# -------- static --------
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory(
@@ -82,7 +81,7 @@ def favicon():
     )
 
 
-# ----------- request / response logging -----------
+# -------- request / response logging --------
 @app.before_request
 def log_request():
     g.request_id = str(uuid.uuid4())
@@ -127,7 +126,3 @@ def log_response(response):
         },
     )
     return response
-
-
-# Gunicorn serves this app — see Dockerfile CMD.
-# Run locally with: gunicorn --bind 0.0.0.0:5000 main:app.

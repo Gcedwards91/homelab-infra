@@ -8,9 +8,7 @@ from flask import Flask, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from prometheus_client.core import CollectorRegistry
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
+# -------- Logging --------
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
@@ -18,9 +16,7 @@ logging.basicConfig(
 )
 log = logging.getLogger("statporter")
 
-# ---------------------------------------------------------------------------
-# Prometheus registry & gauges
-# ---------------------------------------------------------------------------
+# -------- Prometheus registry & gauges --------
 registry = CollectorRegistry()
 
 CPU_PERCENT = Gauge(
@@ -66,9 +62,7 @@ BLKIO_WRITE = Gauge(
     registry=registry,
 )
 
-# ---------------------------------------------------------------------------
-# Docker client — lazily initialised so startup failures are visible
-# ---------------------------------------------------------------------------
+# -------- Docker client — lazily initialised so startup failures are visible --------
 _client: docker.DockerClient | None = None
 
 
@@ -82,9 +76,7 @@ def get_client() -> docker.DockerClient:
     return _client
 
 
-# ---------------------------------------------------------------------------
-# Metric collection
-# ---------------------------------------------------------------------------
+# -------- Metric collection --------
 def _cpu_percent(stats: dict) -> float:
     """Calculate CPU usage percentage from a Docker stats snapshot."""
     cpu_stats = stats.get("cpu_stats", {})
@@ -142,18 +134,15 @@ def collect_metrics() -> None:
             continue
 
         try:
-            # CPU
             cpu = _cpu_percent(stats)
             CPU_PERCENT.labels(name=name).set(cpu)
 
-            # Memory
             mem_usage = stats.get("memory_stats", {}).get("usage", 0)
             mem_limit = stats.get("memory_stats", {}).get("limit") or 1
             mem_pct = (mem_usage / mem_limit) * 100.0
             MEM_USAGE.labels(name=name).set(mem_usage)
             MEM_PERCENT.labels(name=name).set(mem_pct)
 
-            # Network
             net_rx_bytes = 0
             net_tx_bytes = 0
             for iface in stats.get("networks", {}).values():
@@ -162,7 +151,6 @@ def collect_metrics() -> None:
             NET_RX.labels(name=name).set(net_rx_bytes)
             NET_TX.labels(name=name).set(net_tx_bytes)
 
-            # Disk I/O
             blkio_read, blkio_write = _blkio_bytes(stats)
             BLKIO_READ.labels(name=name).set(blkio_read)
             BLKIO_WRITE.labels(name=name).set(blkio_write)
@@ -182,9 +170,7 @@ def collect_metrics() -> None:
             log.exception("Error processing metrics for %s", name)
 
 
-# ---------------------------------------------------------------------------
-# Flask app
-# ---------------------------------------------------------------------------
+# -------- Flask app --------
 app = Flask(__name__)
 
 
@@ -205,9 +191,3 @@ def healthz():
     except Exception:
         log.exception("Health check failed")
         return "docker unavailable", 503
-
-
-# ---------------------------------------------------------------------------
-# Gunicorn serves this app — see Dockerfile CMD.
-# Run locally with: gunicorn --bind 0.0.0.0:9800 statporter:app
-# ---------------------------------------------------------------------------

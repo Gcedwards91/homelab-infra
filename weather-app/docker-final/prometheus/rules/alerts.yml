@@ -8,8 +8,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Statporter is down"
-          description: "Statporter has been unreachable for more than 2 minutes."
+          summary: "{{ $labels.job }} is unreachable"
+          description: "{{ $labels.job }} has been unreachable for more than 2 minutes."
 
       - alert: ContainerHighMemory
         expr: container_memory_percent > 80

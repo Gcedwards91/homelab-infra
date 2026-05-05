@@ -1,0 +1,31 @@
+---
+name: Docker Build and Push - Weather App
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "weather-app/docker-src/**"
+
+jobs:
+  build-weather-app:
+    name: Build and Push Weather App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push weather-app
+        uses: docker/build-push-action@v6
+        with:
+          context: weather-app/docker-src/
+          push: true
+          tags: burningstar4/weather-app:latest
