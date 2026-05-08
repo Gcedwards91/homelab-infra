@@ -45,8 +45,8 @@ body {
   border-radius: var(--border-radius-card);
   box-shadow: var(--shadow-card);
   padding: 2rem;
-  margin-top: 4rem;
-  margin-bottom: 4rem;
+  margin-top: clamp(2rem, 5vw, 4rem);
+  margin-bottom: clamp(2rem, 5vw, 4rem);
   width: 100%;
   max-width: 500px;
 }
@@ -63,17 +63,31 @@ h1 {
   text-align: center;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
+  text-wrap: balance;
 }
 
 h2 {
   color: var(--text-primary);
   margin-top: 2rem;
   margin-bottom: 0.5rem;
+  text-wrap: balance;
 }
 
 p {
   color: var(--text-primary);
   line-height: 1.7;
+  text-wrap: pretty;
+}
+
+/* Narrative prose — cap line length for readability */
+section.fade-in p,
+.blog-post p {
+  max-width: 68ch;
+}
+
+/* About Me chapter headings — extra breathing room between life sections */
+section.fade-in h2 {
+  margin-top: 2.5rem;
 }
 
 /* -----------------------------------------------------------------------
