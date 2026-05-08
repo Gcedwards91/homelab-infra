@@ -1,8 +1,11 @@
 :root {
+  color-scheme: light dark;
+
   --brand-blue: #0058e6;
   --brand-blue-dark: #0044b3;
   --brand-blue-light: #cce0ff;
   --brand-blue-tint: #f0f4ff;
+  --brand-blue-link: #0058e6;
   --text-primary: #333;
   --text-secondary: #555;
   --text-muted: #717171;
@@ -16,6 +19,8 @@
   --border-radius-card: 12px;
   --border-radius-input: 8px;
   --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05);
+  --tooltip-bg: #333333;
+  --tooltip-text: #ffffff;
 }
 
 /* -----------------------------------------------------------------------
@@ -94,7 +99,7 @@ p {
 }
 
 .navbar a:hover {
-  color: var(--background-card);
+  color: #ffffff;
   text-decoration: underline;
 }
 
@@ -193,7 +198,7 @@ li {
 }
 
 .note a {
-  color: var(--brand-blue);
+  color: var(--brand-blue-link);
   text-decoration: underline;
 }
 
@@ -287,8 +292,8 @@ select:focus-visible {
 .has-tooltip .tooltip {
   visibility: hidden;
   opacity: 0;
-  background: var(--text-primary);
-  color: white;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 0.85rem;
   line-height: 1.5;
   padding: 0.6rem 0.9rem;
@@ -345,6 +350,33 @@ select:focus-visible {
     max-width: 100%;
     margin-left: 1rem;
     margin-right: 1rem;
+  }
+}
+
+/* -----------------------------------------------------------------------
+   Dark mode — responds to OS preference, screen only (not print)
+----------------------------------------------------------------------- */
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    --background-page: #14161d;
+    --background-card: #1e2029;
+    --text-primary: #e8eaf2;
+    --text-secondary: #a8adc0;
+    --text-muted: #8f94aa;
+    --border-light: #282b38;
+    --border-input: #363a4a;
+    --brand-blue-tint: #192040;
+    --brand-blue-link: #7dafff;
+    --error-color: #f87171;
+    --error-bg: #2d1515;
+    --error-border: #5c2222;
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 24px rgba(0, 0, 0, 0.4);
+    --tooltip-bg: #e8eaf2;
+    --tooltip-text: #14161d;
+  }
+
+  .has-tooltip {
+    border-bottom-color: var(--brand-blue-link);
   }
 }
 
