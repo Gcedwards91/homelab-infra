@@ -13,7 +13,8 @@ A full-stack observability and application platform running on a single Proxmox 
 - **Infrastructure as Code** — VMs provisioned with Terraform, configured with Ansible
 - **Containerized application stack** — Flask weather app, custom Prometheus exporter, Grafana, Loki, Promtail, nginx reverse proxy
 - **Custom observability tooling** — a hand-built Prometheus exporter (`statporter`) that collects per-container CPU, memory, network, and disk I/O metrics via the Docker socket
-- **CI/CD pipeline** — GitHub Actions (in progress)
+- **CI/CD pipeline** — GitHub Actions building and publishing Docker images to DockerHub on every push to master
+- **Portfolio web layer** — interactive resume and project showcase, built with a structured design system pass using Impeccable
 
 ---
 
@@ -74,6 +75,10 @@ It collects the following metrics per container by querying the Docker socket di
 ---
 
 ## Screenshots
+
+### Portfolio & Resume Page
+
+![Resume Page](docs/screenshots/resume-page.png)
 
 ### Weather App
 
@@ -143,12 +148,21 @@ homelab-infra/
 
 ---
 
+## CI/CD
+
+GitHub Actions handles automated builds and publishes on every push to `master`:
+
+- **weather-app** — triggers on changes to `weather-app/docker-src/`, publishes `burningstar4/weather-app:latest`
+- **statporter** — triggers on changes to `weather-app/docker-final/statporter/`, publishes `burningstar4/statporter:latest`
+
+---
+
 ## What's Next
 
+- [x] CI/CD pipeline via GitHub Actions
 - [ ] Migrate stack to Kubernetes (manifests in progress)
 - [ ] Deploy to AWS (ECS or EKS) with Terraform
 - [ ] TLS via ACM + Route53 custom domain
-- [ ] CI/CD pipeline via GitHub Actions
 - [ ] Secrets management via AWS Secrets Manager
 
 ---
