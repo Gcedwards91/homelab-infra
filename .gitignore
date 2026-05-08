@@ -13,3 +13,4 @@ weather-app/docker-final/statporter/.venv/
 .claude/
 node_modules/
 .agents/
+skills-lock.json
