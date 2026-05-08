@@ -5,12 +5,12 @@
   --brand-blue-tint: #f0f4ff;
   --text-primary: #333;
   --text-secondary: #555;
-  --text-muted: #888;
+  --text-muted: #717171;
   --border-light: #eee;
   --border-input: #ccc;
   --background-page: #f4f6f9;
   --background-card: #ffffff;
-  --error-color: #dc2626;
+  --error-color: #b91c1c;
   --error-bg: #fef2f2;
   --error-border: #fecaca;
   --border-radius-card: 12px;
@@ -90,10 +90,16 @@ p {
   text-decoration: none;
   font-weight: bold;
   transition: color 0.3s;
+  padding: 0.35rem 0.5rem;
 }
 
 .navbar a:hover {
-  color: var(--brand-blue-light);
+  color: var(--background-card);
+  text-decoration: underline;
+}
+
+.navbar a:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.85);
 }
 
 /* -----------------------------------------------------------------------
