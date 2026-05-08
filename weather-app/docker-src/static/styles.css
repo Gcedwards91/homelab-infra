@@ -10,7 +10,9 @@
   --border-input: #ccc;
   --background-page: #f4f6f9;
   --background-card: #ffffff;
-  --error-color: red;
+  --error-color: #dc2626;
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
   --border-radius-card: 12px;
   --border-radius-input: 8px;
   --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05);
@@ -134,11 +136,20 @@ button:hover {
   background: var(--brand-blue-dark);
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* -----------------------------------------------------------------------
    Weather display
 ----------------------------------------------------------------------- */
-#error {
+#error:not(:empty) {
   color: var(--error-color);
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--border-radius-input);
+  padding: 0.75rem 1rem;
   text-align: center;
   margin-top: 1rem;
 }
@@ -168,8 +179,9 @@ li {
 .note {
   margin-bottom: 1em;
   background-color: var(--brand-blue-tint);
-  padding: 10px;
-  border-left: 4px solid var(--brand-blue);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--brand-blue-light);
+  border-radius: var(--border-radius-input);
   font-size: 0.95rem;
   color: var(--text-primary);
 }
@@ -240,7 +252,25 @@ li {
 }
 
 /* -----------------------------------------------------------------------
-   Tooltip (for hover interactions on About Me)
+   Accessibility
+----------------------------------------------------------------------- */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(0, 88, 230, 0.55);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+input[type="text"]:focus-visible,
+input[type="password"]:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(0, 88, 230, 0.55);
+  outline-offset: 0;
+  border-color: var(--brand-blue);
+}
+
+/* -----------------------------------------------------------------------
+   Tooltip (for hover, focus, and tap interactions on About Me)
 ----------------------------------------------------------------------- */
 .has-tooltip {
   position: relative;
@@ -267,7 +297,10 @@ li {
   pointer-events: none;
 }
 
-.has-tooltip:hover .tooltip {
+.has-tooltip:hover .tooltip,
+.has-tooltip:focus .tooltip,
+.has-tooltip:focus-within .tooltip,
+.has-tooltip.tooltip-open .tooltip {
   visibility: visible;
   opacity: 1;
 }
@@ -306,5 +339,22 @@ li {
     max-width: 100%;
     margin-left: 1rem;
     margin-right: 1rem;
+  }
+}
+
+/* -----------------------------------------------------------------------
+   Reduced motion — respect user OS preference
+----------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

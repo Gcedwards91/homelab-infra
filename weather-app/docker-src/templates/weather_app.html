@@ -39,6 +39,7 @@
           id="location"
           name="location"
           placeholder="e.g., Atlanta or 30301"
+          autocomplete="off"
           required
         />
 
@@ -48,21 +49,38 @@
           id="api_key"
           name="api_key"
           placeholder="Your OpenWeatherMap API Key"
+          autocomplete="off"
           required
         />
 
         <button type="submit">Get Weather</button>
       </form>
 
-      <div id="error"></div>
-      <div id="weather-display"></div>
+      <div id="error" role="alert" aria-live="assertive"></div>
+      <div id="weather-display" aria-live="polite"></div>
 
       <div class="footer-icons">
-        <a href="https://github.com/Gcedwards91" target="_blank">
-          <img src="{{ url_for('static', filename='icons/github.svg') }}" alt="GitHub" />
+        <a
+          href="https://github.com/Gcedwards91"
+          target="_blank"
+          aria-label="Cliff Edwards on GitHub"
+        >
+          <img
+            src="{{ url_for('static', filename='icons/github.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
         </a>
-        <a href="https://www.linkedin.com/in/gcedwards91/" target="_blank">
-          <img src="{{ url_for('static', filename='icons/linkedin.svg') }}" alt="LinkedIn" />
+        <a
+          href="https://www.linkedin.com/in/gcedwards91/"
+          target="_blank"
+          aria-label="Cliff Edwards on LinkedIn"
+        >
+          <img
+            src="{{ url_for('static', filename='icons/linkedin.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
         </a>
       </div>
     </div>
@@ -71,6 +89,8 @@
       const form = document.getElementById("weather-form");
       const display = document.getElementById("weather-display");
       const errorDiv = document.getElementById("error");
+      const submitBtn = form.querySelector("button[type='submit']");
+      const submitLabel = submitBtn.textContent;
 
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -81,13 +101,13 @@
 
         display.innerHTML = "";
         errorDiv.textContent = "";
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Fetching...";
 
         try {
           const response = await fetch("/weather", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ location, api_key, mode }),
           });
 
@@ -96,19 +116,31 @@
           if (data.error) {
             errorDiv.textContent = data.error;
           } else {
-            display.innerHTML = `
-              <h2>Weather in ${data.city}</h2>
-              <ul>
-                  <li>Temperature: ${data.temp}°F</li>
-                  <li>Feels like: ${data.feels_like}°F</li>
-                  <li>Condition: ${data.description}</li>
-                  <li>Humidity: ${data.humidity}%</li>
-                  <li>Wind Speed: ${data.wind_speed} mph</li>
-              </ul>
-            `;
+            const heading = document.createElement("h2");
+            heading.textContent = "Weather in " + data.city;
+
+            const list = document.createElement("ul");
+            [
+              "Temperature: " + data.temp + "°F",
+              "Feels like: " + data.feels_like + "°F",
+              "Condition: " + data.description,
+              "Humidity: " + data.humidity + "%",
+              "Wind Speed: " + data.wind_speed + " mph",
+            ].forEach(function (text) {
+              const li = document.createElement("li");
+              li.textContent = text;
+              list.appendChild(li);
+            });
+
+            display.appendChild(heading);
+            display.appendChild(list);
           }
         } catch (err) {
-          errorDiv.textContent = "Network error: " + err.message;
+          errorDiv.textContent =
+            "Could not reach the weather service. Check your connection and try again.";
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = submitLabel;
         }
       });
     </script>

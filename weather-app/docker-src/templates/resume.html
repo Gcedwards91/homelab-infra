@@ -2,39 +2,845 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Resume</title>
+    <title>Resume — George "Cliff" Edwards</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <style>
+      /* -----------------------------------------------------------------------
+         Resume header
+      ----------------------------------------------------------------------- */
+      .resume-header {
+        text-align: center;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        margin-bottom: 0;
+      }
+
+      .resume-header h1 {
+        margin-bottom: 0.2rem;
+      }
+
+      .resume-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        margin: 0 0 0.75rem;
+      }
+
+      .resume-contact {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.2rem 1.25rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .resume-contact a {
+        color: var(--brand-blue);
+        text-decoration: none;
+      }
+
+      .resume-contact a:hover {
+        text-decoration: underline;
+      }
+
+      /* -----------------------------------------------------------------------
+         Download actions
+      ----------------------------------------------------------------------- */
+      .resume-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin: 1.5rem 0;
+      }
+
+      .resume-actions--bottom {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        justify-content: center;
+      }
+
+      .btn-download {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.6rem 1.25rem;
+        border-radius: var(--border-radius-input);
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid var(--brand-blue);
+        font-family: inherit;
+        cursor: pointer;
+        line-height: 1;
+        transition:
+          background-color 0.2s,
+          border-color 0.2s,
+          color 0.2s;
+      }
+
+      .btn-download--primary {
+        background: var(--brand-blue);
+        color: white;
+      }
+
+      .btn-download--primary:hover {
+        background: var(--brand-blue-dark);
+        border-color: var(--brand-blue-dark);
+        color: white;
+      }
+
+      .btn-download--secondary {
+        background: transparent;
+        color: var(--brand-blue);
+      }
+
+      .btn-download--secondary:hover {
+        background: var(--brand-blue-tint);
+        color: var(--brand-blue);
+      }
+
+      .btn-download:focus-visible {
+        outline: 2px solid rgba(0, 88, 230, 0.5);
+        outline-offset: 2px;
+      }
+
+      /* -----------------------------------------------------------------------
+         Sections
+      ----------------------------------------------------------------------- */
+      .resume-section {
+        margin-top: 2rem;
+      }
+
+      .resume-section__heading {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: 0.4rem;
+        margin: 0 0 1rem;
+        text-align: left;
+        text-wrap: balance;
+      }
+
+      /* -----------------------------------------------------------------------
+         Summary
+      ----------------------------------------------------------------------- */
+      .resume-summary {
+        font-size: 0.975rem;
+        line-height: 1.7;
+        color: var(--text-primary);
+        margin: 0;
+        text-wrap: pretty;
+      }
+
+      /* -----------------------------------------------------------------------
+         Skills
+      ----------------------------------------------------------------------- */
+      .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.875rem 3rem;
+      }
+
+      .skill-category__label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin: 0 0 0.2rem;
+      }
+
+      .skill-category__items {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        line-height: 1.55;
+        margin: 0;
+      }
+
+      /* -----------------------------------------------------------------------
+         Experience
+      ----------------------------------------------------------------------- */
+      .experience-entry {
+        margin-bottom: 1.75rem;
+        padding-bottom: 1.75rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .experience-entry:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .experience-entry__meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.1rem 1rem;
+      }
+
+      .experience-entry__company {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+
+      .experience-entry__location {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+
+      .experience-entry__role-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.1rem 1rem;
+        margin: 0.2rem 0 0.6rem;
+      }
+
+      .experience-entry__role {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.975rem;
+      }
+
+      .experience-entry__date {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .experience-entry__bullets {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .experience-entry__bullets li {
+        margin-bottom: 0.4rem;
+        font-size: 0.925rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+        text-wrap: pretty;
+      }
+
+      .experience-entry__tools {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.65rem;
+        line-height: 1.5;
+      }
+
+      .experience-entry__tools strong {
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      /* -----------------------------------------------------------------------
+         Projects
+      ----------------------------------------------------------------------- */
+      .project-entry {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .project-entry:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .project-entry__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.1rem 1rem;
+        margin-bottom: 0.2rem;
+      }
+
+      .project-entry__name {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+
+      .project-entry__date {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .project-entry__context {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0 0 0.5rem;
+        line-height: 1.4;
+      }
+
+      .project-entry__context a {
+        color: var(--brand-blue);
+        text-decoration: none;
+      }
+
+      .project-entry__context a:hover {
+        text-decoration: underline;
+      }
+
+      .project-entry__bullets {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .project-entry__bullets li {
+        margin-bottom: 0.4rem;
+        font-size: 0.925rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+        text-wrap: pretty;
+      }
+
+      /* -----------------------------------------------------------------------
+         Education
+      ----------------------------------------------------------------------- */
+      .edu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .edu-entry {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.1rem 1rem;
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .edu-entry:last-child {
+        margin-bottom: 0;
+      }
+
+      .edu-entry__name {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .edu-entry__badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--brand-blue);
+        background: var(--brand-blue-tint);
+        border: 1px solid var(--brand-blue-light);
+        border-radius: 4px;
+        padding: 0.1rem 0.4rem;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .edu-entry__detail {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      /* -----------------------------------------------------------------------
+         Print
+      ----------------------------------------------------------------------- */
+      @media print {
+        .navbar,
+        .footer-icons,
+        .resume-actions {
+          display: none !important;
+        }
+
+        body {
+          background: white !important;
+          font-size: 10.5pt;
+        }
+
+        .container,
+        .container--wide {
+          box-shadow: none !important;
+          margin: 0 !important;
+          padding: 0.25rem !important;
+          max-width: 100% !important;
+          border-radius: 0 !important;
+        }
+
+        .resume-section {
+          break-inside: avoid;
+        }
+
+        .experience-entry,
+        .project-entry {
+          break-inside: avoid;
+        }
+
+        .resume-contact a,
+        .project-entry__context a {
+          color: var(--text-muted) !important;
+          text-decoration: none !important;
+        }
+
+        .edu-entry__badge {
+          border: 1px solid #aaa !important;
+          background: transparent !important;
+          color: #555 !important;
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         Mobile
+      ----------------------------------------------------------------------- */
+      @media (max-width: 600px) {
+        .skills-grid {
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+        }
+
+        .experience-entry__meta,
+        .experience-entry__role-row,
+        .project-entry__header,
+        .edu-entry {
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .experience-entry__date,
+        .project-entry__date,
+        .edu-entry__detail {
+          white-space: normal;
+        }
+      }
+    </style>
   </head>
+
   <body>
     <div class="container container--wide">
-      <div class="navbar">
+      <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
         <a href="{{ url_for('index') }}">Homelab Blog</a>
-        <a href="{{ url_for('resume') }}">Resume</a>
+        <a href="{{ url_for('resume') }}" aria-current="page">Resume</a>
         <a href="{{ url_for('weather_app') }}">Weather App</a>
         <a href="/grafana/">Grafana</a>
+      </nav>
+
+      <!-- Header -->
+      <header class="resume-header">
+        <h1>George &#8220;Cliff&#8221; Edwards</h1>
+        <p class="resume-subtitle">DevOps Engineer</p>
+        <ul class="resume-contact">
+          <li>Atlanta, GA</li>
+          <li><a href="mailto:gcedwards91@gmail.com">gcedwards91@gmail.com</a></li>
+          <li>
+            <a href="https://github.com/Gcedwards91" target="_blank" rel="noopener noreferrer"
+              >github.com/Gcedwards91</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.linkedin.com/in/gcedwards91/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >linkedin.com/in/gcedwards91</a
+            >
+          </li>
+        </ul>
+      </header>
+
+      <!-- Download actions (top) -->
+      <!-- Drop Cliff_Edwards_Resume.pdf and Cliff_Edwards_Resume.docx into weather-app/docker-src/static/ to activate these links -->
+      <div class="resume-actions" aria-label="Download resume">
+        <a
+          href="{{ url_for('static', filename='Cliff_Edwards_Resume.pdf') }}"
+          download
+          class="btn-download btn-download--primary"
+          >Download PDF</a
+        >
+        <a
+          href="{{ url_for('static', filename='Cliff_Edwards_Resume.docx') }}"
+          download
+          class="btn-download btn-download--secondary"
+          >Download DOCX</a
+        >
       </div>
 
-      <h1>Resume</h1>
-      <p class="note">
-        This page will feature an interactive, downloadable resume styled to match the rest of the
-        project.
-      </p>
-      <p>
-        Download a PDF version
-        <a href="{{ url_for('static', filename='Cliff_Edwards_Resume.pdf') }}" target="_blank"
-          >here</a
-        >.
-      </p>
+      <!-- Summary -->
+      <section class="resume-section" aria-labelledby="section-summary">
+        <h2 class="resume-section__heading" id="section-summary">Summary</h2>
+        <p class="resume-summary">
+          Self-taught platform and infrastructure engineer transitioning to DevOps. Deep background
+          in large-scale endpoint management, Windows imaging, PowerShell automation, and enterprise
+          systems engineering &mdash; developed as the sole engineer over an 18,000-endpoint POS
+          environment at Inspire Brands. Four years of hands-on exposure to Docker, Kubernetes, and
+          SIEM tooling in enterprise customer environments at Tripwire and Tenable. Building toward
+          full-stack DevOps ownership through a structured homelab project, active AWS certification
+          study, and Kubernetes migration work.
+        </p>
+      </section>
+
+      <!-- Skills -->
+      <section class="resume-section" aria-labelledby="section-skills">
+        <h2 class="resume-section__heading" id="section-skills">Skills</h2>
+        <div class="skills-grid">
+          <div class="skill-category">
+            <p class="skill-category__label">DevOps &amp; IaC</p>
+            <p class="skill-category__items">
+              Terraform, Ansible, Docker, Docker Compose, Kubernetes, GitHub Actions, cloud-init,
+              Git
+            </p>
+          </div>
+          <div class="skill-category">
+            <p class="skill-category__label">Observability</p>
+            <p class="skill-category__items">
+              Prometheus, Grafana, Loki, Promtail, Wazuh, SIEM Tools, Custom Exporter Development
+            </p>
+          </div>
+          <div class="skill-category">
+            <p class="skill-category__label">Languages &amp; Scripting</p>
+            <p class="skill-category__items">Python, PowerShell, Bash</p>
+          </div>
+          <div class="skill-category">
+            <p class="skill-category__label">Infrastructure</p>
+            <p class="skill-category__items">
+              Proxmox VE, Ubuntu, Debian, AlmaLinux, Windows Server, DNS/DHCP, nginx, MDT/WADK
+            </p>
+          </div>
+          <div class="skill-category">
+            <p class="skill-category__label">Security</p>
+            <p class="skill-category__items">
+              CIS Benchmarks, Image Hardening, Vulnerability Management, Tenable Suite
+            </p>
+          </div>
+          <div class="skill-category">
+            <p class="skill-category__label">Tools &amp; Platforms</p>
+            <p class="skill-category__items">Jira, Salesforce, Ivanti Management Suite, NASL</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Experience -->
+      <section class="resume-section" aria-labelledby="section-experience">
+        <h2 class="resume-section__heading" id="section-experience">Experience</h2>
+
+        <article class="experience-entry">
+          <div class="experience-entry__meta">
+            <span class="experience-entry__company">Tenable, Inc.</span>
+            <span class="experience-entry__location">Remote (HQ: Columbia, MD)</span>
+          </div>
+          <div class="experience-entry__role-row">
+            <span class="experience-entry__role">Sr. Technical Support Engineer</span>
+            <span class="experience-entry__date">March 2025 &ndash; Present</span>
+          </div>
+          <ul class="experience-entry__bullets">
+            <li>
+              Handpicked for a team of 4 senior engineers to handle high-priority enterprise
+              incidents, reducing formal escalation volume across the broader support organization.
+            </li>
+            <li>
+              Primary technical contact for enterprise-wide incidents involving Tenable products in
+              complex customer environments &mdash; Docker, Kubernetes, and SIEM integrations at
+              scale.
+            </li>
+            <li>
+              Mentored fellow engineers on technical troubleshooting methodology and professional
+              communication, contributing to measurable improvements in team case handling quality.
+            </li>
+          </ul>
+          <p class="experience-entry__tools">
+            <strong>Tools:</strong> Tenable Suite, Docker, Kubernetes, PowerShell, Bash, NASL,
+            Salesforce, Jira
+          </p>
+        </article>
+
+        <article class="experience-entry">
+          <div class="experience-entry__meta">
+            <span class="experience-entry__company">Tenable, Inc.</span>
+            <span class="experience-entry__location">Remote (HQ: Columbia, MD)</span>
+          </div>
+          <div class="experience-entry__role-row">
+            <span class="experience-entry__role">Technical Support Engineer</span>
+            <span class="experience-entry__date">October 2022 &ndash; February 2025</span>
+          </div>
+          <ul class="experience-entry__bullets">
+            <li>
+              Maintained a 4.8/5.0 CSAT rating across 2023&ndash;2024 while handling escalated
+              enterprise support cases and producing internal documentation.
+            </li>
+            <li>
+              Mentored 16 engineers on KCS methodology and technical best practices, driving
+              adoption of knowledge-centered workflows across the team.
+            </li>
+            <li>
+              Troubleshot containerized deployments and SIEM product integrations using PowerShell
+              and Bash in complex, multi-vendor enterprise environments.
+            </li>
+          </ul>
+          <p class="experience-entry__tools">
+            <strong>Tools:</strong> Tenable Suite, Docker, Kubernetes, PowerShell, Bash, NASL,
+            Salesforce, Jira
+          </p>
+        </article>
+
+        <article class="experience-entry">
+          <div class="experience-entry__meta">
+            <span class="experience-entry__company">Tripwire, Inc.</span>
+            <span class="experience-entry__location">Remote (HQ: Portland, OR)</span>
+          </div>
+          <div class="experience-entry__role-row">
+            <span class="experience-entry__role">Technical Support Engineer</span>
+            <span class="experience-entry__date">September 2020 &ndash; September 2022</span>
+          </div>
+          <ul class="experience-entry__bullets">
+            <li>
+              Built PowerShell-based BreakLab utilities to simulate customer environments at reduced
+              scale, accelerating new engineer onboarding and improving issue reproduction accuracy.
+            </li>
+            <li>
+              Supported containerized Tripwire deployments across Rancher and Kubernetes
+              environments, developing deep familiarity with container orchestration failure modes
+              in enterprise settings.
+            </li>
+          </ul>
+          <p class="experience-entry__tools">
+            <strong>Tools:</strong> Tripwire Suite, Docker, Rancher, Kubernetes, PowerShell, Bash
+          </p>
+        </article>
+
+        <article class="experience-entry">
+          <div class="experience-entry__meta">
+            <span class="experience-entry__company"
+              >Inspire Brands (Arby&#8217;s Restaurant Group)</span
+            >
+            <span class="experience-entry__location">Atlanta, GA</span>
+          </div>
+          <div class="experience-entry__role-row">
+            <span class="experience-entry__role">Platform Engineer, Field Technology Services</span>
+            <span class="experience-entry__date">June 2018 &ndash; September 2020</span>
+          </div>
+          <ul class="experience-entry__bullets">
+            <li>
+              Sole infrastructure engineer responsible for the stability and lifecycle of an
+              18,000-endpoint POS environment across 1,200+ corporate locations &mdash; including
+              POS registers, Kitchen Video Systems, Manager&#8217;s Workstations, receipt printers,
+              cash drawers, and order confirmation boards.
+            </li>
+            <li>
+              Inherited an environment without a domain controller, WSUS, or WDS server. Built
+              policy enforcement, patching, and deployment infrastructure from scratch using
+              PowerShell and Ivanti Management Suite. Moved aggregate system uptime from ~85% to
+              94%.
+            </li>
+            <li>
+              Rebuilt the Windows imaging pipeline from the ground up using Microsoft Deployment
+              Toolkit, replacing a brittle sector-by-sector DISM capture process that was
+              propagating hardware defects across the install base. The resulting image was the most
+              stable the environment had ever seen.
+            </li>
+            <li>
+              Reverse-engineered all existing deployment automation written in WinBatch by a prior
+              administrator &mdash; without access to source code &mdash; and rewrote it in
+              PowerShell with added redundancy, error handling, and logging.
+            </li>
+            <li>
+              Built a suite of GUI-driven configuration tools (RegStager, KPCConf, MWSConf) used by
+              field technicians and service desk agents across the full install base. Built a
+              snapshot capture and revert system that eliminated the need to reimage on-site in the
+              majority of field cases.
+            </li>
+            <li>
+              Applied CIS Level 1 hardening to production POS images without impacting application
+              functionality across highly customized restaurant hardware configurations. Reduced
+              vulnerabilities at deployment by 97% by building a DISM-based offline patching process
+              applied directly to the .wim source images, eliminating the need to patch live
+              machines at deployment.
+            </li>
+            <li>
+              Served as primary technical liaison between Inspire Brands IT and PAR Technology
+              (Brink POS vendor), owning the relationship and driving resolution of platform-level
+              issues affecting the full install base.
+            </li>
+            <li>
+              Diagnosed and resolved a systemic BIOS C-State defect causing Drive Thru Timer
+              appliance freezes across 700 devices by collaborating directly with the hardware
+              vendor on a firmware-level workaround.
+            </li>
+          </ul>
+          <p class="experience-entry__tools">
+            <strong>Tools:</strong> PowerShell, Ivanti Management Suite, MDT, WADK, CIS Benchmarks,
+            Salesforce, Jira, Microsoft SQL
+          </p>
+        </article>
+      </section>
+
+      <!-- Projects -->
+      <section class="resume-section" aria-labelledby="section-projects">
+        <h2 class="resume-section__heading" id="section-projects">Projects</h2>
+
+        <article class="project-entry">
+          <div class="project-entry__header">
+            <span class="project-entry__name">Homelab Infrastructure Project</span>
+            <span class="project-entry__date">May 2025 &ndash; Present</span>
+          </div>
+          <p class="project-entry__context">
+            Personal &mdash;
+            <a
+              href="https://github.com/Gcedwards91/homelab-infra"
+              target="_blank"
+              rel="noopener noreferrer"
+              >github.com/Gcedwards91/homelab-infra</a
+            >
+          </p>
+          <ul class="project-entry__bullets">
+            <li>
+              Built a structured, five-phase DevOps homelab project demonstrating end-to-end
+              infrastructure ownership &mdash; from bare-metal Proxmox provisioning through
+              containerized application deployment and custom observability tooling.
+            </li>
+            <li>
+              Phase 1 &amp; 2: Provisioned Proxmox hypervisor, built VM templates (Ubuntu, Debian,
+              AlmaLinux) with cloud-init, deployed Wazuh SIEM, Prometheus, and Grafana. Used
+              Terraform (Telmate provider) and Ansible for IaC automation including a full LAMP
+              stack.
+            </li>
+            <li>
+              Phase 3 &amp; 4: Containerized the full observability and application stack using
+              Docker Compose &mdash; Flask weather app served by Gunicorn, nginx reverse proxy with
+              sub-path routing, Prometheus, Grafana (dashboards provisioned as code), Loki, and
+              Promtail with Docker socket autodiscovery. All images pinned to specific versions. All
+              services have healthchecks. Credentials managed via environment variables, excluded
+              from version control.
+            </li>
+            <li>
+              Built Statporter &mdash; a custom Prometheus exporter written in Python/Flask/Gunicorn
+              that collects per-container CPU, memory, network, and disk I/O metrics by querying the
+              Docker socket directly. Built to work around cgroups v2 compatibility issues with
+              existing exporters at the time.
+            </li>
+            <li>
+              Phase 5 (In Progress): Kubernetes manifest migration and AWS deployment &mdash; ALB,
+              ACM, Route53, Secrets Manager, Terraform. AWS Solutions Architect Associate
+              certification in progress.
+            </li>
+          </ul>
+        </article>
+
+        <article class="project-entry">
+          <div class="project-entry__header">
+            <span class="project-entry__name">KCS Coaching Initiative</span>
+            <span class="project-entry__date">February 2024 &ndash; Present</span>
+          </div>
+          <p class="project-entry__context">Tenable, Inc.</p>
+          <ul class="project-entry__bullets">
+            <li>
+              Coach Technical Support Engineers on integrating Knowledge-Centered Service
+              methodology into daily workflows. Contributed to Salesforce KCS module requirements
+              and delivered ongoing process feedback.
+            </li>
+          </ul>
+        </article>
+
+        <article class="project-entry">
+          <div class="project-entry__header">
+            <span class="project-entry__name">BreakLab Project</span>
+            <span class="project-entry__date">April 2022 &ndash; August 2022</span>
+          </div>
+          <p class="project-entry__context">Tripwire, Inc.</p>
+          <ul class="project-entry__bullets">
+            <li>
+              Developed custom PowerShell tooling to simulate common customer environment failure
+              states for training purposes, reducing new hire ramp time and improving issue
+              reproduction consistency.
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- Education & Certifications -->
+      <section class="resume-section" aria-labelledby="section-education">
+        <h2 class="resume-section__heading" id="section-education">
+          Education &amp; Certifications
+        </h2>
+        <ul class="edu-list">
+          <li class="edu-entry">
+            <span class="edu-entry__name">Shiloh High School, Snellville, GA</span>
+            <span class="edu-entry__detail">2007&ndash;2010</span>
+          </li>
+          <li class="edu-entry">
+            <span class="edu-entry__name">
+              AWS Solutions Architect Associate
+              <span class="edu-entry__badge">In Progress</span>
+            </span>
+            <span class="edu-entry__detail">Udemy, 2025&ndash;Present</span>
+          </li>
+          <li class="edu-entry">
+            <span class="edu-entry__name">
+              Certified Kubernetes Administrator (CKA)
+              <span class="edu-entry__badge">Planned</span>
+            </span>
+            <span class="edu-entry__detail">&nbsp;</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Download actions (bottom) -->
+      <div class="resume-actions resume-actions--bottom" aria-label="Download resume">
+        <a
+          href="{{ url_for('static', filename='Cliff_Edwards_Resume.pdf') }}"
+          download
+          class="btn-download btn-download--primary"
+          >Download PDF</a
+        >
+        <a
+          href="{{ url_for('static', filename='Cliff_Edwards_Resume.docx') }}"
+          download
+          class="btn-download btn-download--secondary"
+          >Download DOCX</a
+        >
+      </div>
 
       <div class="footer-icons">
-        <a href="https://github.com/Gcedwards91" target="_blank">
-          <img src="{{ url_for('static', filename='icons/github.svg') }}" alt="GitHub" />
+        <a
+          href="https://github.com/Gcedwards91"
+          target="_blank"
+          aria-label="Cliff Edwards on GitHub"
+        >
+          <img
+            src="{{ url_for('static', filename='icons/github.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
         </a>
-        <a href="https://www.linkedin.com/in/gcedwards91/" target="_blank">
-          <img src="{{ url_for('static', filename='icons/linkedin.svg') }}" alt="LinkedIn" />
+        <a
+          href="https://www.linkedin.com/in/gcedwards91/"
+          target="_blank"
+          aria-label="Cliff Edwards on LinkedIn"
+        >
+          <img
+            src="{{ url_for('static', filename='icons/linkedin.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
         </a>
       </div>
     </div>

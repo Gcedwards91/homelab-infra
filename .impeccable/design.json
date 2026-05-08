@@ -1,0 +1,326 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-08T00:00:00Z",
+  "title": "Design System: Cliff Edwards — Homelab Portfolio",
+  "extensions": {
+    "colorMeta": {
+      "blueprint-blue": {
+        "role": "primary",
+        "displayName": "Blueprint Blue",
+        "canonical": "#0058e6",
+        "tonalRamp": [
+          "#0d1a40",
+          "#00228a",
+          "#0044b3",
+          "#0058e6",
+          "#3378f0",
+          "#6699f5",
+          "#99bbff",
+          "#cce0ff"
+        ]
+      },
+      "blueprint-blue-deep": {
+        "role": "primary-deep",
+        "displayName": "Blueprint Blue Deep",
+        "canonical": "#0044b3",
+        "tonalRamp": [
+          "#0a1530",
+          "#001a70",
+          "#0044b3",
+          "#0058e6",
+          "#2e6cec",
+          "#6699f5",
+          "#aac4fa",
+          "#ddeaff"
+        ]
+      },
+      "blueprint-blue-wash": {
+        "role": "primary-light",
+        "displayName": "Blueprint Blue Wash",
+        "canonical": "#cce0ff",
+        "tonalRamp": [
+          "#1a3a6b",
+          "#2a5099",
+          "#3d6ec2",
+          "#6699f5",
+          "#99bbff",
+          "#cce0ff",
+          "#e0eeff",
+          "#f0f4ff"
+        ]
+      },
+      "blueprint-blue-haze": {
+        "role": "primary-surface",
+        "displayName": "Blueprint Blue Haze",
+        "canonical": "#f0f4ff",
+        "tonalRamp": [
+          "#1e2a4a",
+          "#2e3f70",
+          "#4a60a8",
+          "#7a9ae0",
+          "#aac4fa",
+          "#cce0ff",
+          "#e0eeff",
+          "#f0f4ff"
+        ]
+      },
+      "charcoal": {
+        "role": "neutral-text",
+        "displayName": "Charcoal",
+        "canonical": "#333333",
+        "tonalRamp": [
+          "#0a0a0a",
+          "#1a1a1a",
+          "#262626",
+          "#333333",
+          "#555555",
+          "#888888",
+          "#bbbbbb",
+          "#eeeeee"
+        ]
+      },
+      "steel-mid": {
+        "role": "neutral-secondary",
+        "displayName": "Steel Mid",
+        "canonical": "#555555",
+        "tonalRamp": [
+          "#111111",
+          "#222222",
+          "#333333",
+          "#444444",
+          "#555555",
+          "#777777",
+          "#aaaaaa",
+          "#dddddd"
+        ]
+      },
+      "steel-muted": {
+        "role": "neutral-muted",
+        "displayName": "Steel Muted",
+        "canonical": "#888888",
+        "tonalRamp": [
+          "#1a1a1a",
+          "#333333",
+          "#555555",
+          "#777777",
+          "#888888",
+          "#aaaaaa",
+          "#cccccc",
+          "#eeeeee"
+        ]
+      },
+      "hairline": {
+        "role": "neutral-divider",
+        "displayName": "Hairline",
+        "canonical": "#eeeeee",
+        "tonalRamp": [
+          "#333333",
+          "#555555",
+          "#888888",
+          "#aaaaaa",
+          "#cccccc",
+          "#dddddd",
+          "#eeeeee",
+          "#f7f7f7"
+        ]
+      },
+      "input-rule": {
+        "role": "neutral-border",
+        "displayName": "Input Rule",
+        "canonical": "#cccccc",
+        "tonalRamp": [
+          "#333333",
+          "#555555",
+          "#777777",
+          "#999999",
+          "#bbbbbb",
+          "#cccccc",
+          "#dddddd",
+          "#eeeeee"
+        ]
+      },
+      "page-wash": {
+        "role": "neutral-bg",
+        "displayName": "Page Wash",
+        "canonical": "#f4f6f9",
+        "tonalRamp": [
+          "#c8cdd6",
+          "#d4d9e2",
+          "#dfe4ec",
+          "#e8ecf2",
+          "#eef1f6",
+          "#f4f6f9",
+          "#f8f9fc",
+          "#ffffff"
+        ]
+      },
+      "card-surface": {
+        "role": "neutral-surface",
+        "displayName": "Card Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#d0d5de",
+          "#dce2ea",
+          "#e8ecf2",
+          "#f0f3f7",
+          "#f4f6f9",
+          "#f8f9fc",
+          "#fcfcfd",
+          "#ffffff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Body",
+        "purpose": "Primary reading text across all pages. Long-form narrative."
+      },
+      "label": { "displayName": "Label", "purpose": "Form labels, navigation items, UI captions." },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Timestamps, muted annotations, secondary metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-ambient",
+        "value": "0 0 20px rgba(0,0,0,0.05)",
+        "purpose": "Resting elevation for all container surfaces. Diffuse, barely perceptible — creates lift without drama."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default easing for color and background-color transitions on interactive elements."
+      },
+      {
+        "name": "ease-reveal",
+        "value": "cubic-bezier(0.0, 0.0, 0.2, 1)",
+        "purpose": "Ease-out curve for scroll-driven fade-in reveals (opacity + translateY). Used on About Me sections."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "600px",
+        "purpose": "Single-column layout, reduced padding, nav wrap."
+      },
+      {
+        "name": "tablet",
+        "value": "900px",
+        "purpose": "Wide container fills available width with side margins."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action trigger. Used for form submissions and calls-to-action.",
+      "html": "<button class=\"ds-btn-primary\">Submit</button>",
+      "css": ".ds-btn-primary { display: inline-block; padding: 0.75rem 1.5rem; background: #0058e6; color: #ffffff; font-family: 'Segoe UI', Roboto, sans-serif; font-size: 1rem; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { background: #0044b3; } .ds-btn-primary:focus-visible { outline: 2px solid rgba(0,88,230,0.4); outline-offset: 2px; } .ds-btn-primary:active { background: #003399; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Top-of-container navigation. Links to all site sections.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" class=\"ds-nav__link\">About Me</a><a href=\"#\" class=\"ds-nav__link\">Homelab Blog</a><a href=\"#\" class=\"ds-nav__link\">Resume</a><a href=\"#\" class=\"ds-nav__link\">Weather App</a></nav>",
+      "css": ".ds-nav { background: #0058e6; padding: 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; border-radius: 12px; margin-bottom: 2rem; } .ds-nav__link { color: #ffffff; text-decoration: none; font-family: 'Segoe UI', Roboto, sans-serif; font-weight: 700; font-size: 1rem; transition: color 0.3s cubic-bezier(0.4,0,0.2,1); } .ds-nav__link:hover { color: #cce0ff; } .ds-nav__link:focus-visible { outline: 2px solid rgba(255,255,255,0.6); outline-offset: 2px; border-radius: 2px; }"
+    },
+    {
+      "name": "Card Container",
+      "kind": "card",
+      "refersTo": "button-primary",
+      "description": "Primary surface unit. All page content lives inside a container variant.",
+      "html": "<div class=\"ds-card\"><h2 class=\"ds-card__title\">Section Title</h2><p class=\"ds-card__body\">Content goes here. This is a standard container surface used across all pages.</p></div>",
+      "css": ".ds-card { background: #ffffff; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.05); padding: 2rem; max-width: 900px; margin: 4rem auto; font-family: 'Segoe UI', Roboto, sans-serif; } .ds-card__title { color: #333333; font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.5rem; } .ds-card__body { color: #333333; line-height: 1.7; font-size: 1rem; margin: 0; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "button-primary",
+      "description": "Text input for the weather search form and any future form surfaces.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field__label\" for=\"ds-input\">City Name</label><input class=\"ds-field__input\" id=\"ds-input\" type=\"text\" placeholder=\"Enter a city...\"></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 0.5rem; font-family: 'Segoe UI', Roboto, sans-serif; } .ds-field__label { font-size: 0.9rem; font-weight: 600; color: #555555; } .ds-field__input { padding: 0.75rem; border: 1px solid #cccccc; border-radius: 8px; font-size: 1rem; font-family: 'Segoe UI', Roboto, sans-serif; width: 100%; box-sizing: border-box; color: #333333; background: #ffffff; transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1); } .ds-field__input:focus { border-color: #0058e6; outline: 2px solid rgba(0,88,230,0.4); outline-offset: 2px; } .ds-field__input::placeholder { color: #888888; }"
+    },
+    {
+      "name": "Note / Callout",
+      "kind": "custom",
+      "refersTo": "button-primary",
+      "description": "Contextual callout block. Background tint communicates distinction — no left border required.",
+      "html": "<div class=\"ds-note\"><p>Follow my journey building a modern DevOps homelab from scratch — using Terraform, Ansible, Docker, and Kubernetes.</p></div>",
+      "css": ".ds-note { background: #f0f4ff; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.95rem; font-family: 'Segoe UI', Roboto, sans-serif; color: #333333; line-height: 1.6; margin-bottom: 1rem; } .ds-note a { color: #0058e6; text-decoration: underline; } .ds-note a:hover { color: #0044b3; }"
+    },
+    {
+      "name": "Blog Post Entry",
+      "kind": "custom",
+      "refersTo": "button-primary",
+      "description": "Individual blog post in the homelab journal index.",
+      "html": "<article class=\"ds-blog-post\"><h2 class=\"ds-blog-post__title\">Phase 1: Initial Lab Setup</h2><time class=\"ds-blog-post__time\">Completed on May 25, 2025</time><p class=\"ds-blog-post__body\">Finished setting up Proxmox, Ubuntu/AlmaLinux templates, internal DNS/DHCP, Wazuh, Grafana, and Prometheus.</p></article>",
+      "css": ".ds-blog-post { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #eeeeee; font-family: 'Segoe UI', Roboto, sans-serif; } .ds-blog-post:last-of-type { border-bottom: none; } .ds-blog-post__title { color: #333333; font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.5rem; } .ds-blog-post__time { display: block; font-size: 0.85rem; color: #888888; margin-bottom: 0.75rem; } .ds-blog-post__body { color: #333333; line-height: 1.7; font-size: 1rem; margin: 0; }"
+    },
+    {
+      "name": "Tooltip",
+      "kind": "custom",
+      "refersTo": "button-primary",
+      "description": "Hover-triggered contextual reveal on About Me page. Shows deeper context on key terms.",
+      "html": "<span class=\"ds-tooltip-wrap\">Arby's<span class=\"ds-tooltip\">Initially hired on as a contractor for three specific purposes: to train the service desk, assist the POS DBA team, and support the mobile ordering pilot.</span></span>",
+      "css": ".ds-tooltip-wrap { position: relative; cursor: default; border-bottom: 1px dashed #0058e6; display: inline; } .ds-tooltip { visibility: hidden; opacity: 0; background: #333333; color: #ffffff; font-size: 0.85rem; line-height: 1.5; padding: 0.6rem 0.9rem; border-radius: 6px; width: 260px; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1); z-index: 10; pointer-events: none; font-family: 'Segoe UI', Roboto, sans-serif; } .ds-tooltip-wrap:hover .ds-tooltip { visibility: visible; opacity: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Engineer's Notebook",
+    "overview": "This is an interface that earns its presence the same way its content does: through work, not decoration. The visual language is functional documentation — what an engineer builds when they want something that works beautifully rather than something that merely looks polished. No gradient heroes, no glowing metric widgets, no animated counter theatrics.\n\nAgainst the gravity of the generic developer portfolio — dark hero backgrounds, glassmorphic cards, color-washed everything — this system chooses light, direct, and readable. Blueprint Blue appears where it commands attention. Neutral surfaces carry the reading experience. The interface makes one argument, quietly: the content of this site is the work, and the work speaks for itself.\n\nThe design is not minimal because it is timid. It is minimal because the engineering behind it is the story. Every pixel decision defers to the words and the data, not the chrome.",
+    "keyCharacteristics": [
+      "Light-mode base with structured typographic hierarchy",
+      "Single accent color used sparingly and structurally",
+      "Consistent generous radius on containers (12px), tighter on interactive elements (8px)",
+      "Ambient shadow only — no layered elevation drama",
+      "Scroll-driven interactions where they reveal information, never where they decorate"
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Blueprint Blue appears on ≤15% of any surface. Used in more than one structural role per screen, it dilutes to decoration. Restraint is the point.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Pure-Black Rule",
+        "body": "No element uses raw #000 or #fff. Text anchors at Charcoal (#333333). Backgrounds anchor at Page Wash or Card Surface as named tokens only.",
+        "section": "colors"
+      },
+      {
+        "name": "The Hierarchy-Through-Contrast Rule",
+        "body": "Adjacent type levels must differ by weight AND size. Weight contrast alone at the same size is too flat for narrative-heavy pages.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Shadows exist only on resting card surfaces. Interactive elements convey state through color shift, not shadow change. Do not add shadows to hover or active states.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use Blueprint Blue Haze (#f0f4ff) alone to distinguish callout blocks. The tint does the full job.",
+      "Do maintain the 12px / 8px radius split: 12px on containers, 8px on interactive primitives.",
+      "Do keep body line-height at 1.7 for the long-form narrative content on this site.",
+      "Do add explicit :focus-visible styles to every interactive element before public deployment (WCAG AA).",
+      "Do add prefers-reduced-motion guards to every transition and animation.",
+      "Do implement prefers-color-scheme: dark token overrides before AWS launch.",
+      "Do let Blueprint Blue appear in one or two structural roles per page only."
+    ],
+    "donts": [
+      "Don't use a left-side colored stripe border as a callout accent. Use background tint instead.",
+      "Don't use raw CSS color names (red, blue, white) as production values. Every color must be a named token.",
+      "Don't build this to look like a generic AI-generated developer portfolio: no dark hero gradients, no glowing card borders, no animated counter stats.",
+      "Don't use jarring high-contrast color combinations — no neon on dark, no highlighter yellow pairings.",
+      "Don't add shadows to hover or active states. Color shift is the feedback signal.",
+      "Don't use #000 or #fff as raw values. Always reference Charcoal or Card Surface by token name.",
+      "Don't introduce a second accent color without a clear semantic role distinct from Blueprint Blue.",
+      "Don't add motion for decoration. Scroll reveals exist to progressively surface information — not to entertain."
+    ]
+  }
+}
