@@ -12,3 +12,4 @@ group_vars/*/secrets.yml
 weather-app/docker-final/statporter/.venv/
 .claude/
 node_modules/
+.agents/

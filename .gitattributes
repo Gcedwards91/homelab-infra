@@ -9,3 +9,4 @@
 *.json text eol=lf
 *.tf text eol=lf
 *.html linguist-detectable=false
+.agents/skills/impeccable/** linguist-vendored=true
