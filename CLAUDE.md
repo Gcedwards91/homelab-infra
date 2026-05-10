@@ -77,16 +77,17 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 
 ## Services
 
-| Service       | Image                           | Purpose                                 |
-| ------------- | ------------------------------- | --------------------------------------- |
-| reverse-proxy | nginx:1.27-alpine               | Reverse proxy, sub-path routing         |
-| weather-app   | burningstar4/weather-app:latest | Flask portfolio app                     |
-| prometheus    | prom/prometheus:v3.3.1          | Metrics collection and alerting         |
-| grafana       | grafana/grafana:11.6.1          | Dashboard visualization                 |
-| loki          | grafana/loki:3.5.0              | Log aggregation                         |
-| promtail      | grafana/promtail:3.5.0          | Log shipping from Docker socket         |
-| statporter    | burningstar4/statporter:latest  | Custom Docker stats Prometheus exporter |
-| alertmanager  | prom/alertmanager:v0.28.1       | Alert routing (currently null receiver) |
+| Service        | Image                              | Purpose                                 |
+| -------------- | ---------------------------------- | --------------------------------------- |
+| reverse-proxy  | nginx:1.27-alpine                  | Reverse proxy, sub-path routing         |
+| weather-app    | burningstar4/weather-app:latest    | Flask portfolio app                     |
+| demo-container | burningstar4/demo-container:latest | Disposable dummy — playground target    |
+| prometheus     | prom/prometheus:v3.3.1             | Metrics collection and alerting         |
+| grafana        | grafana/grafana:11.6.1             | Dashboard visualization                 |
+| loki           | grafana/loki:3.5.0                 | Log aggregation                         |
+| promtail       | grafana/promtail:3.5.0             | Log shipping from Docker socket         |
+| statporter     | burningstar4/statporter:latest     | Custom Docker stats Prometheus exporter |
+| alertmanager   | prom/alertmanager:v0.28.1          | Alert routing (null receiver)           |
 
 All services have resource limits, restart policies, healthchecks, and `logging=true` labels for Promtail autodiscovery.
 
@@ -114,6 +115,8 @@ To build images locally before running:
 ```bash
 make build-weather      # builds burningstar4/weather-app:latest
 make build-statporter   # builds burningstar4/statporter:latest
+make build-demo         # builds burningstar4/demo-container:latest
+make build-all          # builds all three
 ```
 
 ---
@@ -231,13 +234,14 @@ Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. 
 
 All workflows trigger on push to `master` (and PRs where applicable).
 
-| Workflow                       | Trigger                                          | What it does                                        |
-| ------------------------------ | ------------------------------------------------ | --------------------------------------------------- |
-| `docker-build-weather-app.yml` | push to `weather-app/docker-src/**`              | Builds and pushes `burningstar4/weather-app:latest` |
-| `docker-build-statporter.yml`  | push to `weather-app/docker-final/statporter/**` | Builds and pushes `burningstar4/statporter:latest`  |
-| `format_and_lint-test.yml`     | all pushes                                       | Black, Flake8, Prettier, Hadolint, yamllint         |
-| `security_lint.yml`            | all pushes                                       | Bandit, Trivy, ShellCheck, Gitleaks, npm audit      |
-| `shellcheck.yml`               | all pushes                                       | ShellCheck on `.sh` files                           |
+| Workflow                          | Trigger                                          | What it does                                           |
+| --------------------------------- | ------------------------------------------------ | ------------------------------------------------------ |
+| `docker-build-weather-app.yml`    | push to `weather-app/docker-src/**`              | Builds and pushes `burningstar4/weather-app:latest`    |
+| `docker-build-statporter.yml`     | push to `weather-app/docker-final/statporter/**` | Builds and pushes `burningstar4/statporter:latest`     |
+| `docker-build-demo-container.yml` | push to `weather-app/demo-container/**`          | Builds and pushes `burningstar4/demo-container:latest` |
+| `format_and_lint-test.yml`        | all pushes                                       | Black, Flake8, Prettier, Hadolint, yamllint            |
+| `security_lint.yml`               | all pushes                                       | Bandit, Trivy, ShellCheck, Gitleaks, npm audit         |
+| `shellcheck.yml`                  | all pushes                                       | ShellCheck on `.sh` files                              |
 
 **Secrets required in GitHub:**
 
@@ -258,23 +262,25 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 2. **Global `ul { list-style: none }`** in styles.css resets bullets sitewide. Any new template with semantic bullet lists must explicitly set `list-style: disc` on the `ul`.
 
-3. **Prometheus scrapes weather-app at `:5000/metrics`** — the prometheus-flask-exporter auto-mounts this route. Do not add a manual `/metrics` route.
+3. **Prometheus scrapes weather-app at `:5000/metrics`** — the prometheus-flask-exporter auto-mounts this route. Do not add a manual `/metrics` route. The nginx `location = /metrics` block returns 403 to external clients; Prometheus bypasses nginx by scraping the container directly at `:5000`.
 
-4. **alertmanager.yml uses null receiver.** All alerts are collected but go nowhere currently. This is intentional — the playground feature will demonstrate the alerting loop visually without requiring email/PagerDuty config.
+4. **alertmanager.yml uses null receiver.** All alerts are collected but go nowhere. This is intentional — the playground demonstrates the alerting loop visually without requiring external notification credentials.
 
-5. **Docker socket access.** statporter mounts `/var/run/docker.sock` read-only. The playground feature requires weather-app to also mount it read-write for container start/stop. These are separate mount declarations — statporter's is `:ro`, weather-app's is default (rw).
+5. **Docker socket access.** statporter mounts `/var/run/docker.sock` read-only. weather-app mounts it read-write for the playground container toggle. These are separate mount declarations — statporter's is `:ro`, weather-app's is default (rw). The RW mount is the highest blast-radius element in the stack; the hardcoded `DEMO_CONTAINER = "demo-container"` constant is the only scope limiter.
 
-5b. **Playground service-to-service address.** The stress endpoint in `playground.py` calls `http://demo-container:8080/stress` — that is the internal Docker network address, not localhost. `demo-container` is on the same `monitoring` bridge as `weather-app`. Never use `localhost` or `127.0.0.1` for this call; those resolve inside the weather-app container, not to demo-container.
+6. **Playground service-to-service address.** The stress endpoint in `playground.py` calls `http://demo-container:8080/stress` — that is the internal Docker network address, not localhost. `demo-container` is on the same `monitoring` bridge as `weather-app`. Never use `localhost` or `127.0.0.1` for this call.
 
-5a. **Log rotation.** Docker's built-in json-file rotation (`max-size: 50m`, `max-file: 5`) manages per-container log size. A host-level logrotate config at `weather-app/docker-final/logrotate/docker-containers` handles time-based rotation and `.gz` archiving — copy it to `/etc/logrotate.d/` on the host. Default: daily OR 50MB, 7 archives, gzip. Ansible can override thresholds per environment.
+7. **Log rotation.** Docker's built-in json-file rotation (`max-size: 50m`, `max-file: 5`) manages per-container log size. A host-level logrotate config at `weather-app/docker-final/logrotate/docker-containers` handles time-based rotation — copy it to `/etc/logrotate.d/` on the host.
 
-6. **`.env` is gitignored.** `.env.example` is the committed template. Never commit `.env`. The `GRAFANA_ADMIN_PASSWORD` must be set before `docker compose up`.
+8. **`.env` is gitignored.** `.env.example` is the committed template. Never commit `.env`. `GRAFANA_ADMIN_PASSWORD`, `FLASK_SECRET_KEY`, `PLAYGROUND_SECRET`, and `PLAYGROUND_ADMIN_KEY` must all be set before `docker compose up`.
 
-7. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated.
+9. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated.
 
-8. **statporter scrape timeout** is 25s (scrape_interval 30s) — this was tuned specifically for the Docker stats collection latency. Do not reduce it.
+10. **statporter scrape timeout** is 25s (scrape_interval 30s) — tuned specifically for Docker stats collection latency. Do not reduce it.
 
-9. **`color-scheme: light dark`** is declared on `:root`. This tells browsers to render scrollbars, form controls, and OS-native UI in the appropriate theme.
+11. **statporter uses underscores in label values.** Container names with hyphens are converted: `demo-container` → `name="demo_container"`, `weather-app` → `name="weather_app"`. Use underscores in all PromQL queries and alert expressions that filter by `name=`. The Docker SDK still uses the hyphenated name for `containers.get()`.
+
+12. **`color-scheme: light dark`** is declared on `:root`. This tells browsers to render scrollbars, form controls, and OS-native UI in the appropriate theme.
 
 ---
 
@@ -290,31 +296,33 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 ## In-Progress and Deferred Work
 
-### Playground Feature (planned — see PLAYGROUND_PR.md)
+### Playground Feature (SHIPPED)
 
-Interactive demo page at `/playground` allowing recruiters to:
+Interactive demo page at `/playground`. Implementation lives in `playground.py` (Blueprint) and `demo-container/app.py`.
 
 - Log in with a rolling time-limited passphrase (4-hour windows, HMAC-derived)
-- Stop/start a dummy `demo-container` (triggers DemoContainerDown alert)
-- Spike CPU on `demo-container` for 30 seconds (triggers DemoContainerHighCPU alert)
-- Watch a live alert feed (JS polls `/prometheus/api/v1/alerts` every 10 seconds)
+- Stop/start `demo-container` — triggers `DemoContainerDown` alert within ~90 seconds
+- Spike CPU for 60 seconds — triggers `DemoContainerHighCPU` alert within ~60 seconds
+- Live alert feed polls `/prometheus/api/v1/alerts` every 10 seconds
 
-**Auth design:** Passphrase rotates every 4 hours automatically. Derived via HMAC-SHA256 of `PLAYGROUND_SECRET` + current time window. Never stored anywhere. Cliff retrieves the current passphrase from `GET /playground/passphrase` (protected by `PLAYGROUND_ADMIN_KEY`) and shares it with the recruiter verbally. 5-minute grace period across window boundaries. Sessions expire after 30 minutes of inactivity.
+**Auth design:** Passphrase derived via HMAC-SHA256 of `PLAYGROUND_SECRET` + current time window. Never stored. Admin retrieves current passphrase via `GET /playground/passphrase` (Bearer `PLAYGROUND_ADMIN_KEY`). 5-minute grace period at window boundaries. Sessions expire after 30 minutes of inactivity.
 
 **Key implementation constraints:**
 
-- CPU stress must use `threading.Event`, not `threading.Lock` — the lock approach blocks `stop_stress()` from firing while stress is running
+- CPU stress uses `threading.Event` — `is_set()` means stress is running, `clear()` stops it. `_burn()` loop: `while stop_event.is_set() and time.time() < deadline`. Do NOT invert this.
 - All passphrase comparisons use `hmac.compare_digest` — never `==`
 - Login route must never log `request.form`
-- Toggle endpoint hardcodes `"demo-container"` — never uses container name from request input
+- Toggle endpoint hardcodes `DEMO_CONTAINER = "demo-container"` — never uses container name from request input
 
 **DemoContainerDown alert expression:**
 
 ```promql
-(up{job="statporter"} == 1) and absent(container_cpu_percent{name="demo-container"})
+(up{job="statporter"} == 1) and on() absent(container_cpu_percent{name="demo_container"})
 ```
 
-This fires only when statporter is healthy but demo-container is absent — not when statporter itself goes down.
+`on()` is required — `absent()` returns `{name="demo_container"}` while the left side returns `{job="statporter", instance=...}`. Without `on()`, the label sets never match and the `and` returns nothing. `demo_container` uses an underscore (statporter naming convention).
+
+**statporter stale gauge fix:** When a container stops, statporter's `collect_metrics()` actively removes label sets for containers no longer in `containers.list()` using `gauge.remove(name)`. This ensures `absent()` fires correctly — without this, Prometheus gauges retain their last value indefinitely and `absent()` never returns 1.
 
 ### AWS Deployment (deferred)
 
@@ -339,7 +347,15 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Remaining Audit Items
+### Tests (not started — highest priority gap)
 
-- `/impeccable layout` — line-length cap completed. No remaining P1/P0 items.
-- Dark mode implemented. WCAG AA contrast verified for all token pairs.
+No automated tests exist. The CI pipeline lints and scans but never runs assertions. Needed:
+
+- `pytest` suite for Flask routes (`main.py`) — status codes, healthz, weather error handling
+- Playground auth unit tests — passphrase derivation, window boundary/grace period, session expiry
+- `weather.py` unit tests — mock `requests.get`, assert error messages don't leak the API key URL
+- statporter unit tests — `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
+
+### Security (session cookie hardening — deferred to AWS)
+
+`SESSION_COOKIE_SECURE = True` should be set once the stack is behind ACM/HTTPS. Incorrect to set locally (HTTP). Add to app config at AWS deployment time alongside Secrets Manager migration.

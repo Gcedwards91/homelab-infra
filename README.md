@@ -87,8 +87,8 @@ It collects the following metrics per container by querying the Docker socket di
 
 The playground (`/playground`) is a passphrase-protected interactive demo that makes the full alerting loop tangible:
 
-- **Stop/start `demo-container`** — triggers the `DemoContainerDown` alert in Prometheus within 60 seconds
-- **Spike CPU for 30 seconds** — triggers the `DemoContainerHighCPU` alert within 30 seconds
+- **Stop/start `demo-container`** — triggers the `DemoContainerDown` alert in Prometheus within 90 seconds
+- **Spike CPU for 60 seconds** — triggers the `DemoContainerHighCPU` alert within 60 seconds
 - **Live alert feed** — polls `/prometheus/api/v1/alerts` every 10 seconds and displays firing alerts in real time
 
 `demo-container` is a purpose-built disposable Flask app. Stopping it during a demo does not affect any real service.
