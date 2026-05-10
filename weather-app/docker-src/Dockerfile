@@ -17,7 +17,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app source explicitly so templates/static definitely land in image
-COPY main.py logger.py weather.py ./
+COPY main.py logger.py weather.py playground.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
 
