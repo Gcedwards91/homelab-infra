@@ -1,0 +1,18 @@
+# Logrotate config for Docker container log files.
+# Copy to /etc/logrotate.d/docker-containers on the host after deployment.
+# Ansible can override daily, size, and rotate values per environment.
+
+/var/lib/docker/containers/*/*.log {
+    daily
+    size 50M
+    rotate 7
+    compress
+    compresscmd /bin/gzip
+    compressoptions -9
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    dateext
+    dateformat -%Y%m%d-%H%M%S
+}

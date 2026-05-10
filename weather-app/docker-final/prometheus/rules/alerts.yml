@@ -48,3 +48,23 @@ groups:
         annotations:
           summary: "Weather app 5xx error rate elevated"
           description: "The weather app is returning 5xx errors at more than 0.05 req/s over the last 5 minutes."
+
+  - name: playground_alerts
+    rules:
+      - alert: DemoContainerDown
+        expr: (up{job="statporter"} == 1) and absent(container_cpu_percent{name="demo-container"})
+        for: 60s
+        labels:
+          severity: warning
+        annotations:
+          summary: "demo-container is not running"
+          description: "statporter is healthy but demo-container has been absent from metrics for more than 60 seconds."
+
+      - alert: DemoContainerHighCPU
+        expr: container_cpu_percent{name="demo-container"} > 80
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "demo-container CPU above 80%"
+          description: "demo-container CPU has been above 80% for 30 seconds."

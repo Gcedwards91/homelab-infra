@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Observability Playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <style>
+      /* -----------------------------------------------------------------------
+         Badge
+      ----------------------------------------------------------------------- */
+      .badge {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        padding: 0.15rem 0.55rem;
+        border-radius: 4px;
+        vertical-align: middle;
+        line-height: 1.6;
+      }
+
+      .badge--running {
+        background: var(--brand-blue-tint);
+        color: var(--brand-blue-link);
+        border: 1px solid var(--brand-blue-light);
+      }
+
+      .badge--stopped {
+        background: var(--error-bg);
+        color: var(--error-color);
+        border: 1px solid var(--error-border);
+      }
+
+      /* -----------------------------------------------------------------------
+         Container control
+      ----------------------------------------------------------------------- */
+      .control-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .control-name {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+
+      .control-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .btn-primary {
+        padding: 0.65rem 1.25rem;
+        min-height: 44px;
+        background: var(--brand-blue);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--border-radius-input);
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .btn-primary:hover {
+        background: var(--brand-blue-dark);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .btn-primary:focus-visible {
+        outline: 2px solid rgba(0, 88, 230, 0.55);
+        outline-offset: 2px;
+      }
+
+      /* -----------------------------------------------------------------------
+         Stress active pulse
+      ----------------------------------------------------------------------- */
+      @keyframes stress-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+
+      .btn-stress--active {
+        animation: stress-pulse 1.8s ease-in-out infinite;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .btn-stress--active {
+          animation: none;
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         Logout button
+      ----------------------------------------------------------------------- */
+      .btn-logout {
+        display: inline-block;
+        padding: 0.55rem 1.25rem;
+        min-height: 44px;
+        background: transparent;
+        color: var(--brand-blue-link);
+        border: 1px solid var(--brand-blue-link);
+        border-radius: var(--border-radius-input);
+        font-family: inherit;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .btn-logout:hover {
+        background: var(--brand-blue-tint);
+      }
+
+      .btn-logout:focus-visible {
+        outline: 2px solid rgba(0, 88, 230, 0.55);
+        outline-offset: 2px;
+      }
+
+      /* -----------------------------------------------------------------------
+         Alert feed
+      ----------------------------------------------------------------------- */
+      .alert-feed {
+        margin-top: 0.75rem;
+        min-height: 3rem;
+      }
+
+      .alert-feed__empty {
+        color: var(--text-muted);
+        font-size: 0.925rem;
+        margin: 0;
+        font-style: italic;
+      }
+
+      .alert-item {
+        padding: 0.875rem 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-input);
+        margin-bottom: 0.75rem;
+      }
+
+      .alert-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .alert-item__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.35rem;
+        flex-wrap: wrap;
+      }
+
+      .alert-item__name {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 0.975rem;
+      }
+
+      .alert-item__description {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin: 0;
+        text-wrap: pretty;
+        overflow-wrap: break-word;
+      }
+
+      /* -----------------------------------------------------------------------
+         Page error
+      ----------------------------------------------------------------------- */
+      #page-error:not(:empty) {
+        color: var(--error-color);
+        background: var(--error-bg);
+        border: 1px solid var(--error-border);
+        border-radius: var(--border-radius-input);
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+      }
+
+      /* -----------------------------------------------------------------------
+         Playground section spacing
+      ----------------------------------------------------------------------- */
+      .playground-section {
+        margin-top: 2rem;
+      }
+
+      .playground-section h2 {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: 0.4rem;
+        margin: 0 0 1rem;
+        text-wrap: balance;
+      }
+
+      /* -----------------------------------------------------------------------
+         Narrow viewport — stack control buttons full-width
+      ----------------------------------------------------------------------- */
+      @media (max-width: 400px) {
+        .control-actions {
+          flex-direction: column;
+        }
+
+        .control-actions .btn-primary {
+          width: 100%;
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         Logout row
+      ----------------------------------------------------------------------- */
+      .playground-logout {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: flex-end;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container container--wide">
+      <nav class="navbar">
+        <a href="{{ url_for('about_me') }}">About Me</a>
+        <a href="{{ url_for('index') }}">Homelab Blog</a>
+        <a href="{{ url_for('resume') }}">Resume</a>
+        <a href="{{ url_for('weather_app') }}">Weather App</a>
+        <a href="{{ url_for('playground.index') }}" aria-current="page">Playground</a>
+        <a href="/grafana/">Grafana</a>
+      </nav>
+
+      <h1>Observability Playground</h1>
+
+      <p class="note">
+        This container is a purpose-built dummy. Stopping it triggers a real alert in Prometheus.
+        Restarting it resolves it. The CPU spike drives DemoContainerHighCPU above 80% for 30
+        seconds.
+      </p>
+
+      <div id="page-error" role="alert" aria-live="assertive"></div>
+
+      <!-- Container Control -->
+      <section class="playground-section" aria-labelledby="section-control">
+        <h2 id="section-control">Container Control</h2>
+        <div class="control-header">
+          <span class="control-name">demo-container</span>
+          <span
+            id="status-badge"
+            class="badge {% if container_state == 'running' %}badge--running{% else %}badge--stopped{% endif %}"
+            aria-live="polite"
+            aria-label="Container status"
+          >
+            {% if container_state == 'running' %}Running{% else %}Stopped{% endif %}
+          </span>
+        </div>
+        <div class="control-actions">
+          <button id="btn-toggle" type="button" class="btn-primary">
+            {% if container_state == 'running' %}Stop Container{% else %}Start Container{% endif %}
+          </button>
+          <button
+            id="btn-stress"
+            type="button"
+            class="btn-primary"
+            {%
+            if
+            container_state
+            !="running"
+            %}disabled{%
+            endif
+            %}
+          >
+            Spike CPU (30s)
+          </button>
+        </div>
+      </section>
+
+      <!-- Alert Feed -->
+      <section class="playground-section" aria-labelledby="section-alerts">
+        <h2 id="section-alerts">Live Alerts</h2>
+        <div
+          id="alert-feed"
+          class="alert-feed"
+          aria-live="polite"
+          aria-label="Live alert feed"
+          aria-atomic="false"
+        >
+          <p class="alert-feed__empty">
+            No alerts firing. Stop the container or spike CPU to trigger one.
+          </p>
+        </div>
+      </section>
+
+      <!-- Logout -->
+      <div class="playground-logout">
+        <form method="POST" action="{{ url_for('playground.logout') }}">
+          <button type="submit" class="btn-logout">Log Out</button>
+        </form>
+      </div>
+
+      <div class="footer-icons">
+        <a
+          href="https://github.com/Gcedwards91"
+          target="_blank"
+          aria-label="Cliff Edwards on GitHub"
+        >
+          <img
+            src="{{ url_for('static', filename='icons/github.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
+        </a>
+        <a
+          href="https://www.linkedin.com/in/gcedwards91/"
+          target="_blank"
+          aria-label="Cliff Edwards on LinkedIn"
+        >
+          <img
+            src="{{ url_for('static', filename='icons/linkedin.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
+        </a>
+      </div>
+    </div>
+
+    <script>
+      const statusBadge = document.getElementById("status-badge");
+      const btnToggle = document.getElementById("btn-toggle");
+      const btnStress = document.getElementById("btn-stress");
+      const alertFeed = document.getElementById("alert-feed");
+      const pageError = document.getElementById("page-error");
+
+      let stressResetTimer = null;
+
+      function showError(msg) {
+        pageError.textContent = msg;
+      }
+
+      function clearError() {
+        pageError.textContent = "";
+      }
+
+      // Wraps fetch with an AbortController timeout so hung requests don't
+      // block the UI indefinitely.
+      async function fetchWithTimeout(url, options, timeoutMs) {
+        timeoutMs = timeoutMs || 8000;
+        const controller = new AbortController();
+        const id = setTimeout(function () {
+          controller.abort();
+        }, timeoutMs);
+        try {
+          return await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+        } finally {
+          clearTimeout(id);
+        }
+      }
+
+      function updateUI(containerState, stressActive) {
+        const running = containerState === "running";
+
+        statusBadge.textContent = running ? "Running" : "Stopped";
+        statusBadge.className = "badge " + (running ? "badge--running" : "badge--stopped");
+        statusBadge.setAttribute(
+          "aria-label",
+          "Container status: " + (running ? "Running" : "Stopped")
+        );
+
+        btnToggle.textContent = running ? "Stop Container" : "Start Container";
+        btnStress.disabled = !running;
+
+        if (stressActive) {
+          btnStress.textContent = "Stop Stress";
+          btnStress.classList.add("btn-stress--active");
+          // If stress was already running when the page loaded, start the
+          // reset timer now so the button doesn't stay in "Stress Active"
+          // state indefinitely after a page refresh.
+          if (!stressResetTimer) {
+            stressResetTimer = setTimeout(function () {
+              btnStress.textContent = "Spike CPU (30s)";
+              btnStress.classList.remove("btn-stress--active");
+              stressResetTimer = null;
+            }, 30000);
+          }
+        } else if (!stressResetTimer) {
+          btnStress.textContent = "Spike CPU (30s)";
+          btnStress.classList.remove("btn-stress--active");
+        }
+      }
+
+      async function refreshStatus() {
+        try {
+          const res = await fetchWithTimeout("/api/playground/status");
+          if (res.status === 403) {
+            window.location.href = "/playground/login";
+            return;
+          }
+          if (!res.ok) {
+            showError("Status check failed (" + res.status + ").");
+            return;
+          }
+          clearError();
+          const data = await res.json();
+          updateUI(data.container, data.stress_active);
+        } catch (err) {
+          if (err.name !== "AbortError") {
+            showError("Could not reach the playground API. Check your connection.");
+          }
+        }
+      }
+
+      btnToggle.addEventListener("click", async function () {
+        btnToggle.disabled = true;
+        clearError();
+        try {
+          const res = await fetchWithTimeout("/api/playground/toggle", { method: "POST" });
+          if (res.status === 403) {
+            window.location.href = "/playground/login";
+            return;
+          }
+          if (!res.ok) {
+            const data = await res.json().catch(function () {
+              return {};
+            });
+            showError("Toggle failed: " + (data.error || res.status));
+            return;
+          }
+          const data = await res.json();
+          const nowRunning = data.status === "started";
+          updateUI(nowRunning ? "running" : "stopped", false);
+        } catch (err) {
+          showError(
+            err.name === "AbortError"
+              ? "Toggle timed out. Check your connection."
+              : "Toggle failed. Check your connection."
+          );
+        } finally {
+          btnToggle.disabled = false;
+        }
+      });
+
+      btnStress.addEventListener("click", async function () {
+        // If stress is active, this click cancels it instead of starting a new one.
+        const isActive = btnStress.classList.contains("btn-stress--active");
+        btnStress.disabled = true;
+        clearError();
+
+        if (isActive) {
+          try {
+            const res = await fetchWithTimeout("/api/playground/stop_stress", { method: "POST" });
+            if (res.status === 403) {
+              window.location.href = "/playground/login";
+              return;
+            }
+            if (stressResetTimer) {
+              clearTimeout(stressResetTimer);
+              stressResetTimer = null;
+            }
+            btnStress.textContent = "Spike CPU (30s)";
+            btnStress.classList.remove("btn-stress--active");
+          } catch (err) {
+            showError(
+              err.name === "AbortError"
+                ? "Stop request timed out. Check your connection."
+                : "Stop stress failed. Check your connection."
+            );
+          } finally {
+            btnStress.disabled = false;
+          }
+          return;
+        }
+
+        try {
+          const res = await fetchWithTimeout("/api/playground/stress", { method: "POST" });
+          if (res.status === 403) {
+            window.location.href = "/playground/login";
+            return;
+          }
+          if (!res.ok) {
+            const data = await res.json().catch(function () {
+              return {};
+            });
+            showError("Stress request failed: " + (data.error || res.status));
+            btnStress.disabled = false;
+            return;
+          }
+          btnStress.textContent = "Stop Stress";
+          btnStress.classList.add("btn-stress--active");
+          btnStress.disabled = false;
+
+          if (stressResetTimer) clearTimeout(stressResetTimer);
+          stressResetTimer = setTimeout(function () {
+            btnStress.textContent = "Spike CPU (30s)";
+            btnStress.classList.remove("btn-stress--active");
+            stressResetTimer = null;
+          }, 30000);
+        } catch (err) {
+          showError(
+            err.name === "AbortError"
+              ? "Stress request timed out. Check your connection."
+              : "Stress request failed. Check your connection."
+          );
+          btnStress.disabled = false;
+        }
+      });
+
+      function renderAlerts(alerts) {
+        alertFeed.innerHTML = "";
+
+        if (!alerts || alerts.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "alert-feed__empty";
+          empty.textContent = "No alerts firing. Stop the container or spike CPU to trigger one.";
+          alertFeed.appendChild(empty);
+          return;
+        }
+
+        alerts.forEach(function (alert) {
+          const item = document.createElement("div");
+          item.className = "alert-item";
+
+          const header = document.createElement("div");
+          header.className = "alert-item__header";
+
+          const name = document.createElement("span");
+          name.className = "alert-item__name";
+          name.textContent = alert.labels?.alertname || "Unknown Alert";
+
+          const severity = document.createElement("span");
+          severity.className = "badge badge--stopped alert-item__severity";
+          severity.textContent = alert.labels?.severity || "alert";
+
+          header.appendChild(name);
+          header.appendChild(severity);
+
+          const desc = document.createElement("p");
+          desc.className = "alert-item__description";
+          desc.textContent =
+            alert.annotations?.description ||
+            alert.annotations?.summary ||
+            "No description available.";
+
+          item.appendChild(header);
+          item.appendChild(desc);
+          alertFeed.appendChild(item);
+        });
+      }
+
+      async function fetchAlerts() {
+        try {
+          const res = await fetchWithTimeout("/prometheus/api/v1/alerts", {}, 5000);
+          if (!res.ok) return;
+          const data = await res.json();
+          const firing = (data?.data?.alerts || []).filter((a) => a.state === "firing");
+          renderAlerts(firing);
+        } catch (_) {
+          // Alert feed failures are non-critical — fail silently
+        }
+      }
+
+      // Init
+      refreshStatus();
+      fetchAlerts();
+      setInterval(fetchAlerts, 10000);
+      // Periodic status refresh keeps the Flask session alive and syncs
+      // container state if it changes outside the UI (e.g. manual docker stop).
+      // The alert feed polls Prometheus directly and does not touch the session.
+      setInterval(refreshStatus, 30000);
+    </script>
+  </body>
+</html>

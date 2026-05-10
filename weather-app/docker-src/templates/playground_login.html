@@ -2,27 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Grafana Logs</title>
+    <title>Playground Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <style>
+      .note--error {
+        background: var(--error-bg);
+        border-color: var(--error-border);
+        color: var(--error-color);
+      }
+    </style>
   </head>
   <body>
     <div class="container">
-      <div class="navbar">
+      <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
         <a href="{{ url_for('index') }}">Homelab Blog</a>
         <a href="{{ url_for('resume') }}">Resume</a>
         <a href="{{ url_for('weather_app') }}">Weather App</a>
-        <a href="{{ url_for('playground.index') }}">Playground</a>
+        <a href="{{ url_for('playground.index') }}" aria-current="page">Playground</a>
         <a href="/grafana/">Grafana</a>
-      </div>
+      </nav>
 
-      <h1>Grafana Logs</h1>
-      <p class="note">This page embeds or links to Grafana dashboards via reverse proxy.</p>
-      <p>
-        <a href="/grafana" target="_blank">Open Grafana Dashboard</a>
-      </p>
+      <h1>Playground</h1>
+      <p>Log in to interact with the observability stack in real time.</p>
+
+      {% if error %}
+      <p class="note note--error" role="alert">Incorrect passphrase. Try again.</p>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('playground.login') }}">
+        <label for="password">Passphrase</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter passphrase"
+          autocomplete="current-password"
+          required
+        />
+        <button type="submit">Enter</button>
+      </form>
 
       <div class="footer-icons">
         <a

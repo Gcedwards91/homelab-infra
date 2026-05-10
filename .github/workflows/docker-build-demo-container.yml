@@ -1,0 +1,31 @@
+---
+name: Docker Build and Push - Demo Container
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "weather-app/demo-container/**"
+
+jobs:
+  build-demo-container:
+    name: Build and Push Demo Container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push demo-container
+        uses: docker/build-push-action@v6
+        with:
+          context: weather-app/demo-container/
+          push: true
+          tags: burningstar4/demo-container:latest

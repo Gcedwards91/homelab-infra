@@ -12,6 +12,7 @@ from flask import (
 )
 from jinja2 import TemplateNotFound
 from logger import get_logger
+from playground import playground_bp
 from prometheus_flask_exporter import PrometheusMetrics
 from weather import get_weather
 
@@ -19,6 +20,12 @@ from weather import get_weather
 app = Flask(__name__, template_folder="templates", static_folder="static")
 PrometheusMetrics(app)
 logger = get_logger("flask")
+
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-key")
+if app.secret_key == "dev-only-insecure-key":
+    logger.warning("FLASK_SECRET_KEY is not set — using insecure development default")
+
+app.register_blueprint(playground_bp)
 
 
 def safe_render(name: str) -> str | Response:
@@ -88,7 +95,7 @@ def log_request():
     path = request.path
     method = request.method
 
-    if path in ("/", "/about_me", "/resume", "/weather_app"):
+    if path in ("/", "/about_me", "/resume", "/weather_app", "/playground"):
         msg = f"{path} requested"
     elif path in ("/favicon.ico", "/healthz", "/metrics"):
         msg = f"Utility endpoint requested: {path}"
@@ -96,6 +103,10 @@ def log_request():
         msg = f"Static asset requested: {path}"
     elif path == "/weather" and method == "POST":
         msg = "Weather API request received"
+    elif path == "/playground/login" and method == "POST":
+        msg = "Playground login attempt"  # never log request.form here
+    elif path.startswith("/playground") or path.startswith("/api/playground"):
+        msg = f"Playground request: {path}"
     else:
         msg = f"Unhandled request path: {path}"
 
