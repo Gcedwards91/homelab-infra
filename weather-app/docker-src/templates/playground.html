@@ -477,7 +477,7 @@
               clearTimeout(stressResetTimer);
               stressResetTimer = null;
             }
-            btnStress.textContent = "Spike CPU (30s)";
+            btnStress.textContent = "Spike CPU (60s)";
             btnStress.classList.remove("btn-stress--active");
           } catch (err) {
             showError(
@@ -511,10 +511,10 @@
 
           if (stressResetTimer) clearTimeout(stressResetTimer);
           stressResetTimer = setTimeout(function () {
-            btnStress.textContent = "Spike CPU (30s)";
+            btnStress.textContent = "Spike CPU (60s)";
             btnStress.classList.remove("btn-stress--active");
             stressResetTimer = null;
-          }, 30000);
+          }, 60000);
         } catch (err) {
           showError(
             err.name === "AbortError"
