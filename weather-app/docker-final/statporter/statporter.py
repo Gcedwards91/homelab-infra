@@ -77,6 +77,9 @@ def get_client() -> docker.DockerClient:
 
 
 # -------- Metric collection --------
+_seen_names: set[str] = set()
+
+
 def _cpu_percent(stats: dict) -> float:
     """Calculate CPU usage percentage from a Docker stats snapshot."""
     cpu_stats = stats.get("cpu_stats", {})
@@ -118,6 +121,7 @@ def _blkio_bytes(stats: dict) -> tuple[int, int]:
 
 def collect_metrics() -> None:
     """Scrape all running containers and update Prometheus gauges."""
+    global _seen_names
     try:
         client = get_client()
         containers = client.containers.list()
@@ -125,8 +129,11 @@ def collect_metrics() -> None:
         log.exception("Failed to list containers")
         return
 
+    current_names: set[str] = set()
+
     for container in containers:
         name = (container.name or container.short_id).replace("-", "_")
+        current_names.add(name)
         try:
             stats = cast(dict, container.stats(stream=False))
         except Exception:
@@ -168,6 +175,24 @@ def collect_metrics() -> None:
 
         except Exception:
             log.exception("Error processing metrics for %s", name)
+
+    # Remove gauges for containers no longer running so absent() fires correctly.
+    _gauges = (
+        CPU_PERCENT,
+        MEM_USAGE,
+        MEM_PERCENT,
+        NET_RX,
+        NET_TX,
+        BLKIO_READ,
+        BLKIO_WRITE,
+    )
+    for gone in _seen_names - current_names:
+        for gauge in _gauges:
+            try:
+                gauge.remove(gone)
+            except Exception:
+                pass
+    _seen_names = current_names
 
 
 # -------- Flask app --------
