@@ -255,7 +255,7 @@
 
       <p class="note">
         This container is a purpose-built dummy. Stopping it triggers a real alert in Prometheus.
-        Restarting it resolves it. The CPU spike drives DemoContainerHighCPU above 80% for 30
+        Restarting it resolves it. The CPU spike drives DemoContainerHighCPU above 80% for 60
         seconds.
       </p>
 
@@ -291,7 +291,7 @@
             endif
             %}
           >
-            Spike CPU (30s)
+            Spike CPU (60s)
           </button>
         </div>
       </section>
@@ -398,10 +398,10 @@
           // state indefinitely after a page refresh.
           if (!stressResetTimer) {
             stressResetTimer = setTimeout(function () {
-              btnStress.textContent = "Spike CPU (30s)";
+              btnStress.textContent = "Spike CPU (60s)";
               btnStress.classList.remove("btn-stress--active");
               stressResetTimer = null;
-            }, 30000);
+            }, 60000);
           }
         } else if (!stressResetTimer) {
           btnStress.textContent = "Spike CPU (30s)";

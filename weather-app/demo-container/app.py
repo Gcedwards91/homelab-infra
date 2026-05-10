@@ -11,7 +11,7 @@ _stop_event = threading.Event()
 
 
 def _burn(stop_event: threading.Event) -> None:
-    deadline = time.time() + 30
+    deadline = time.time() + 60
     while stop_event.is_set() and time.time() < deadline:
         pass  # busy loop — intentional CPU burn
     stop_event.clear()
