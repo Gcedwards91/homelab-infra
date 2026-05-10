@@ -25,7 +25,7 @@ logger = get_logger("playground")
 
 WINDOW_SECONDS = 4 * 3600  # 4-hour rotation
 GRACE_SECONDS = 300  # 5-minute overlap at window boundaries
-DEMO_CONTAINER = "demo-container"
+DEMO_CONTAINER = "demo_container"
 DEMO_STRESS_URL = "http://demo-container:8080/stress"
 DEMO_STATUS_URL = "http://demo-container:8080/stress_status"
 SESSION_IDLE_LIMIT = 1800  # 30 minutes
