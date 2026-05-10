@@ -62,9 +62,9 @@ groups:
 
       - alert: DemoContainerHighCPU
         expr: container_cpu_percent{name="demo_container"} > 80
-        for: 30s
+        for: 10s
         labels:
           severity: warning
         annotations:
           summary: "demo-container CPU above 80%"
-          description: "demo-container CPU has been above 80% for 30 seconds."
+          description: "demo-container CPU has been above 80% for 10 seconds."
