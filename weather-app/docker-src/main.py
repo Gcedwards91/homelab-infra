@@ -33,9 +33,7 @@ def safe_render(name: str) -> str | Response:
         return render_template(name)
     except TemplateNotFound:
         logger.error("Template not found", extra={"template": name})
-        return Response(
-            f"<h1>Missing template: {name}</h1>", status=404, mimetype="text/html"
-        )
+        return Response("<h1>404 Not Found</h1>", status=404, mimetype="text/html")
 
 
 # -------- UI --------
