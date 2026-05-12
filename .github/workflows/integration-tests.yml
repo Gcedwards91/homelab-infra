@@ -46,12 +46,17 @@ jobs:
         run: |
           for service in prometheus grafana loki statporter alertmanager demo-container; do
             echo "Waiting for $service..."
-            timeout 180 bash -c \
+            if ! timeout 180 bash -c \
               "until [ \"\$(docker inspect \
               --format='{{.State.Health.Status}}' \
-              $service 2>/dev/null)\" = 'healthy' ]; do sleep 3; done"
+              $service 2>/dev/null)\" = 'healthy' ]; do sleep 3; done"; then
+              echo "TIMED OUT waiting for $service"
+              docker inspect "$service" --format='Status: {{.State.Status}} Health: {{.State.Health.Status}}'
+              docker logs "$service" --tail 30
+              exit 1
+            fi
+            echo "$service is healthy"
           done
-          # Allow statporter background collector to complete its first round
           sleep 15
 
       # ---- TESTS ----
