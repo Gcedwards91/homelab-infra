@@ -42,6 +42,21 @@ _ERROR_RE = re.compile(r"error|fatal|panic|exception", re.IGNORECASE)
 # Prometheus/Grafana/Loki logfmt lines at info level may contain "error" incidentally.
 _INFO_LEVEL_RE = re.compile(r"level=info", re.IGNORECASE)
 
+# Known benign startup messages excluded per container.
+# Each entry is a substring that identifies a safe log line.
+_KNOWN_SAFE: dict[str, list[str]] = {
+    "grafana": [
+        # Optional provisioning dirs (plugins, alerting) are not configured — expected.
+        "no such file or directory",
+    ],
+    "loki": [
+        # Ring hasn't formed yet on single-node startup — transient.
+        "empty ring",
+        # Known Loki 3.x quirk with fake tenant on first ingest — benign.
+        "negative structured metadata bytes received",
+    ],
+}
+
 
 @pytest.fixture(scope="module")
 def containers(docker_client):
@@ -121,10 +136,13 @@ class TestCleanStartupLogs:
         if c is None:
             pytest.skip(f"'{name}' not found")
         raw = c.logs(stdout=True, stderr=True).decode("utf-8", errors="replace")
+        safe_substrings = _KNOWN_SAFE.get(name, [])
         error_lines = [
             line
             for line in raw.splitlines()
-            if _ERROR_RE.search(line) and not _INFO_LEVEL_RE.search(line)
+            if _ERROR_RE.search(line)
+            and not _INFO_LEVEL_RE.search(line)
+            and not any(s in line for s in safe_substrings)
         ]
         if error_lines:
             sample = "\n".join(f"  {ln}" for ln in error_lines[:10])
