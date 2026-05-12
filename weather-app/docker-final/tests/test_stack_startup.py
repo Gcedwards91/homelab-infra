@@ -17,8 +17,6 @@ import time
 import docker.errors
 import pytest
 
-# ── Service lists (match container_name values in docker-compose.yml) ─────────
-
 ALL_SERVICES = [
     "reverse-proxy",
     "weather-app",
@@ -31,8 +29,6 @@ ALL_SERVICES = [
     "demo-container",
 ]
 
-# Services with a HEALTHCHECK defined in docker-compose.yml.
-# reverse-proxy, weather-app, and promtail have no healthcheck configured.
 HEALTHCHECK_SERVICES = [
     "prometheus",
     "grafana",
@@ -42,25 +38,13 @@ HEALTHCHECK_SERVICES = [
     "demo-container",
 ]
 
-# Mirrors: grep -iE "error|fatal|panic|exception"
 _ERROR_RE = re.compile(r"error|fatal|panic|exception", re.IGNORECASE)
-
-# Mirrors: grep -v "level=info"
-# Prometheus, Grafana, and Loki use logfmt (level=info msg="..."). Lines at info
-# level may contain the word "error" incidentally — exclude them from the check.
+# Prometheus/Grafana/Loki logfmt lines at info level may contain "error" incidentally.
 _INFO_LEVEL_RE = re.compile(r"level=info", re.IGNORECASE)
-
-
-# ── Shared fixture ────────────────────────────────────────────────────────────
 
 
 @pytest.fixture(scope="module")
 def containers(docker_client):
-    """Map of container_name → Container for every expected service.
-
-    Resolved once per module. Individual tests call c.reload() when they need
-    current state rather than the snapshot taken at fixture setup.
-    """
     result = {}
     for name in ALL_SERVICES:
         try:
@@ -70,11 +54,7 @@ def containers(docker_client):
     return result
 
 
-# ── 1.1  All services come up ─────────────────────────────────────────────────
-
-
 class TestAllServicesUp:
-    """1.1 — Every expected container exists and is running."""
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
     def test_container_exists(self, containers, name):
@@ -93,11 +73,7 @@ class TestAllServicesUp:
         )
 
 
-# ── 1.2  Healthchecks pass ────────────────────────────────────────────────────
-
-
 class TestHealthChecks:
-    """1.2 — Every container with a HEALTHCHECK reports 'healthy'."""
 
     @pytest.mark.parametrize("name", HEALTHCHECK_SERVICES)
     def test_container_is_healthy(self, containers, name):
@@ -112,11 +88,7 @@ class TestHealthChecks:
         )
 
 
-# ── 1.3  No container has restarted unexpectedly ──────────────────────────────
-
-
 class TestNoUnexpectedRestarts:
-    """1.3 — No container is in a restart loop and RestartCount is 0."""
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
     def test_not_in_restarting_state(self, containers, name):
@@ -141,19 +113,7 @@ class TestNoUnexpectedRestarts:
         )
 
 
-# ── 1.4  Logs are clean on startup ────────────────────────────────────────────
-
-
 class TestCleanStartupLogs:
-    """1.4 — No unexpected ERROR/FATAL/PANIC/EXCEPTION lines in container logs.
-
-    Applies the same filter as:
-        docker compose logs | grep -iE "error|fatal|panic|exception" | grep -v "level=info"
-
-    The 'level=info' exclusion suppresses Prometheus, Grafana, and Loki logfmt
-    lines where the word "error" appears incidentally at info severity
-    (e.g. 'level=info msg="registered error handler"').
-    """
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
     def test_no_error_log_lines(self, containers, name):
@@ -175,20 +135,8 @@ class TestCleanStartupLogs:
             )
 
 
-# ── 1.5  Statporter background collector ──────────────────────────────────────
-
-
 class TestStatporterCollector:
-    """Verifies the background collection thread is running correctly.
-
-    The background collector (introduced alongside ThreadPoolExecutor parallelism)
-    means /metrics should respond in milliseconds rather than the ~37s sequential
-    scrape time of the old on-demand design. These tests guard against a regression
-    back to blocking scrapes.
-    """
-
     def test_metrics_response_is_fast(self, containers):
-        """Response time must be well under the 5s scrape_timeout in prometheus.yml."""
         c = containers["statporter"]
         if c is None:
             pytest.skip("statporter not found")
@@ -202,7 +150,6 @@ class TestStatporterCollector:
         )
 
     def test_metrics_contains_container_data(self, containers):
-        """Cache must be populated — at least two containers should have CPU metrics."""
         c = containers["statporter"]
         if c is None:
             pytest.skip("statporter not found")

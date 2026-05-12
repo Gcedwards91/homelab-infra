@@ -153,8 +153,6 @@ def collect_metrics() -> None:
 
     current_names: set[str] = set()
 
-    # Fan out Docker stats calls across all containers simultaneously.
-    # Each call takes ~1s; parallel execution keeps total time near that of one call.
     workers = min(len(containers), _SCRAPE_WORKERS)
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = pool.map(_scrape_one, containers)
