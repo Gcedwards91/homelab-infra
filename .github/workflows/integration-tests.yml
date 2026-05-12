@@ -13,6 +13,8 @@ name: CI - Integration Tests
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
 
     steps:
       - name: Checkout repo
@@ -31,6 +33,10 @@ jobs:
             exit 1
           fi
 
+      - name: Pull images
+        working-directory: weather-app/docker-final
+        run: docker compose pull
+
       - name: Start stack
         working-directory: weather-app/docker-final
         run: docker compose up -d
@@ -39,7 +45,7 @@ jobs:
         run: |
           for service in prometheus grafana loki statporter alertmanager demo-container; do
             echo "Waiting for $service..."
-            timeout 120 bash -c \
+            timeout 180 bash -c \
               "until [ \"\$(docker inspect \
               --format='{{.State.Health.Status}}' \
               $service 2>/dev/null)\" = 'healthy' ]; do sleep 3; done"
