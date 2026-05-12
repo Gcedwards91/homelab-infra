@@ -1,6 +1,9 @@
 import logging
 import os
 import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import cast
 
 import docker
@@ -62,6 +65,11 @@ BLKIO_WRITE = Gauge(
     registry=registry,
 )
 
+SCRAPE_INTERVAL = int(
+    os.getenv("SCRAPE_INTERVAL", "10")
+)  # seconds between collection rounds
+_SCRAPE_WORKERS = 16  # max parallel Docker stats calls
+
 # -------- Docker client — lazily initialised so startup failures are visible --------
 _client: docker.DockerClient | None = None
 
@@ -119,8 +127,19 @@ def _blkio_bytes(stats: dict) -> tuple[int, int]:
     return read_bytes, write_bytes
 
 
+def _scrape_one(container) -> tuple[str, dict] | None:
+    """Fetch stats for a single container. Returns (name, stats) or None on failure."""
+    name = (container.name or container.short_id).replace("-", "_")
+    try:
+        stats = cast(dict, container.stats(stream=False))
+        return name, stats
+    except Exception:
+        log.warning("Could not retrieve stats for %s", name, exc_info=True)
+        return None
+
+
 def collect_metrics() -> None:
-    """Scrape all running containers and update Prometheus gauges."""
+    """Scrape all running containers in parallel and update Prometheus gauges."""
     global _seen_names
     try:
         client = get_client()
@@ -129,17 +148,22 @@ def collect_metrics() -> None:
         log.exception("Failed to list containers")
         return
 
+    if not containers:
+        return
+
     current_names: set[str] = set()
 
-    for container in containers:
-        name = (container.name or container.short_id).replace("-", "_")
-        current_names.add(name)
-        try:
-            stats = cast(dict, container.stats(stream=False))
-        except Exception:
-            log.warning("Could not retrieve stats for %s", name, exc_info=True)
-            continue
+    # Fan out Docker stats calls across all containers simultaneously.
+    # Each call takes ~1s; parallel execution keeps total time near that of one call.
+    workers = min(len(containers), _SCRAPE_WORKERS)
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = pool.map(_scrape_one, containers)
 
+    for result in results:
+        if result is None:
+            continue
+        name, stats = result
+        current_names.add(name)
         try:
             cpu = _cpu_percent(stats)
             CPU_PERCENT.labels(name=name).set(cpu)
@@ -195,15 +219,36 @@ def collect_metrics() -> None:
     _seen_names = current_names
 
 
+def _collection_loop() -> None:
+    """Background thread: collect metrics on a fixed interval.
+
+    Sleeps for SCRAPE_INTERVAL minus however long the collection took, so a slow
+    round doesn't cause immediate back-to-back scrapes but also doesn't stack delay.
+    """
+    log.info(
+        "Background collector starting — interval=%ds workers=%d",
+        SCRAPE_INTERVAL,
+        _SCRAPE_WORKERS,
+    )
+    while True:
+        start = time.monotonic()
+        try:
+            collect_metrics()
+        except Exception:
+            log.exception("Unhandled error in collection loop")
+        elapsed = time.monotonic() - start
+        log.debug("Collection round complete in %.2fs", elapsed)
+        time.sleep(max(0.0, SCRAPE_INTERVAL - elapsed))
+
+
 # -------- Flask app --------
 app = Flask(__name__)
 
 
 @app.route("/metrics")
 def metrics():
-    """Prometheus scrape endpoint."""
+    """Prometheus scrape endpoint — serves from background-collected cache."""
     log.debug("Scrape request received")
-    collect_metrics()
     return Response(generate_latest(registry), mimetype=CONTENT_TYPE_LATEST)
 
 
@@ -216,3 +261,9 @@ def healthz():
     except Exception:
         log.exception("Health check failed")
         return "docker unavailable", 503
+
+
+# -------- Start background collector --------
+threading.Thread(
+    target=_collection_loop, daemon=True, name="statporter-collector"
+).start()

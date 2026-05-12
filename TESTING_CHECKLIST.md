@@ -13,7 +13,7 @@ cd weather-app/docker-final
 cp .env.example .env        # if .env doesn't exist
 # Verify .env has real values for:
 #   GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD
-#   FLASK_SECRET_KEY, PLAYGROUND_PASSWORD   (once playground is implemented)
+#   FLASK_SECRET_KEY, PLAYGROUND_SECRET, PLAYGROUND_ADMIN_KEY
 docker compose down -v      # clean slate
 docker compose pull         # pull latest images
 ```
@@ -38,7 +38,7 @@ docker compose ps
 - [ ] `promtail` — status Up, no restart loops
 - [ ] `statporter` — status Up (healthy)
 - [ ] `alertmanager` — status Up (healthy)
-- [ ] `demo-container` — status Up (healthy) _(once playground is implemented)_
+- [ ] `demo-container` — status Up (healthy)
 
 ### 1.2 Healthchecks pass
 
@@ -51,7 +51,7 @@ docker inspect --format='{{.Name}} {{.State.Health.Status}}' $(docker compose ps
 - [ ] loki — `healthy`
 - [ ] statporter — `healthy`
 - [ ] alertmanager — `healthy`
-- [ ] demo-container — `healthy` _(once playground is implemented)_
+- [ ] demo-container — `healthy`
 
 ### 1.3 No container has restarted unexpectedly
 
@@ -88,7 +88,7 @@ For each URL, verify: HTTP 200, page renders, navbar is present with all links:
 
 On every page:
 
-- [ ] All navbar links are present: About Me, Homelab Blog, Resume, Weather App, Grafana (+ Playground once implemented)
+- [ ] All navbar links are present: About Me, Homelab Blog, Resume, Weather App, Playground, Grafana
 - [ ] Navbar links are functional — clicking each navigates correctly
 
 ### 2.3 Weather lookup
@@ -156,7 +156,7 @@ Open `http://localhost/prometheus/rules`:
 
 - [ ] `container_alerts` group is present with 3 rules: ContainerDown, ContainerHighMemory, ContainerHighCPU
 - [ ] `stack_alerts` group is present with 2 rules: LokiIngestStopped, WeatherAppHighErrorRate
-- [ ] `playground_alerts` group is present with 2 rules: DemoContainerDown, DemoContainerHighCPU _(once implemented)_
+- [ ] `playground_alerts` group is present with 2 rules: DemoContainerDown, DemoContainerHighCPU
 - [ ] All rules show state `inactive` (no false alerts at rest)
 
 ### 3.3 AlertManager reachable
@@ -231,7 +231,7 @@ docker inspect loki --format='{{.State.Health.Status}}'
 
 - [ ] Alert rule expression is syntactically valid (check Prometheus rules page, no error on the rule)
 
-### 4.3 DemoContainerDown fires and resolves _(playground implemented)_
+### 4.3 DemoContainerDown fires and resolves
 
 ```bash
 # Via playground UI or directly:
@@ -251,20 +251,23 @@ Wait 60 seconds, recheck:
 
 - [ ] `DemoContainerDown` alert resolves
 
-### 4.4 DemoContainerHighCPU fires and resolves _(playground implemented)_
+### 4.4 DemoContainerHighCPU fires and resolves
 
-Trigger via the playground UI "Spike CPU" button, or directly:
+Trigger via the playground UI "Spike CPU" button. To trigger directly, exec into a
+container on the `monitoring` network — `demo-container:8080` is not reachable from the
+host:
 
 ```bash
-curl -X POST http://demo-container:8080/stress  # from within the monitoring network
+docker exec weather-app curl -s -X POST http://demo-container:8080/stress
 ```
 
-Wait 30 seconds (alert has `for: 30s`), check `/prometheus/alerts`:
+Wait ~30 seconds (alert has `for: 10s`; allow time for the scrape cycle to register
+CPU above 80%), check `/prometheus/alerts`:
 
 - [ ] `DemoContainerHighCPU` alert appears in FIRING state
-- [ ] `container_cpu_percent{name="demo-container"}` metric is above 80 in Prometheus
+- [ ] `container_cpu_percent{name="demo_container"}` metric is above 80 in Prometheus
 
-Wait for stress to end (30s timeout), wait another 30s:
+Wait for stress to end (60s timeout), wait another 30s:
 
 - [ ] `DemoContainerHighCPU` alert resolves
 
@@ -310,7 +313,7 @@ find . -name "*.sh" -not -path "*/node_modules/*" | xargs shellcheck -x -e SC109
 
 - [ ] No ShellCheck errors on any `.sh` file
 
-### 5.5 Demo container build workflow _(playground implemented)_
+### 5.5 Demo container build workflow
 
 Make a change to `weather-app/demo-container/app.py`:
 
@@ -330,15 +333,15 @@ curl -I http://localhost/weather_app            # → Flask app (200)
 curl -I http://localhost/healthz                # → Flask app (200, {"status":"ok"})
 curl -I http://localhost/grafana/               # → Grafana (200 or 302)
 curl -I http://localhost/prometheus/            # → Prometheus (200)
-curl -I http://localhost/playground             # → Flask playground (200 or 302 to login)  *(once implemented)*
-curl -I http://localhost/api/playground/status  # → 403 if not authenticated              *(once implemented)*
+curl -I http://localhost/playground             # → Flask playground (200 or 302 to login)
+curl -I http://localhost/api/playground/status  # → 403 if not authenticated
 ```
 
 - [ ] `/` routes to Flask (check response header `X-Request-ID` is present — set by Flask middleware)
 - [ ] `/grafana/` routes to Grafana (check Grafana-specific response headers)
 - [ ] `/prometheus/` routes to Prometheus
-- [ ] `/playground` routes to Flask _(once implemented)_
-- [ ] `/api/playground/status` returns 403 without a session _(once implemented)_
+- [ ] `/playground` routes to Flask
+- [ ] `/api/playground/status` returns 403 without a session
 - [ ] No location block leaks upstream error pages (502, 504)
 
 ---
@@ -385,8 +388,9 @@ grep -E "^(GRAFANA_ADMIN_USER|GRAFANA_ADMIN_PASSWORD|GRAFANA_URL|PROMETHEUS_URL)
 - [ ] `GRAFANA_ADMIN_PASSWORD` is set (not empty, not "changeme")
 - [ ] `GRAFANA_URL` is set
 - [ ] `PROMETHEUS_URL` is set
-- [ ] `FLASK_SECRET_KEY` is set to a real secret (not the default placeholder) _(once playground is implemented)_
-- [ ] `PLAYGROUND_PASSWORD` is set _(once playground is implemented)_
+- [ ] `FLASK_SECRET_KEY` is set to a real secret (not the default placeholder)
+- [ ] `PLAYGROUND_SECRET` is set (not the default placeholder)
+- [ ] `PLAYGROUND_ADMIN_KEY` is set
 
 ### 8.2 .env is not committed
 
@@ -415,7 +419,7 @@ git grep -i "password\|secret\|api.key\|token" -- "*.yml" "*.yaml" "*.env*" "*.p
 
 ---
 
-## 9. Playground Feature _(complete once implemented)_
+## 9. Playground Feature
 
 ### 9.1 Stack startup with playground
 
@@ -426,7 +430,7 @@ docker compose ps
 
 - [ ] `demo-container` starts and reaches `healthy` state
 - [ ] `weather-app` mounts `/var/run/docker.sock` (verify: `docker inspect weather-app | grep docker.sock`)
-- [ ] `weather-app` has `FLASK_SECRET_KEY` and `PLAYGROUND_PASSWORD` in environment
+- [ ] `weather-app` has `FLASK_SECRET_KEY`, `PLAYGROUND_SECRET`, and `PLAYGROUND_ADMIN_KEY` in environment
 
 ### 9.2 Auth gate and rolling passphrase
 
@@ -515,10 +519,10 @@ After stopping demo-container via the toggle button:
 
 ### 9.6 CPU stress lifecycle
 
-- [ ] Click "Spike CPU (30s)" — button changes to "Stress Active"
-- [ ] Within 30 seconds: `DemoContainerHighCPU` appears in FIRING state at `/prometheus/alerts`
+- [ ] Click "Spike CPU (60s)" — button changes to "Stress Active"
+- [ ] Within ~30 seconds: `DemoContainerHighCPU` appears in FIRING state at `/prometheus/alerts` (alert has `for: 10s`; allow one scrape cycle to register CPU above 80%)
 - [ ] Alert appears in playground alert feed within one poll cycle (10s)
-- [ ] After 30 seconds: stress ends automatically, button resets to "Spike CPU (30s)"
+- [ ] After 60 seconds: stress ends automatically, button resets to "Spike CPU (60s)"
 - [ ] Alert resolves within 30 seconds of stress ending
 
 ### 9.7 Logout
