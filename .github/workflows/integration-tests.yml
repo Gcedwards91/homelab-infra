@@ -9,6 +9,7 @@ name: CI - Integration Tests
       - "weather-app/demo-container/**"
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   integration-tests:
