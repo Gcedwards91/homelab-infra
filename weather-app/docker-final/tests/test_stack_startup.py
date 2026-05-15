@@ -45,9 +45,17 @@ _INFO_LEVEL_RE = re.compile(r"level=info", re.IGNORECASE)
 # Known benign startup messages excluded per container.
 # Each entry is a substring that identifies a safe log line.
 _KNOWN_SAFE: dict[str, list[str]] = {
+    "reverse-proxy": [
+        # Long-polling SSE connection nginx kills after timeout — browser reconnects immediately.
+        "notifications/live",
+    ],
     "grafana": [
         # Optional provisioning dirs (plugins, alerting) are not configured — expected.
         "no such file or directory",
+        # Grafana checks for Amazon Prometheus plugin daily — not installed, not needed.
+        "amazonprometheus",
+        # Transient SQLite lock during initialization — resolves immediately.
+        "database is locked",
     ],
     "loki": [
         # Ring hasn't formed yet on single-node startup — transient.
