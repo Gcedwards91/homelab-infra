@@ -82,7 +82,6 @@ For each URL, verify: HTTP 200, page renders, navbar is present with all links:
 - [ ] `http://localhost/about_me` — About Me loads, all sections visible, tooltips render
 - [ ] `http://localhost/resume` — Resume page loads, all sections visible (Summary, Skills, Experience, Projects, Education), bullet points have markers, download buttons present
 - [ ] `http://localhost/weather_app` — Weather form loads, all form fields present
-- [ ] `http://localhost/grafana.html` — Grafana link page loads
 
 ### 2.2 Navbar
 
