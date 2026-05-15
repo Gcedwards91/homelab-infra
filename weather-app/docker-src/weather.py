@@ -58,7 +58,7 @@ def get_weather(location: str, api_key: str, mode: str = "city") -> dict:
             extra={
                 "event": "http_error",
                 "status_code": status_code,
-                "message": str(http_err),
+                "detail": str(http_err),
             },
         )
         if status_code == 404:
@@ -70,6 +70,6 @@ def get_weather(location: str, api_key: str, mode: str = "city") -> dict:
     except Exception as err:
         logger.error(
             "Unexpected error fetching weather",
-            extra={"event": "general_error", "message": str(err)},
+            extra={"event": "general_error", "detail": str(err)},
         )
         return {"error": "An unexpected error occurred. Please try again."}
