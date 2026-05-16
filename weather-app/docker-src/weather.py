@@ -5,7 +5,6 @@ logger = get_logger()
 
 
 def get_weather(location: str, api_key: str, mode: str = "city") -> dict:
-    """Fetch current weather from OpenWeatherMap and return a summary dict."""
     base_url = "https://api.openweathermap.org/data/2.5/weather"
 
     if mode == "zip":
@@ -13,7 +12,6 @@ def get_weather(location: str, api_key: str, mode: str = "city") -> dict:
     else:
         params = {"q": location, "appid": api_key, "units": "imperial"}
 
-    # Redact the API key before logging
     safe_params = {**params, "appid": "***REDACTED***"}
 
     logger.info(

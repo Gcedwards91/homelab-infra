@@ -26,7 +26,6 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:5000/healthz || exit 1
 
-# Gunicorn serves the app with 2 workers, logging at warning level
 CMD ["gunicorn", "--workers=2", "--bind=0.0.0.0:5000", "--timeout=60", \
      "--log-level=warning", "--access-logfile=-", "--error-logfile=-", \
      "main:app"]

@@ -31,11 +31,6 @@ DEMO_STATUS_URL = "http://demo-container:8080/stress_status"
 SESSION_IDLE_LIMIT = 1800  # 30 minutes
 
 
-# ---------------------------------------------------------------------------
-# Passphrase helpers
-# ---------------------------------------------------------------------------
-
-
 def _derive(secret: bytes, window_id: int) -> str:
     digest = hmac.new(secret, str(window_id).encode(), hashlib.sha256).digest()
     return base64.urlsafe_b64encode(digest)[:14].decode()
@@ -61,11 +56,6 @@ def _passphrase_info() -> dict:
         "seconds_until_rotation": int(next_rotation - now),
         "next": _derive(secret, cur + 1),
     }
-
-
-# ---------------------------------------------------------------------------
-# Auth decorators
-# ---------------------------------------------------------------------------
 
 
 def _session_valid() -> bool:
@@ -102,11 +92,6 @@ def require_auth_redirect(f):
     return decorated
 
 
-# ---------------------------------------------------------------------------
-# Docker helper
-# ---------------------------------------------------------------------------
-
-
 def _container_state() -> str:
     """Returns 'running', 'stopped', or 'not_found'."""
     try:
@@ -118,11 +103,6 @@ def _container_state() -> str:
     except Exception as exc:
         logger.error("docker state check failed", extra={"error": str(exc)})
         return "stopped"
-
-
-# ---------------------------------------------------------------------------
-# Page routes
-# ---------------------------------------------------------------------------
 
 
 @playground_bp.route("/playground")
@@ -161,11 +141,6 @@ def logout():
     return redirect(url_for("playground.login"))
 
 
-# ---------------------------------------------------------------------------
-# Admin endpoint
-# ---------------------------------------------------------------------------
-
-
 @playground_bp.route("/playground/passphrase")
 def passphrase():
     admin_key = os.environ.get("PLAYGROUND_ADMIN_KEY")
@@ -180,11 +155,6 @@ def passphrase():
         return jsonify(_passphrase_info())
     except KeyError:
         abort(503)
-
-
-# ---------------------------------------------------------------------------
-# API routes
-# ---------------------------------------------------------------------------
 
 
 @playground_bp.route("/api/playground/status")

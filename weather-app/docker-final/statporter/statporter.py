@@ -11,7 +11,6 @@ from flask import Flask, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from prometheus_client.core import CollectorRegistry
 
-# -------- Logging --------
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
@@ -19,7 +18,6 @@ logging.basicConfig(
 )
 log = logging.getLogger("statporter")
 
-# -------- Prometheus registry & gauges --------
 registry = CollectorRegistry()
 
 CPU_PERCENT = Gauge(
@@ -70,12 +68,10 @@ SCRAPE_INTERVAL = int(
 )  # seconds between collection rounds
 _SCRAPE_WORKERS = 16  # max parallel Docker stats calls
 
-# -------- Docker client — lazily initialised so startup failures are visible --------
 _client: docker.DockerClient | None = None
 
 
 def get_client() -> docker.DockerClient:
-    """Return a cached Docker client, creating it on first call."""
     global _client
     if _client is None:
         socket = os.getenv("DOCKER_HOST", "unix:///var/run/docker.sock")
@@ -84,12 +80,10 @@ def get_client() -> docker.DockerClient:
     return _client
 
 
-# -------- Metric collection --------
 _seen_names: set[str] = set()
 
 
 def _cpu_percent(stats: dict) -> float:
-    """Calculate CPU usage percentage from a Docker stats snapshot."""
     cpu_stats = stats.get("cpu_stats", {})
     precpu_stats = stats.get("precpu_stats", {})
 
@@ -114,7 +108,6 @@ def _cpu_percent(stats: dict) -> float:
 
 
 def _blkio_bytes(stats: dict) -> tuple[int, int]:
-    """Return (bytes_read, bytes_written) from blkio_stats."""
     read_bytes = 0
     write_bytes = 0
     for entry in stats.get("blkio_stats", {}).get("io_service_bytes_recursive") or []:
@@ -139,7 +132,6 @@ def _scrape_one(container) -> tuple[str, dict] | None:
 
 
 def collect_metrics() -> None:
-    """Scrape all running containers in parallel and update Prometheus gauges."""
     global _seen_names
     try:
         client = get_client()
@@ -239,20 +231,17 @@ def _collection_loop() -> None:
         time.sleep(max(0.0, SCRAPE_INTERVAL - elapsed))
 
 
-# -------- Flask app --------
 app = Flask(__name__)
 
 
 @app.route("/metrics")
 def metrics():
-    """Prometheus scrape endpoint — serves from background-collected cache."""
     log.debug("Scrape request received")
     return Response(generate_latest(registry), mimetype=CONTENT_TYPE_LATEST)
 
 
 @app.route("/healthz")
 def healthz():
-    """Health check endpoint — verifies Docker connectivity."""
     try:
         get_client().ping()
         return "ok", 200
@@ -261,7 +250,6 @@ def healthz():
         return "docker unavailable", 503
 
 
-# -------- Start background collector --------
 threading.Thread(
     target=_collection_loop, daemon=True, name="statporter-collector"
 ).start()

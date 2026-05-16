@@ -36,7 +36,6 @@ def safe_render(name: str) -> str | Response:
         return Response("<h1>404 Not Found</h1>", status=404, mimetype="text/html")
 
 
-# -------- UI --------
 @app.route("/")
 def index():
     return safe_render("index.html")
@@ -57,13 +56,11 @@ def weather_app():
     return safe_render("weather_app.html")
 
 
-# -------- health / metrics --------
 @app.route("/healthz")
 def healthz():
     return jsonify({"status": "ok"}), 200
 
 
-# -------- API --------
 @app.route("/weather", methods=["POST"])
 def weather():
     data = request.get_json(silent=True) or {}
@@ -76,7 +73,6 @@ def weather():
     return jsonify(weather_data), 200
 
 
-# -------- static --------
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory(
@@ -86,7 +82,6 @@ def favicon():
     )
 
 
-# -------- request / response logging --------
 @app.before_request
 def log_request():
     g.request_id = str(uuid.uuid4())

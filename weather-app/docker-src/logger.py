@@ -6,7 +6,6 @@ from pythonjsonlogger.json import JsonFormatter
 
 
 def get_logger(name: str = "app") -> logging.Logger:
-    """Return a JSON-structured logger, creating it on first call."""
     logger = logging.getLogger(name)
     if logger.handlers:
         return logger
