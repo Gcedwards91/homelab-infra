@@ -8,8 +8,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Install curl for healthcheck (no build tools needed — all deps are pure Python)
+# hadolint ignore=DL3008
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl=8.14.1-2+deb13u2 \
+    && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps first for better layer caching
