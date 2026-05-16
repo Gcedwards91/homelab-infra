@@ -28,3 +28,10 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        stages: [commit-msg]
+        args: [--ignore-words-list=statporter]
