@@ -200,13 +200,15 @@ homelab-infra/
 
 GitHub Actions handles automated builds and publishes on every push to `master`:
 
-| Workflow                          | Trigger path                             | Image published                             |
-| --------------------------------- | ---------------------------------------- | ------------------------------------------- |
-| `docker-build-weather-app.yml`    | `weather-app/docker-src/**`              | `burningstar4/weather-app:latest`           |
-| `docker-build-statporter.yml`     | `weather-app/docker-final/statporter/**` | `burningstar4/statporter:latest`            |
-| `docker-build-demo-container.yml` | `weather-app/demo-container/**`          | `burningstar4/demo-container:latest`        |
-| `format_and_lint-test.yml`        | all pushes                               | Black, Flake8, Prettier, Hadolint, yamllint |
-| `security_lint.yml`               | all pushes                               | Bandit, Trivy, ShellCheck, Gitleaks         |
+| Workflow                          | Trigger path                                                   | What it does                                                        |
+| --------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `docker-build-weather-app.yml`    | `weather-app/docker-src/**`                                    | Builds and pushes `burningstar4/weather-app:latest`                 |
+| `docker-build-statporter.yml`     | `weather-app/docker-final/statporter/**`                       | Builds and pushes `burningstar4/statporter:latest`                  |
+| `docker-build-demo-container.yml` | `weather-app/demo-container/**`                                | Builds and pushes `burningstar4/demo-container:latest`              |
+| `format_and_lint-test.yml`        | all pushes                                                     | Black, Flake8, Prettier, Hadolint, yamllint                         |
+| `security_lint.yml`               | all pushes                                                     | Bandit, Trivy, ShellCheck, Gitleaks                                 |
+| `integration-tests.yml`           | `weather-app/docker-final/**`, `weather-app/demo-container/**` | Spins up full stack, runs pytest, opens structured issue on failure |
+| `targeted-test.yml`               | manual (`workflow_dispatch`)                                   | Runs tests for one service, auto-closes the linked issue on pass    |
 
 ---
 

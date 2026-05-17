@@ -1,6 +1,6 @@
 # Playground Feature — PR Specification
 
-**Status:** Planned. Do not implement until this spec is reviewed and approved.
+**Status:** SHIPPED.
 **Branch target:** `master`
 **Estimated scope:** ~9 files created, ~8 files modified
 

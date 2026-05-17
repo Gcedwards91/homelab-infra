@@ -234,14 +234,16 @@ Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. 
 
 All workflows trigger on push to `master` (and PRs where applicable).
 
-| Workflow                          | Trigger                                          | What it does                                           |
-| --------------------------------- | ------------------------------------------------ | ------------------------------------------------------ |
-| `docker-build-weather-app.yml`    | push to `weather-app/docker-src/**`              | Builds and pushes `burningstar4/weather-app:latest`    |
-| `docker-build-statporter.yml`     | push to `weather-app/docker-final/statporter/**` | Builds and pushes `burningstar4/statporter:latest`     |
-| `docker-build-demo-container.yml` | push to `weather-app/demo-container/**`          | Builds and pushes `burningstar4/demo-container:latest` |
-| `format_and_lint-test.yml`        | all pushes                                       | Black, Flake8, Prettier, Hadolint, yamllint            |
-| `security_lint.yml`               | all pushes                                       | Bandit, Trivy, ShellCheck, Gitleaks, npm audit         |
-| `shellcheck.yml`                  | all pushes                                       | ShellCheck on `.sh` files                              |
+| Workflow                          | Trigger                                                                                     | What it does                                                                 |
+| --------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `docker-build-weather-app.yml`    | push to `weather-app/docker-src/**`                                                         | Builds and pushes `burningstar4/weather-app:latest`                          |
+| `docker-build-statporter.yml`     | push to `weather-app/docker-final/statporter/**`                                            | Builds and pushes `burningstar4/statporter:latest`                           |
+| `docker-build-demo-container.yml` | push to `weather-app/demo-container/**`                                                     | Builds and pushes `burningstar4/demo-container:latest`                       |
+| `format_and_lint-test.yml`        | all pushes                                                                                  | Black, Flake8, Prettier, Hadolint, yamllint                                  |
+| `security_lint.yml`               | all pushes                                                                                  | Bandit, Trivy, ShellCheck, Gitleaks, npm audit                               |
+| `shellcheck.yml`                  | all pushes                                                                                  | ShellCheck on `.sh` files                                                    |
+| `integration-tests.yml`           | push to `weather-app/docker-final/**`, `weather-app/demo-container/**`; `workflow_dispatch` | Spins up full stack, runs pytest, opens structured GitHub issue on failure   |
+| `targeted-test.yml`               | `workflow_dispatch` only                                                                    | Runs tests for a single service; auto-closes or comments on the linked issue |
 
 **Secrets required in GitHub:**
 
@@ -252,7 +254,7 @@ All workflows trigger on push to `master` (and PRs where applicable).
 
 - `DOCKERHUB_USERNAME`
 
-Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `black`, `flake8`, `yamllint`, `prettier`. Prettier reformats HTML/CSS/JSON/Markdown — always re-stage after a failed commit and commit again.
+Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `black`, `flake8`, `yamllint`, `prettier`, `codespell` (commit-msg stage). Prettier reformats HTML/CSS/JSON/Markdown — always re-stage after a failed commit and commit again. The `codespell` hook runs only at commit-msg time and requires `pre-commit install --hook-type commit-msg` on first setup.
 
 ---
 
@@ -276,7 +278,7 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 9. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated.
 
-10. **statporter scrape timeout** is 25s (scrape_interval 30s) — tuned specifically for Docker stats collection latency. Do not reduce it.
+10. **statporter scrape interval is 10s, timeout 5s** — the background collector thread makes scrapes return in ~50ms, so the timeout is not a constraint. Do not raise the scrape_interval without also adjusting the collection loop's `SCRAPE_INTERVAL` env var.
 
 11. **statporter uses underscores in label values.** Container names with hyphens are converted: `demo-container` → `name="demo_container"`, `weather-app` → `name="weather_app"`. Use underscores in all PromQL queries and alert expressions that filter by `name=`. The Docker SDK still uses the hyphenated name for `containers.get()`.
 
@@ -347,14 +349,18 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Tests (not started — highest priority gap)
+### Tests (integration tests shipped — unit tests still needed)
 
-No automated tests exist. The CI pipeline lints and scans but never runs assertions. Needed:
+Integration tests exist at `weather-app/docker-final/tests/test_stack_startup.py` and run in CI via `integration-tests.yml`. They cover stack startup and health checks (TESTING_CHECKLIST.md sections 1.1–1.4) and statporter scrape performance.
+
+Still needed:
 
 - `pytest` suite for Flask routes (`main.py`) — status codes, healthz, weather error handling
 - Playground auth unit tests — passphrase derivation, window boundary/grace period, session expiry
 - `weather.py` unit tests — mock `requests.get`, assert error messages don't leak the API key URL
 - statporter unit tests — `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
+
+New test files must follow the naming convention in `CI_LOOP_PR.md` Part 4 — file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
 
 ### Security (session cookie hardening — deferred to AWS)
 
