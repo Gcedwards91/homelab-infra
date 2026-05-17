@@ -1,0 +1,174 @@
+---
+name: CI - Targeted Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service to test"
+        required: true
+        type: choice
+        options:
+          - statporter
+          - weather-app
+          - prometheus
+          - loki
+          - grafana
+          - alertmanager
+          - demo-container
+          - reverse-proxy
+          - promtail
+      issue_number:
+        description: "Issue number to comment on or close"
+        required: true
+        type: string
+
+jobs:
+  targeted-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create .env for CI
+        working-directory: weather-app/docker-final
+        run: |
+          cp .env.example .env
+          SECRET=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+          sed -i "s|change-me-generate-a-real-secret|$SECRET|g" .env
+
+      - name: Validate .env
+        working-directory: weather-app/docker-final
+        run: |
+          if grep -q "change-me-generate-a-real-secret" .env; then
+            echo "ERROR: .env still contains placeholder secret"
+            exit 1
+          fi
+
+      - name: Pull images
+        working-directory: weather-app/docker-final
+        run: docker compose pull
+
+      - name: Start stack
+        working-directory: weather-app/docker-final
+        run: docker compose up -d
+
+      - name: Wait for healthchecks
+        # weather-app, reverse-proxy, and promtail have no HEALTHCHECK in docker-compose
+        # and are intentionally excluded
+        run: |
+          for service in prometheus grafana loki statporter alertmanager demo-container; do
+            echo "Waiting for $service..."
+            timeout 120 bash -c \
+              "until [ \"\$(docker inspect \
+              --format='{{.State.Health.Status}}' \
+              $service 2>/dev/null)\" = 'healthy' ]; do sleep 3; done"
+          done
+          sleep 15
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install -r weather-app/docker-final/requirements-dev.txt
+
+      - name: Run targeted tests
+        id: run-tests
+        run: |
+          set -o pipefail
+          pytest weather-app/docker-final/tests/ -v --tb=short \
+            -k "${{ inputs.service }}" 2>&1 | tee targeted-test-output.txt
+
+      - name: Capture service logs on failure
+        if: failure()
+        run: |
+          mkdir -p /tmp/service-logs
+          for service in weather-app statporter prometheus grafana loki promtail alertmanager reverse-proxy demo-container; do
+            docker logs $service --tail 50 2>&1 > /tmp/service-logs/${service}.log || echo "no logs available" > /tmp/service-logs/${service}.log
+          done
+
+      - name: Comment on issue on success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core');
+            const issueNumber = parseInt('${{ inputs.issue_number }}');
+            if (isNaN(issueNumber) || issueNumber < 1) {
+              core.setFailed(`Invalid issue number: '${{ inputs.issue_number }}'`);
+              return;
+            }
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+
+            const isStack = issue.data.title.startsWith('[STACK-');
+
+            if (isStack) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `## Targeted test passed — \`${{ inputs.service }}\`\n\n**Run:** ${runUrl}\n\nThis is a multi-service issue. Verify all other failing services before closing manually.`,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `## Targeted test passed — closing\n\n**Service:** \`${{ inputs.service }}\`\n**Run:** ${runUrl}`,
+              });
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: 'closed',
+              });
+            }
+
+      - name: Comment on issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core');
+            const fs = require('fs');
+            const issueNumber = parseInt('${{ inputs.issue_number }}');
+            if (isNaN(issueNumber) || issueNumber < 1) {
+              core.setFailed(`Invalid issue number: '${{ inputs.issue_number }}'`);
+              return;
+            }
+
+            const output = fs.existsSync('targeted-test-output.txt')
+              ? fs.readFileSync('targeted-test-output.txt', 'utf8').slice(-2000)
+              : 'No output captured';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const logPath = `/tmp/service-logs/${{ inputs.service }}.log`;
+            const logs = fs.existsSync(logPath)
+              ? fs.readFileSync(logPath, 'utf8')
+              : 'no logs captured';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `## Targeted test still failing\n\n**Service:** \`${{ inputs.service }}\`\n**Run:** ${runUrl}\n\n### Test output\n\`\`\`\n${output}\n\`\`\`\n\n### Service logs\n\`\`\`\n${logs}\n\`\`\``,
+            });
+
+      - name: Tear down stack
+        if: always()
+        working-directory: weather-app/docker-final
+        run: docker compose down -v
