@@ -235,7 +235,7 @@ make build-demo   # builds demo-container only
 
 ## Build Journal
 
-The full phase-by-phase build notes, lessons learned, and troubleshooting log are documented in the [Wiki](https://github.com/Gcedwards91/homelab-infra/wiki/Lessons-Learned-&-Journey).
+The full phase-by-phase build notes, lessons learned, and troubleshooting log are documented in the [Wiki](https://github.com/Gcedwards91/homelab-infra/wiki/Journey-&-Lessons-Learned).
 
 ---
 

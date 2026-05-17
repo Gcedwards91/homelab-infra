@@ -6,73 +6,463 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <style>
+      h3 {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 1.5rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .intro-list {
+        list-style: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .blog-post ul {
+        list-style: disc;
+        padding-left: 1.5rem;
+        margin-top: 0.4rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .blog-post ul ul {
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .blog-post li {
+        margin-bottom: 0.35rem;
+        line-height: 1.7;
+      }
+
+      .phase-break {
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+        margin: 2rem 0;
+        font-size: 0.95rem;
+      }
+    </style>
   </head>
 
   <body>
     <div class="container container--wide">
-      <div class="navbar">
+      <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
-        <a href="{{ url_for('index') }}">Homelab Blog</a>
+        <a href="{{ url_for('index') }}" aria-current="page">Homelab Blog</a>
         <a href="{{ url_for('resume') }}">Resume</a>
         <a href="{{ url_for('weather_app') }}">Weather App</a>
         <a href="{{ url_for('playground.index') }}">Playground</a>
         <a href="/grafana/">Grafana</a>
+      </nav>
+
+      <h1>Homelab Infrastructure Project (Started 5/20/2025)</h1>
+
+      <p>This is a homelab project I spun up to get familiar with:</p>
+      <ul class="intro-list">
+        <li>Building an enterprise-like environment from scratch.</li>
+        <li>Building familiarity with IaC tools like Terraform and Ansible.</li>
+        <li>Building familiarity with containerization practices, Docker, and Kubernetes.</li>
+        <li>Building familiarity with GitHub, git, and CI/CD.</li>
+        <li>Building familiarity with general DevOps and SRE best practices.</li>
+      </ul>
+
+      <div class="blog-post">
+        <h2>Phase 1 - Initial Lab Setup (Completed 5/25/2025)</h2>
+        <time>Completed 5/25/2025</time>
+
+        <h3>Completed</h3>
+        <ul>
+          <li>Install Proxmox on Mini-PC</li>
+          <li>Configure Mini-PC and Proxmox to use built in Wi-Fi 6 Card</li>
+          <li>Install and configure base image snapshots of: Ubuntu, Debian, and AlmaLinux</li>
+          <li>Configure future VMs to be reachable via SSH</li>
+          <li>Configure future VMs to be reachable via browser, for consoles</li>
+          <li>Configure control node (Terraform &amp; Ansible) by hand</li>
+          <li>Configure SIEM Node using Wazuh</li>
+          <li>Configure monitoring node (Prometheus + Grafana)</li>
+        </ul>
+
+        <h3>In Progress</h3>
+        <p>N/A</p>
+
+        <h3>Not Begun</h3>
+        <p>N/A</p>
+
+        <h3>Lessons Learned — Phase 1 (5/20/2025 – 5/25/2025)</h3>
+        <ul>
+          <li>
+            Proxmox VE is Debian-based but optimized for server use. As such it does not include
+            WiFi drivers by default. To enable WiFi on the host, drivers were downloaded from a
+            Debian-based WSL environment, transferred via USB, and installed using dpkg.
+          </li>
+          <li>
+            When provisioning virtual machines (VMs) in Proxmox, using the Intel E1000 network
+            adapter ensures compatibility out of the box. Unlike virtio, E1000 does not require
+            special drivers, allowing new VMs to immediately access package mirrors for updates and
+            installations.
+          </li>
+          <li>
+            In my environment the Proxmox host is a mini-pc that is assigned a static IP, while all
+            VMs use DHCP. To make VMs reachable via hostname or IP from other devices and
+            MobaXterm/VSCode, the following network design was used:
+            <ul>
+              <li>
+                The WiFi NIC (wlp2s0) is configured as the primary network interface with a static
+                IP for internet access.
+              </li>
+              <li>
+                A virtual bridge (vmbr0) is configured with no physical ports, using a static IP in
+                the X.X.100.0/24 subnet, where X.X can be whichever octets you prefer, this serves
+                as the internal network interface for all VMS.
+              </li>
+              <li>
+                dnsmasq was installed and configured to serve DHCP leases and internal DNS
+                resoltution on vmbr0, allowing VMS to be accessed by Fully Qualified Domain Names
+                (FQDN).
+              </li>
+              <li>
+                A static route was added at my desktop to ensure any traffic to the X.X.100.0/24
+                subnet would be routed through the Proxmox host and to the VMs.
+              </li>
+            </ul>
+          </li>
+          <li>
+            To enable internal hostname resolution across the lab, and with my workstation, the
+            desktop client was configured with the X.X.100.1 IP as part of its DNS, ensuring the
+            homelab's domain lookups resolve through dnsmasq.
+          </li>
+          <li>
+            <b>Tools &amp; Software used:</b>
+            <i
+              >VSCode, Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform,
+              Ansible, CMD, SSH, PowerShell, Bash.</i
+            >
+          </li>
+        </ul>
       </div>
 
-      <h1>Homelab Project Blog</h1>
-      <p class="note">
-        Follow my journey building a modern DevOps homelab from scratch — using Terraform, Ansible,
-        Docker, and Kubernetes with observability tooling like Grafana, Prometheus, and Elastic.
+      <div class="blog-post">
+        <h2>Phase 2 - Get Hands Dirty (Completed 6/4/2025)</h2>
+        <time>Completed 6/4/2025</time>
+
+        <h3>Completed</h3>
+        <ul>
+          <li>Deploy Virtual Machines using Terraform</li>
+          <li>Automated VM Template Configuration via bash</li>
+          <li>
+            Automated boot order, cloud-init, and enabling qemu-guest-agent within Proxmox via bash
+          </li>
+          <li>Leverage cloud-init within Terraform to assign temporary hostnames for Ansible</li>
+          <li>Deploy Varied Virtual Machines using Terraform</li>
+          <li>Configure Virtual Machines using Ansible</li>
+          <li>Write LAMP Stack Terraform and Ansible Playbooks</li>
+        </ul>
+
+        <h3>In Progress</h3>
+        <p>N/A</p>
+
+        <h3>Not Begun</h3>
+        <p>N/A</p>
+
+        <h3>Lessons Learned — Phase 2 (5/27/2025 – 6/4/2025)</h3>
+        <ul>
+          <li>
+            The bulk of the effort in this phase was getting good clean templates to deploy from
+            with Terraform and Ansible. Leveraging cloud-init to enable grabbing a DHCP address from
+            dnsmasq solved issues encountered with Ubuntu. AlmaLinux dropped into an emergency
+            dracut shell because it could not find a bootable device. This came down to Terraform
+            defaulting to LSI storage controllers when the VMs were built with VirtIO SCSI single
+            storage controllers.
+          </li>
+          <li>
+            Getting Terraform working with the Telmate provider took some doing. Initially, the
+            deployment was being done with 2.9.14. This ran into a showstopper bug, however, which
+            caused me to divert to a different provider. I attempted to pull down the GH project by
+            hand and build out the provider using Go. This was not overly successful. Eventually, as
+            a Hail Mary attempt, we decided to use 3.0.1-rc9. The showstopper bug was not present,
+            allowing me to continue with the project. I was facing the idea of having to deploy
+            something other than Proxmox or starting over.
+          </li>
+          <li>
+            Having OS config scripts to prime a newly created VM to become a template reduced the
+            overall time to completion when it came to testing templates.
+          </li>
+          <li>
+            Having a VM config script on the Proxmox side to enable the qemu agent as well as a
+            cloud-init drive also cut down on testing.
+          </li>
+          <li>
+            K.I.S.S. - The AlmaLinux issue mentioned above, when Terraform was defaulting to LSI
+            storage controllers rather than VirtIO SCSI single, I went into the weeds instead of
+            comparing like for like. Debian and Ubuntu are far older OSs and so they handle LSI
+            storage controllers more gracefully than AlmaLinux. I was, instead, exploring
+            regenerating everything with dracut and even recompiling the kernel. Keep it simple. Use
+            qm config, compare working to non-working. You may find some inconsistencies that don't
+            require complex fixes.
+          </li>
+          <li>
+            Terraform is, in concept, and at its most basic, simple. Ansible is even more so. That
+            said, they can spiral into complexity rather quickly.
+          </li>
+          <li>Default cloud-init behavior seems to differ among distros.</li>
+          <li>
+            <b>Tools &amp; Software used:</b>
+            <i
+              >VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD,
+              PowerShell, Bash, SSH, nmcli.</i
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="blog-post">
+        <h2>Phase 3 - Containerize &amp; Build Control Tower (Completed 6/8/2025)</h2>
+        <time>Completed 6/8/2025</time>
+
+        <h3>Completed</h3>
+        <ul>
+          <li>Deploy a master host for control node, SIEM node, and monitoring node</li>
+          <li>Containerize Terraform - <b>Completed - ruled unnecessary</b></li>
+          <li>Containerize Ansible - <b>Completed - ruled unnecessary</b></li>
+          <li>Containerize Wazuh</li>
+          <li>Containerize Prometheus</li>
+          <li>Containerize Grafana</li>
+          <li>Deploy VMs from Containerized master host</li>
+          <li>
+            Write IaC YAML files to automate via Terraform &amp; Ansible the deployment of the newly
+            containerized master host
+          </li>
+        </ul>
+
+        <h3>In Progress</h3>
+        <p>N/A</p>
+
+        <h3>Not Begun</h3>
+        <p>N/A</p>
+
+        <h3>Lessons Learned — Phase 3 (6/8/2025)</h3>
+        <ul>
+          <li>
+            This was surprisingly simple in concept and execution. Docker is, in its simplest form,
+            very user friendly. Very, very user friendly.
+          </li>
+          <li>
+            Because this task was simple does not mean Docker in itself is simple; I am lucky in
+            that everything I used already had a supported Image.
+          </li>
+          <li>
+            Containerizing Terraform and Ansible seems like overkill. Likely useful to do so for
+            strict version control, in the event that a deployment relies upon a very specific
+            version of Terraform, the provider in use (since this changes based on the
+            hypervisor/environment), or the version of Ansible.
+          </li>
+          <li>
+            I am exploring making Phase 5, Phase 6 and then creating a new Phase 5 where I build my
+            own docker images for Wazuh, Prometheus, Grafana, and maybe a few other pieces of
+            software.
+          </li>
+          <li>
+            <b>Tools &amp; Software used:</b>
+            <i>VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, Docker.</i>
+          </li>
+        </ul>
+      </div>
+
+      <div class="blog-post">
+        <h2>
+          Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD. Deploy App
+          locally and to AWS. (7/16/2025 - 8/30/2025)
+        </h2>
+        <time>7/16/2025 – 8/30/2025</time>
+
+        <h3>Completed</h3>
+        <ul>
+          <li>Build basic Weather App using Python/Flask</li>
+          <li>Deploy and test Weather App locally</li>
+          <li>Containerize Weather App w/ Docker</li>
+          <li>Integrate Grafana + Loki into current weather webapp</li>
+          <li>Research common CI/CD practices</li>
+          <li>Implement a CI/CD pipeline for Weather App &amp; Phase 5</li>
+          <li>Implement CI/CD best practices in this phase</li>
+          <li>Build statporter — custom Docker stats Prometheus exporter, written from scratch</li>
+          <li>Add Prometheus alerting rules and Alertmanager with null receiver</li>
+          <li>Add nginx as a reverse proxy</li>
+          <li>Deploy LAMP Stack to Proxmox via Ansible</li>
+          <li>Explore implementing log retention and log rotation settings</li>
+          <li>
+            Integrate Elastic + Kibana —
+            <b>Removed from the project.</b> I did not see how I would gain much from it since I am
+            already running a logging pipeline using Loki, Prometheus, and Grafana.
+          </li>
+        </ul>
+
+        <h3>In Progress</h3>
+        <p>N/A</p>
+
+        <h3>Not Begun</h3>
+        <ul>
+          <li>
+            Write HTML and CSS for dynamic Resume: skeleton created, full build deferred to Phase 5
+          </li>
+          <li>Implement further containerization with Kubernetes</li>
+          <li>Deploy App to AWS (ECS or EKS)</li>
+          <li>TLS via ACM + Route53</li>
+          <li>Secrets management via AWS Secrets Manager</li>
+          <li>Explore failover process handling</li>
+          <li>
+            Build and package an end-to-end demo: became the Observability Playground in Phase 5
+          </li>
+          <li>
+            Create and close issues in GitHub to showcase bugfixes — became the CI self-healing loop
+            in Phase 5
+          </li>
+        </ul>
+
+        <h3>Lessons Learned — Phase 4 (7/16/2025 – 8/30/2025)</h3>
+        <ul>
+          <li>
+            I had to write Statporter from scratch since existing Docker stats exporters had cgroups
+            v2 compatibility issues at the time. Before I went on my hiatus I had it completed and
+            running but hadn't documented it yet. Statporter queries the Docker socket directly,
+            computes CPU and memory percentages using the same math as <code>docker stats</code>,
+            and exposes them as Prometheus gauges. Building it was challenging and taught me a lot
+            about how difficult it is to build a proper observability stack.
+          </li>
+          <li>
+            nginx as a reverse proxy took more iteration than expected. Getting sub-path routing
+            right for Grafana and Prometheus wasn't well documented for this kind of setup. The
+            Grafana redirect issue specifically required a grafana.ini file and found out the hard
+            way that proxying Grafana doesn't work out of the box.
+          </li>
+          <li>
+            Elastic/Kibana got axed. I was already running Grafana, Loki, and Prometheus. Bolting on
+            Elastic would have meant maintaining two separate log pipelines and a heavier stack for
+            no real gain. I initially thought having the two running in parallel would be a benefit
+            but decided the time it'd take to implement both was not worth it.
+          </li>
+          <li>
+            The LAMP stack Ansible deployment to Proxmox was as straightforward as expected. The
+            patterns from Phase 2 were already in place. IaC at its lowest level really is simpler
+            than containerization.
+          </li>
+          <li>
+            <b>Tools &amp; Software used:</b>
+            <i
+              >VSCode, Python, Flask, Docker, Docker Compose, GitHub Actions, Prometheus, Grafana,
+              Loki, Promtail, Alertmanager, nginx, Bash, SSH.</i
+            >
+          </li>
+        </ul>
+      </div>
+
+      <p class="phase-break">
+        &#8212; Took an extended break here. Picked back up in May 2026. &#8212;
       </p>
 
       <div class="blog-post">
-        <h2>Phase 1: Intitial Lab Setup</h2>
-        <time>Completed on May 25, 2025</time>
-        <p>
-          Finished setting up Proxmox, Ubuntu/AlmaLinux templates, internal DNS/DHCP, Wazuh,
-          Grafana, and Prometheus. Grafana, Prometheus, and Wazuh exist in the lab on dedicated
-          machines as well as containerized on a single machine. This phase was an exercise in
-          understanding the quirks of Proxmox and subsequently qemu, virtual networking, and VM
-          templating.
-          <br />
-          Many lessons were learned. How to use dnsmasq properly, the quirks of virtual networking
-          and drivers that are shipped with .isos are chiefe among them. IaC, especially Terraform,
-          was used heavily when templating and testing deployments.
-          <br />
-          <b>Technology Used:</b>
-          <i
-            >VSCode, Proxmox, Rufus, Wazuh, Prometheus, Node Exporter, Grafana, Terraform, Ansible,
-            CMD, SSH, PowerShell, Bash.
-          </i>
-        </p>
-      </div>
+        <h2>
+          Phase 5 - Build Out the Portfolio App, Ship the Observability Playground, and Harden the
+          CI/CD Pipeline (5/2/2026 - 5/17/2026)
+        </h2>
+        <time>5/2/2026 – 5/17/2026</time>
 
-      <div class="blog-post">
-        <h2>Phase 2: Get Hands Dirty (IaC Automation)</h2>
-        <time>Completed on June 4, 2025</time>
-        <p>
-          Terraform served a dual purpose in this phase. The first was during VM Templated, mostly
-          when dealing with Cloud-Init's quirks. It was also used in conjuction with Ansible to
-          deploy a very barebones LAMP Stack. Prepped for cloud-init-based hostname tagging.
-          <br />
-          Another lesson learned in the virtualization world - some OSes are too new to leverage
-          legacy storage controllers and so it must be set in main.tf or you will have a bad time.
-          <br />
-          <b>Technology Used:</b>
-          <i
-            >VSCode, Proxmox, Terraform (Telmate 3.0.1-rc9), Ansible, cloud-init, dnsmasq, CMD,
-            PowerShell, Bash, SSH, nmcli.</i
-          >
-        </p>
-      </div>
+        <h3>Completed</h3>
+        <ul>
+          <li>
+            Build full design system with CSS custom properties: dark mode, accessibility, WCAG AA
+          </li>
+          <li>Build out Resume page</li>
+          <li>Build out and refine About Me page</li>
+          <li>Implement dark mode via prefers-color-scheme</li>
+          <li>
+            Build Observability Playground: HMAC passphrase auth, demo container toggle, CPU stress
+            endpoint, live alert feed
+          </li>
+          <li>
+            Security hardening: API key redaction from error responses, /metrics blocked externally,
+            nginx security headers
+          </li>
+          <li>
+            Optimize statporter: background collection thread brings scrape time from 37s to ~50ms
+          </li>
+          <li>
+            Add integration tests: pytest suite covering stack startup and health checks, runs in CI
+          </li>
+          <li>
+            Build CI self-healing loop — structured GitHub issue creation with service detection,
+            per-service labels, log capture, targeted test workflow with auto-close on resolution
+          </li>
+          <li>Pin Python base images to specific patch versions in all Dockerfiles</li>
+          <li>Add commit-message spellchecker to pre-commit hooks</li>
+        </ul>
 
-      <div class="blog-post">
-        <h2>What's Next?</h2>
-        <time>July 2025</time>
-        <p>
-          Phase 3 will containerize all core services, followed by CI/CD with GitHub Actions and
-          Docker Hub integration. Final phase will deploy my interactive resume and cover letter.
-        </p>
+        <h3>In Progress</h3>
+        <ul>
+          <li>Implement further containerization with Kubernetes</li>
+          <li>Deploy App to AWS (ECS or EKS) with Terraform</li>
+        </ul>
+
+        <h3>Not Begun</h3>
+        <ul>
+          <li>TLS via ACM + Route53 custom domain</li>
+          <li>Secrets management via AWS Secrets Manager</li>
+          <li>Explore failover process handling</li>
+          <li>Unit tests — Flask routes, playground auth, weather.py, statporter internals</li>
+        </ul>
+
+        <h3>Lessons Learned — Phase 5 (5/2/2026 – 5/17/2026)</h3>
+        <ul>
+          <li>
+            I did the design system work first. All colors and spacing live as CSS custom properties
+            on <code>:root</code>. When I added dark mode, it was mostly token overrides. No
+            grepping for random hex codes. This is true for the entire frontend.
+          </li>
+          <li>
+            <code>statporter</code>'s <code>/scrape</code> endpoint was taking ~37 seconds. Root
+            cause: Docker stats blocks until the kernel returns a fresh measurement. That's fine for
+            a daemon, unusable per request. I moved collection to a background thread on a fixed
+            interval and cached the result. Scrapes now return in ~50ms.
+          </li>
+          <li>
+            Prometheus gauges don't garbage-collect. When a container stops, the last value just
+            sits there. I was using <code>absent()</code> to trigger <code>DemoContainerDown</code>,
+            but <code>absent()</code> never fires if the metric still exists with a value. The fix
+            was explicitly calling <code>gauge.remove()</code> for containers no longer present in
+            <code>containers.list()</code>. Fun lesson to learn.
+          </li>
+          <li>
+            The <code>DemoContainerDown</code> alert also had a label mismatch.
+            <code>absent()</code> returns a metric with a <code>name</code> label.
+            <code>up{job="statporter"}</code> has <code>job</code> and <code>instance</code>.
+            Without <code>on()</code>, the labels never align and the <code>and</code> expression
+            evaluates to nothing. Adding <code>on()</code> forces the join. Small change. Took
+            longer than it should have to track down.
+          </li>
+          <li>
+            The security surface area was wider than I expected. API key leaking in error responses,
+            <code>/metrics</code> exposed publicly, no security headers. Turns out, I had a major
+            blind spot there. Went through and tightened up much of app itself as far as security
+            hardening is concerned.
+          </li>
+          <li>
+            The full-stack integration tests in CI were worth the effort. They've already caught
+            startup sequencing issues unit tests wouldn't have touched.
+          </li>
+          <li>I designed the CI self-healing loop, mostly just to see if I could do it.</li>
+          <li>
+            <b>Tools &amp; Software used:</b>
+            <i
+              >VSCode, Python, Flask, Docker, Docker Compose, GitHub Actions, pytest, Prometheus,
+              Grafana, Loki, Promtail, Alertmanager, nginx, JavaScript, Bash.</i
+            >
+          </li>
+        </ul>
       </div>
 
       <div class="footer-icons">
