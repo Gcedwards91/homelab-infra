@@ -1,4 +1,4 @@
-# feat: distributed tracing — OpenTelemetry, Tempo, and Grafana waterfall dashboard
+# feat: distributed tracing — OpenTelemetry, Tempo, and Grafana observability dashboard
 
 ---
 
@@ -12,7 +12,9 @@
 
 ## Summary
 
-Implements end-to-end distributed tracing across the Python stack using the OpenTelemetry standard. Trace context is generated at the edge (weather-app), propagated through outgoing HTTP calls via W3C TraceContext headers, and collected by the OpenTelemetry Collector before being stored in Grafana Tempo. Grafana provides native waterfall visualization of individual request traces and per-service latency dashboards.
+Implements end-to-end distributed tracing across the Python stack using the OpenTelemetry standard. Trace context is generated at the edge (weather-app), propagated through outgoing HTTP calls via W3C TraceContext headers, and collected by the OpenTelemetry Collector before being stored in Grafana Tempo. Grafana provides native waterfall visualization of individual request traces and a unified observability dashboard combining metrics, traces, and logs in a single view.
+
+The homelab landing page Grafana hyperlink points to the unified dashboard — one URL, no tab switching.
 
 This establishes a pre-migration baseline on the Python stack. After the Statporter Go rewrite, the same Grafana dashboard will provide a concrete before/after latency comparison per service using identical queries.
 
@@ -51,10 +53,11 @@ Note: weather-app and statporter produce independent trace trees. There is no di
 | -------------------- | -------------------------------------------------------------------------------------------------------- |
 | `weather-app`        | Add OpenTelemetry Python SDK instrumentation, split into TracerProvider setup + instrument_app placement |
 | `statporter`         | Add OpenTelemetry Python SDK instrumentation, instrument_app placed after app creation at line 234       |
-| `grafana`            | Add Tempo datasource provisioning, add tracing dashboard JSON, update depends_on                         |
+| `grafana`            | Add Tempo datasource provisioning, add unified observability dashboard JSON, update depends_on           |
 | `loki datasource`    | Add `uid: loki` to provisioning file                                                                     |
 | `docker-compose.yml` | Add Tempo and OTel Collector services with resource limits, logging labels, expose-only ports            |
 | `nginx.conf`         | Pass W3C TraceContext headers to upstream services                                                       |
+| `about_me.html`      | Update Grafana hyperlink to point to unified observability dashboard                                     |
 
 ---
 
@@ -404,27 +407,61 @@ proxy_set_header tracestate  $http_tracestate;
 
 ---
 
-## Part 7 — Grafana Dashboard
+## Part 7 — Unified Observability Dashboard
 
-### New file: `grafana/dashboards/distributed-tracing.json`
+### New file: `grafana/dashboards/homelab-observability.json`
 
-Provide a full JSON dashboard definition with the following panels:
+This is the primary dashboard for the homelab. The Grafana hyperlink in `about_me.html` points directly to this dashboard. One URL surfaces metrics, traces, and logs simultaneously — no tab switching required.
 
-| Panel                                     | Type               | Source                                                                   |
-| ----------------------------------------- | ------------------ | ------------------------------------------------------------------------ |
-| Request latency P50/P95/P99 — weather-app | Time series        | Prometheus `histogram_quantile` on `flask_http_request_duration_seconds` |
-| Request latency P50/P95/P99 — statporter  | Time series        | Prometheus `histogram_quantile` on `flask_http_request_duration_seconds` |
-| External weather API call duration        | Time series        | Tempo TraceQL — filter spans by `http.url` containing weather API host   |
-| Error rate by service                     | Time series        | Prometheus `rate` on HTTP 5xx responses                                  |
-| Trace search                              | Tempo native panel | Filter by service name, duration, status code                            |
+### Dashboard structure
 
-The Tempo datasource natively renders individual trace waterfalls — the trace search panel links directly to the waterfall view for any selected trace. No custom panel code is required for the waterfall itself.
+**Template variable**
 
-The dashboard JSON must include:
+- `service` — dropdown, values: `weather-app`, `statporter`. Drives all three rows simultaneously.
+
+**Top row — Metrics (Prometheus)**
+
+| Panel                      | Query                                                                                                |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Request rate by service    | `rate(flask_http_request_total{service="$service"}[5m])`                                             |
+| Error rate by service      | `rate(flask_http_request_total{service="$service",status=~"5.."}[5m])`                               |
+| P50 / P95 / P99 latency    | `histogram_quantile(0.99, rate(flask_http_request_duration_seconds_bucket{service="$service"}[5m]))` |
+| External API call duration | Tempo TraceQL — spans filtered by `http.url` containing weather API host                             |
+
+**Middle row — Traces (Tempo)**
+
+| Panel        | Notes                                                                                                                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trace search | Native Tempo panel, filtered by `$service`. Clicking a trace opens the waterfall view. With `tracesToLogs` configured, each trace links directly to correlated Loki log lines by `trace_id`. |
+
+**Bottom row — Logs (Loki)**
+
+| Panel      | Query                                                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Log stream | `{container="$service"}` — time-synced to dashboard time range. `trace_id` and `span_id` fields present in log lines for correlation. |
+
+### Dashboard JSON requirements
+
+The full JSON file must include:
 
 - `datasource` refs using UIDs `prometheus`, `loki`, and `tempo`
-- Template variable for `service` to filter panels by `weather-app` or `statporter`
+- `$service` template variable with `weather-app` and `statporter` as static options
 - Time range defaulting to last 1 hour
+- Panel links from the trace search panel to Grafana Explore with the correlated Loki query pre-populated
+
+### about_me.html update
+
+Update the existing Grafana hyperlink to point to the unified dashboard. Once the dashboard is provisioned and its UID is known, the link format is:
+
+```
+http://<grafana-host>/d/<dashboard-uid>/homelab-observability
+```
+
+The dashboard UID is set explicitly in the JSON under the `uid` field — use `homelab-observability` as the UID so the URL is predictable and does not change if the dashboard is re-imported.
+
+### Dashboard build note
+
+The dashboard JSON should be built against real data after the stack is running with traces flowing. Prometheus metric names emitted by Flask OTel instrumentation should be verified in the Prometheus UI before writing panel queries. The structure and panel layout above are the authoritative spec — the JSON implementation follows from it.
 
 ---
 
@@ -450,6 +487,9 @@ The dashboard JSON must include:
 - [ ] Verify `tempo_data` volume persists traces after `docker compose restart tempo`
 - [ ] Verify OTel Collector and Tempo logs appear in Loki (confirms `logging=true` label is working)
 - [ ] Verify resource limits are applied: `docker stats otel-collector tempo`
+- [ ] Verify unified dashboard loads at `/d/homelab-observability/homelab-observability` with all three rows populated
+- [ ] Verify `$service` template variable filters all panels correctly when switching between `weather-app` and `statporter`
+- [ ] Verify Grafana hyperlink in `about_me.html` opens the unified dashboard directly
 - [ ] `pre-commit run --all-files` passes on all new and modified files
 
 ---
@@ -466,4 +506,4 @@ The dashboard JSON must include:
 
 ## Baseline Capture Note
 
-Once this PR is stable, record P50/P95/P99 latency per service from the Grafana dashboard before the K8s migration and Statporter Go rewrite. The same dashboard and queries will show post-rewrite numbers, providing a concrete before/after comparison with no additional instrumentation work required.
+Once this PR is stable, record P50/P95/P99 latency per service from the unified dashboard before the K8s migration and Statporter Go rewrite. The same dashboard and queries will show post-rewrite numbers, providing a concrete before/after comparison with no additional instrumentation work required.
