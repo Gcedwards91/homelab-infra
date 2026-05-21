@@ -84,6 +84,8 @@ _seen_names: set[str] = set()
 
 
 def _cpu_percent(stats: dict) -> float:
+    """Computes CPU % from the delta between cpu_stats and precpu_stats
+    in a Docker stats snapshot."""
     cpu_stats = stats.get("cpu_stats", {})
     precpu_stats = stats.get("precpu_stats", {})
 
@@ -108,6 +110,8 @@ def _cpu_percent(stats: dict) -> float:
 
 
 def _blkio_bytes(stats: dict) -> tuple[int, int]:
+    """Returns (read_bytes, write_bytes) from io_service_bytes_recursive
+    in a Docker stats snapshot."""
     read_bytes = 0
     write_bytes = 0
     for entry in stats.get("blkio_stats", {}).get("io_service_bytes_recursive") or []:

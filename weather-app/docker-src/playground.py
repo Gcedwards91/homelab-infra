@@ -6,7 +6,7 @@ import time
 from functools import wraps
 
 import docker
-import requests as http
+import requests as req
 from flask import (
     Blueprint,
     abort,
@@ -27,13 +27,16 @@ WINDOW_SECONDS = 4 * 3600  # 4-hour rotation
 GRACE_SECONDS = 300  # 5-minute overlap at window boundaries
 DEMO_CONTAINER = "demo-container"
 DEMO_STRESS_URL = "http://demo-container:8080/stress"
+DEMO_STOP_STRESS_URL = "http://demo-container:8080/stop_stress"
 DEMO_STATUS_URL = "http://demo-container:8080/stress_status"
 SESSION_IDLE_LIMIT = 1800  # 30 minutes
 
 
 def _derive(secret: bytes, window_id: int) -> str:
     digest = hmac.new(secret, str(window_id).encode(), hashlib.sha256).digest()
-    return base64.urlsafe_b64encode(digest)[:14].decode()
+    return base64.urlsafe_b64encode(digest)[
+        :14
+    ].decode()  # 14 url-safe chars ≈ 84 bits — sufficient for short-lived passphrases
 
 
 def _valid_passphrases() -> list:
@@ -164,7 +167,7 @@ def api_status():
     stress_active = False
     if state == "running":
         try:
-            resp = http.get(DEMO_STATUS_URL, timeout=2)
+            resp = req.get(DEMO_STATUS_URL, timeout=2)
             if resp.ok:
                 stress_active = resp.json().get("active", False)
         except Exception:
@@ -197,9 +200,9 @@ def api_toggle():
 @require_auth
 def api_stress():
     try:
-        resp = http.post(DEMO_STRESS_URL, timeout=5)
+        resp = req.post(DEMO_STRESS_URL, timeout=5)
         return jsonify({"status": resp.json().get("status", "stress started")}), 200
-    except http.exceptions.ConnectionError:
+    except req.exceptions.ConnectionError:
         return jsonify({"error": "unreachable"}), 502
     except Exception as exc:
         logger.error("stress request failed", extra={"error": str(exc)})
@@ -210,9 +213,9 @@ def api_stress():
 @require_auth
 def api_stop_stress():
     try:
-        resp = http.post("http://demo-container:8080/stop_stress", timeout=5)
+        resp = req.post(DEMO_STOP_STRESS_URL, timeout=5)
         return jsonify({"status": resp.json().get("status", "stopped")}), 200
-    except http.exceptions.ConnectionError:
+    except req.exceptions.ConnectionError:
         return jsonify({"error": "unreachable"}), 502
     except Exception as exc:
         logger.error("stop_stress request failed", extra={"error": str(exc)})

@@ -1,10 +1,27 @@
+from typing import TypedDict
+
 import requests
 from logger import get_logger
 
 logger = get_logger()
 
 
-def get_weather(location: str, api_key: str, mode: str = "city") -> dict:
+class WeatherData(TypedDict):
+    city: str
+    temp: float
+    feels_like: float
+    description: str
+    humidity: int
+    wind_speed: float
+
+
+class WeatherError(TypedDict):
+    error: str
+
+
+def get_weather(
+    location: str, api_key: str, mode: str = "city"
+) -> WeatherData | WeatherError:
     base_url = "https://api.openweathermap.org/data/2.5/weather"
 
     if mode == "zip":
