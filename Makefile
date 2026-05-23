@@ -1,4 +1,4 @@
-.PHONY: build-weather build-statporter build-demo push-weather push-statporter push-demo build-all push-all all
+.PHONY: build-weather build-statporter build-demo push-weather push-statporter push-demo build-all push-all all scan
 
 build-weather:
 	docker build -t burningstar4/weather-app:latest weather-app/docker-src/
@@ -23,3 +23,9 @@ build-all: build-weather build-statporter build-demo
 push-all: push-weather push-statporter push-demo
 
 all: build-all push-all
+
+scan:
+	cd weather-app/docker-final && docker compose config --images | sort -u | while read -r image; do \
+		echo "=== Scanning: $$image ==="; \
+		trivy image --ignore-unfixed --severity CRITICAL --exit-code 1 "$$image"; \
+	done

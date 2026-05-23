@@ -1,7 +1,7 @@
 ---
 services:
   reverse-proxy:
-    image: nginx:1.28-alpine
+    image: nginx:stable-alpine3.23
     container_name: reverse-proxy
     restart: unless-stopped
     deploy:
@@ -101,7 +101,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v3.3.1
+    image: prom/prometheus:v3.11.3
     container_name: prometheus
     restart: unless-stopped
     deploy:
@@ -140,7 +140,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:11.6.1
+    image: grafana/grafana:13.0.1-security-01
     container_name: grafana
     restart: unless-stopped
     deploy:
@@ -188,7 +188,7 @@ services:
       - monitoring
 
   loki:
-    image: grafana/loki:3.5.0
+    image: grafana/loki:3.7.2
     container_name: loki
     restart: unless-stopped
     deploy:
@@ -222,7 +222,7 @@ services:
       - monitoring
 
   promtail:
-    image: grafana/promtail:3.5.0
+    image: grafana/promtail:3.6.11
     container_name: promtail
     restart: unless-stopped
     deploy:
@@ -287,7 +287,7 @@ services:
       - monitoring
 
   alertmanager:
-    image: prom/alertmanager:v0.28.1
+    image: prom/alertmanager:v0.32.1
     container_name: alertmanager
     restart: unless-stopped
     deploy:

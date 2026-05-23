@@ -40,13 +40,231 @@ jobs:
       - name: Install Trivy
         run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Scan pulled images for critical CVEs
+      - name: Scan own images for critical CVEs
+        id: own-image-scan
         working-directory: weather-app/docker-final
         run: |
-          docker compose config --images | sort -u | while read -r image; do
-            echo "=== Scanning: $image ==="
-            trivy image --ignore-unfixed --severity CRITICAL --exit-code 1 "$image"
+          mkdir -p /tmp/own-scans
+          docker compose config --images | sort -u | grep "^burningstar4/" | while read -r image; do
+            echo "=== Scanning (own): $image ==="
+            if ! trivy image --ignore-unfixed --severity CRITICAL --exit-code 1 \
+                "$image" > /tmp/own-scan-tmp.txt 2>&1; then
+              cat /tmp/own-scan-tmp.txt
+              {
+                printf '### %s\n```\n' "$image"
+                cat /tmp/own-scan-tmp.txt
+                printf '```\n\n'
+              } >> /tmp/own-scans/report.txt
+              echo "$image" >> /tmp/own-scans/images.txt
+            else
+              cat /tmp/own-scan-tmp.txt
+            fi
           done
+          if [ -f /tmp/own-scans/images.txt ]; then
+            echo "Own image CVEs detected — failing CI"
+            exit 1
+          fi
+
+      - name: Open GitHub issue for own image CVEs
+        if: failure() && steps.own-image-scan.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const reportPath = '/tmp/own-scans/report.txt';
+            const imagesPath = '/tmp/own-scans/images.txt';
+
+            if (!fs.existsSync(reportPath) || !fs.existsSync(imagesPath)) {
+              console.log('No own-image CVE report found — scan may have failed for another reason.');
+              return;
+            }
+
+            const images = fs.readFileSync(imagesPath, 'utf8').trim().split('\n').filter(Boolean);
+            const report = fs.readFileSync(reportPath, 'utf8');
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const shortSha = context.sha.slice(0, 7);
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'own-image-cve',
+              per_page: 10,
+            });
+
+            const body = [
+              '## Own image CVEs detected — CI blocked',
+              '',
+              'CRITICAL CVEs with available fixes found in one or more `burningstar4/` images. CI is blocked until these are resolved.',
+              '',
+              `**Run:** ${runUrl}`,
+              `**Commit:** ${shortSha}`,
+              `**Affected images:** ${images.join(', ')}`,
+              '',
+              '## Scan results',
+              '',
+              report.slice(-4000),
+              '## Resolution',
+              '1. Add `apt-get upgrade -y` to the affected Dockerfile(s) to pull patched OS packages',
+              '2. Update vulnerable Python packages in `requirements.txt`',
+              '3. Rebuild with `make build-<service>` and run `make scan` locally to verify',
+              '4. Push — CI will auto-close this issue when the scan passes',
+            ].join('\n');
+
+            if (existing.data.length > 0) {
+              const issue = existing.data[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `## Updated scan — ${shortSha}\n\n**Affected:** ${images.join(', ')}\n**Run:** ${runUrl}\n\n${report.slice(-3000)}`,
+              });
+              console.log(`Updated own-image CVE issue #${issue.number}`);
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[OWN-CVE] Critical CVEs in own images: ${images.join(', ')}`,
+                body,
+                labels: ['own-image-cve', 'test-failure'],
+              });
+              console.log('Created new own-image CVE issue');
+            }
+
+      - name: Close own image CVE issue if scan passes
+        if: always() && steps.own-image-scan.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'own-image-cve',
+              per_page: 10,
+            });
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const shortSha = context.sha.slice(0, 7);
+            for (const issue of existing.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `## Own image CVEs resolved\n\n**Run:** ${runUrl}\n**Commit:** ${shortSha}\n\nAll \`burningstar4/\` images pass the CRITICAL CVE scan. Closing.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+              });
+              console.log(`Closed own-image CVE issue #${issue.number}`);
+            }
+
+      - name: Scan vendor images for critical CVEs
+        working-directory: weather-app/docker-final
+        run: |
+          mkdir -p /tmp/vendor-scans
+          docker compose config --images | sort -u | grep -v "^burningstar4/" | while read -r image; do
+            echo "=== Scanning (vendor): $image ==="
+            if ! trivy image --ignore-unfixed --severity CRITICAL --exit-code 1 \
+                "$image" > /tmp/vendor-scan-tmp.txt 2>&1; then
+              echo "CRITICAL CVEs found in $image (will open GitHub issue)"
+              cat /tmp/vendor-scan-tmp.txt
+              {
+                printf '### %s\n```\n' "$image"
+                cat /tmp/vendor-scan-tmp.txt
+                printf '```\n\n'
+              } >> /tmp/vendor-scans/report.txt
+              echo "$image" >> /tmp/vendor-scans/images.txt
+            else
+              cat /tmp/vendor-scan-tmp.txt
+            fi
+          done
+
+      - name: Report vendor CVEs via GitHub issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const reportPath = '/tmp/vendor-scans/report.txt';
+            const imagesPath = '/tmp/vendor-scans/images.txt';
+            const hasVulns = fs.existsSync(reportPath) && fs.existsSync(imagesPath);
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'vendor-cve',
+              per_page: 10,
+            });
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const shortSha = context.sha.slice(0, 7);
+
+            if (!hasVulns) {
+              for (const issue of existing.data) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: `## All vendor CVEs resolved\n\n**Run:** ${runUrl}\n**Commit:** ${shortSha}\n\nNo CRITICAL CVEs detected in any vendor image. Closing.`,
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                });
+                console.log(`Closed vendor CVE issue #${issue.number}`);
+              }
+              return;
+            }
+
+            const images = fs.readFileSync(imagesPath, 'utf8').trim().split('\n').filter(Boolean);
+            const report = fs.readFileSync(reportPath, 'utf8');
+
+            const body = [
+              '## Vendor image CVEs detected',
+              '',
+              'CRITICAL CVEs with available fixes found in vendor images. These cannot be patched directly — they require upstream vendor releases.',
+              'Dependabot will open a PR automatically when patched image tags are published.',
+              '',
+              `**Run:** ${runUrl}`,
+              `**Commit:** ${shortSha}`,
+              `**Affected images:** ${images.join(', ')}`,
+              '',
+              '## Scan results',
+              '',
+              report.slice(-4000),
+              '## Resolution',
+              '1. Monitor vendor release pages for patched versions',
+              '2. Bump image tags in `weather-app/docker-final/docker-compose.yml`',
+              '3. Run `make scan` locally to verify CVEs are resolved',
+              '4. Push — CI will auto-close this issue when the scan passes',
+            ].join('\n');
+
+            if (existing.data.length > 0) {
+              const issue = existing.data[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `## Updated scan — ${shortSha}\n\n**Affected:** ${images.join(', ')}\n**Run:** ${runUrl}\n\n${report.slice(-3000)}`,
+              });
+              console.log(`Updated vendor CVE issue #${issue.number}`);
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[VENDOR-CVE] Critical CVEs in vendor images: ${images.join(', ')}`,
+                body,
+                labels: ['vendor-cve'],
+              });
+              console.log('Created new vendor CVE issue');
+            }
 
       - name: Start stack
         working-directory: weather-app/docker-final

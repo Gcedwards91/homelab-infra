@@ -422,22 +422,24 @@ jobs:
 
 **Step 0: Create all labels in the repo before running any workflow.**
 
-| Label                | Color     | Purpose                      |
-| -------------------- | --------- | ---------------------------- |
-| `test-failure`       | `#e11d48` | All test failures            |
-| `ci`                 | `#6366f1` | CI infrastructure failures   |
-| `svc:weather-app`    | `#0075ca` | Weather app failures         |
-| `svc:statporter`     | `#7c3aed` | Statporter failures          |
-| `svc:prometheus`     | `#e4761b` | Prometheus failures          |
-| `svc:grafana`        | `#f97316` | Grafana failures             |
-| `svc:loki`           | `#0891b2` | Loki failures                |
-| `svc:promtail`       | `#0e7490` | Promtail failures            |
-| `svc:alertmanager`   | `#e4541a` | Alertmanager failures        |
-| `svc:nginx`          | `#0e8a16` | Nginx/reverse-proxy failures |
-| `svc:demo-container` | `#cfd3d7` | Demo container failures      |
-| `severity:critical`  | `#b60205` | Reserved — stack won't start |
-| `severity:high`      | `#d93f0b` | Reserved — service down      |
-| `severity:low`       | `#e4e669` | Reserved — non-blocking      |
+| Label                | Color     | Purpose                                                                              |
+| -------------------- | --------- | ------------------------------------------------------------------------------------ |
+| `test-failure`       | `#e11d48` | All test failures                                                                    |
+| `ci`                 | `#6366f1` | CI infrastructure failures                                                           |
+| `svc:weather-app`    | `#0075ca` | Weather app failures                                                                 |
+| `svc:statporter`     | `#7c3aed` | Statporter failures                                                                  |
+| `svc:prometheus`     | `#e4761b` | Prometheus failures                                                                  |
+| `svc:grafana`        | `#f97316` | Grafana failures                                                                     |
+| `svc:loki`           | `#0891b2` | Loki failures                                                                        |
+| `svc:promtail`       | `#0e7490` | Promtail failures                                                                    |
+| `svc:alertmanager`   | `#e4541a` | Alertmanager failures                                                                |
+| `svc:nginx`          | `#0e8a16` | Nginx/reverse-proxy failures                                                         |
+| `svc:demo-container` | `#cfd3d7` | Demo container failures                                                              |
+| `severity:critical`  | `#b60205` | Reserved — stack won't start                                                         |
+| `severity:high`      | `#d93f0b` | Reserved — service down                                                              |
+| `severity:low`       | `#e4e669` | Reserved — non-blocking                                                              |
+| `vendor-cve`         | `#e11d48` | CRITICAL CVEs in vendor images (auto-managed by image scan step)                     |
+| `own-image-cve`      | `#b60205` | CRITICAL CVEs in burningstar4/ images — CI blocked (auto-managed by image scan step) |
 
 The three `severity:*` labels are reserved for future auto-assignment and are not used by any workflow in this spec.
 
