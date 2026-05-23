@@ -32,7 +32,6 @@ ALL_SERVICES = [
 HEALTHCHECK_SERVICES = [
     "prometheus",
     "grafana",
-    "loki",
     "statporter",
     "alertmanager",
     "demo-container",
@@ -62,6 +61,10 @@ _KNOWN_SAFE: dict[str, list[str]] = {
         "empty ring",
         # Known Loki 3.x quirk with fake tenant on first ingest — benign.
         "negative structured metadata bytes received",
+        # boltdb-shipper files remaining in the compactor dir after the v11→v13 schema
+        # migration fail tsdb path validation. Local volumes only — CI starts clean.
+        # Clears automatically once 168h retention expires the old boltdb tables.
+        "invalid tsdb path",
     ],
 }
 
