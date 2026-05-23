@@ -461,7 +461,7 @@ The dashboard UID is set explicitly in the JSON under the `uid` field — use `h
 
 ### Dashboard build note
 
-The dashboard JSON should be built against real data after the stack is running with traces flowing. Prometheus metric names emitted by Flask OTel instrumentation should be verified in the Prometheus UI before writing panel queries. The structure and panel layout above are the authoritative spec — the JSON implementation follows from it.
+Write the dashboard JSON directly, following the same pattern as the existing dashboards in `grafana/dashboards/`. Get traces flowing (Parts 1–6 complete and deployed) and verify Prometheus metric names for Flask OTel instrumentation in the Prometheus UI before writing panel queries. The structure and panel layout above are the authoritative spec.
 
 ---
 
@@ -471,6 +471,51 @@ The dashboard JSON should be built against real data after the stack is running 
 - Traces stored in named Docker volume `tempo_data` — persists across container restarts
 - OTel Collector batch processor set to 1s timeout, 1024 span batch size — appropriate for single-host low-volume stack
 - Tempo runs in single binary mode — distributed mode not needed at this scale
+
+---
+
+## Part 9 — All-Logs Dashboard (replaces weather-dashboard.json)
+
+The existing `grafana/dashboards/weather-dashboard.json` is a single-panel dashboard scoped only to weather-app logs. Replace it with a unified all-logs dashboard covering every container, with a service dropdown to filter the view.
+
+### File change
+
+Delete `grafana/dashboards/weather-dashboard.json`. Create `grafana/dashboards/all-logs.json`.
+
+### Dashboard spec
+
+**Title:** `All Container Logs`
+**UID:** `all-logs`
+
+**Template variable**
+
+- Name: `service`
+- Type: Query
+- Datasource: Loki
+- Query: `label_values(container)` — populates dynamically from Loki label values, so new containers appear automatically without editing the dashboard
+- Multi-value: false
+- Include All option: true (shows logs from all containers when "All" selected)
+- Default: All
+
+**Single panel — Log stream**
+
+| Setting       | Value                          |
+| ------------- | ------------------------------ |
+| Type          | Logs                           |
+| Datasource    | Loki                           |
+| Query         | `{container=~"$service"}`      |
+| Deduplication | None                           |
+| Log level     | Auto-detect from log line      |
+| Wrap lines    | On                             |
+| Time          | Synced to dashboard time range |
+
+Show structured fields: `level`, `request_id`, `method`, `path`, `status_code` — these are present in weather-app and statporter JSON logs. Other containers emit plain text and will display as raw lines.
+
+### Dashboard build note
+
+Write the dashboard JSON directly, following the same pattern as the existing dashboards in `grafana/dashboards/`. Verify that `label_values(container)` returns the expected container list against a live Loki instance before committing. Delete `weather-dashboard.json` and commit `all-logs.json` in the same change.
+
+This dashboard is independent of the tracing work in Parts 1–8 and can be built and shipped before Tempo is in place.
 
 ---
 
@@ -491,6 +536,11 @@ The dashboard JSON should be built against real data after the stack is running 
 - [ ] Verify `$service` template variable filters all panels correctly when switching between `weather-app` and `statporter`
 - [ ] Verify Grafana hyperlink in `about_me.html` opens the unified dashboard directly
 - [ ] `pre-commit run --all-files` passes on all new and modified files
+- [ ] All-logs dashboard (`all-logs.json`) loads at `/d/all-logs/all-container-logs`
+- [ ] `$service` dropdown populates with all running containers from Loki label values
+- [ ] Selecting a single service filters the log panel to that container only
+- [ ] "All" selection shows logs from all containers interleaved by time
+- [ ] `weather-dashboard.json` has been deleted — old "Weather App Logs" dashboard no longer appears in Grafana
 
 ---
 
