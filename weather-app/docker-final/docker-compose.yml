@@ -162,7 +162,7 @@ services:
       prometheus:
         condition: service_healthy
       loki:
-        condition: service_healthy
+        condition: service_started
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
@@ -205,12 +205,6 @@ services:
       - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
     labels:
       - "logging=true"
     logging:
@@ -241,7 +235,7 @@ services:
     command: -config.file=/etc/promtail/promtail.yaml
     depends_on:
       loki:
-        condition: service_healthy
+        condition: service_started
     labels:
       - "logging=true"
     logging:

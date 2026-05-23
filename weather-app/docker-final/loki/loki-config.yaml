@@ -9,6 +9,8 @@ ingester:
   wal:
     dir: /loki/wal
   lifecycler:
+    join_after: 0s
+    min_ready_duration: 0s
     ring:
       kvstore:
         store: inmemory
@@ -26,12 +28,21 @@ schema_config:
       index:
         prefix: index_
         period: 24h
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
 
 storage_config:
   boltdb_shipper:
     active_index_directory: /loki/index
     cache_location: /loki/boltdb-cache
-
+  tsdb_shipper:
+    active_index_directory: /loki/tsdb-index
+    cache_location: /loki/tsdb-cache
   filesystem:
     directory: /loki/chunks
 
@@ -43,7 +54,3 @@ compactor:
 limits_config:
   retention_period: 168h
   allow_structured_metadata: false
-
-table_manager:
-  retention_deletes_enabled: true
-  retention_period: 168h
