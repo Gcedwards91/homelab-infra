@@ -1,12 +1,14 @@
 # feat: distributed tracing — OpenTelemetry, Tempo, and Grafana observability dashboard
 
+**STATUS: SHIPPED**
+
 ---
 
 ## Pre-Implementation Checklist
 
-- [ ] Verify Grafana version is 9.0+ (current stack is 13.0.1-security-01 — satisfied)
-- [ ] Confirm `uid: loki` is added to `grafana/provisioning/datasources/loki.yaml` before stack restart
-- [ ] Confirm `uid: prometheus` already exists in `grafana/provisioning/datasources/prometheus.yaml`
+- [x] Verify Grafana version is 9.0+ (current stack is 13.0.1-security-01 — satisfied)
+- [x] Confirm `uid: loki` is added to `grafana/provisioning/datasources/loki.yaml` before stack restart
+- [x] Confirm `uid: prometheus` already exists in `grafana/provisioning/datasources/prometheus.yaml`
 
 ---
 
@@ -123,13 +125,9 @@ tempo:
       reservations:
         cpus: "0.25"
         memory: 128M
-  healthcheck:
-    test: ["CMD", "wget", "--spider", "-q", "http://localhost:3200/ready"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
-    start_period: 15s
 ```
+
+> **Distroless note:** `grafana/tempo:2.10.0` has no shell or wget — healthcheck cannot be configured. No `healthcheck:` block on the tempo service. `depends_on` uses `condition: service_started` everywhere tempo is a dependency.
 
 ### Named volume to add
 
@@ -159,8 +157,10 @@ Add to the existing Grafana `depends_on` block:
 
 ```yaml
 tempo:
-  condition: service_healthy
+  condition: service_started
 ```
+
+> `service_healthy` cannot be used — Tempo is distroless and has no healthcheck.
 
 ---
 
@@ -376,17 +376,17 @@ def collect_metrics():
 
 ### logger.py changes (weather-app)
 
-`LoggingInstrumentor(set_logging_format=True)` injects `trace_id` and `span_id` into the Python log record. For these fields to appear in the JSON output that Promtail ships to Loki, the existing formatter in `logger.py` must include them.
-
-Update the `python-json-logger` format string to include OTel context fields:
+`LoggingInstrumentor(set_logging_format=True)` injects OTel context into Python log records. The actual attribute names injected are `otelTraceID` and `otelSpanID` (not `trace_id`/`span_id` as the OTel spec docs suggest — the Python SDK uses camelCase prefixed names). Update the `python-json-logger` format string:
 
 ```python
-formatter = jsonlogger.JsonFormatter(
-    '%(asctime)s %(levelname)s %(name)s %(message)s %(trace_id)s %(span_id)s'
+formatter = JsonFormatter(
+    "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d"
+    " %(otelTraceID)s %(otelSpanID)s",
+    json_ensure_ascii=False,
 )
 ```
 
-If the formatter uses a dict-based format instead of a string, add `trace_id` and `span_id` to the field list. The exact change depends on the current logger.py implementation — locate the `JsonFormatter` instantiation and add both fields.
+Using `trace_id`/`span_id` instead will silently produce empty fields in every log line.
 
 ---
 
@@ -459,9 +459,13 @@ http://<grafana-host>/d/<dashboard-uid>/homelab-observability
 
 The dashboard UID is set explicitly in the JSON under the `uid` field — use `homelab-observability` as the UID so the URL is predictable and does not change if the dashboard is re-imported.
 
-### Dashboard build note
+### Implementation notes
 
-Write the dashboard JSON directly, following the same pattern as the existing dashboards in `grafana/dashboards/`. Get traces flowing (Parts 1–6 complete and deployed) and verify Prometheus metric names for Flask OTel instrumentation in the Prometheus UI before writing panel queries. The structure and panel layout above are the authoritative spec.
+- The Grafana `traces` panel type uses a streaming query path internally. When queried via the standard `/api/ds/query` endpoint (used by provisioned dashboards), it returns no data. Use `type: table` instead — the Tempo datasource response has `preferredVisualisationType: "table"` and renders correctly. Trace ID links to the waterfall view are embedded in the response.
+- Use `queryType: "traceqlSearch"` with a `filters` array. `queryType: "nativeSearch"` returns HTTP 500 from the Grafana 13 Tempo plugin. `queryType: "traceql"` works but `traceqlSearch` with filters is the correct structured form.
+- The nginx CSP must include `'unsafe-eval'` in `script-src` for the table panel's trace ID link rendering to work. Grafana's link template engine (`${__value.raw}`) uses `new Function()` internally. Without it, the panel throws an `EvalError` and shows an error state.
+- Prometheus metrics panels filter by `job="weather_app"` (underscore), not `$service`. The Flask HTTP metrics only exist for weather-app (statporter uses `prometheus_client` directly, not `prometheus-flask-exporter`). The `$service` variable drives Tempo and Loki panels only.
+- OTel imports must be grouped with all other imports at the top of the file. Flake8 E402 fires if any import follows executable OTel setup statements. Move all imports first, then run TracerProvider setup, RequestsInstrumentor, and LoggingInstrumentor after the last import line.
 
 ---
 
@@ -511,36 +515,30 @@ Delete `grafana/dashboards/weather-dashboard.json`. Create `grafana/dashboards/a
 
 Show structured fields: `level`, `request_id`, `method`, `path`, `status_code` — these are present in weather-app and statporter JSON logs. Other containers emit plain text and will display as raw lines.
 
-### Dashboard build note
-
-Write the dashboard JSON directly, following the same pattern as the existing dashboards in `grafana/dashboards/`. Verify that `label_values(container)` returns the expected container list against a live Loki instance before committing. Delete `weather-dashboard.json` and commit `all-logs.json` in the same change.
-
-This dashboard is independent of the tracing work in Parts 1–8 and can be built and shipped before Tempo is in place.
+The all-logs dashboard already existed as `all-containers.json` (uid `all-containers-logs`) before this RFC was implemented. `weather-dashboard.json` was deleted. No new file was needed.
 
 ---
 
 ## Testing Checklist
 
-- [ ] `docker compose up -d` — all services start cleanly including `tempo` and `otel-collector`
-- [ ] Verify `tempo` passes healthcheck: `docker inspect --format='{{.State.Health.Status}}' tempo`
-- [ ] Verify Tempo datasource appears in Grafana under **Configuration > Data Sources** with status **OK**
-- [ ] Make a request to the weather app — verify a trace appears in Grafana Explore under the Tempo datasource
-- [ ] Verify the trace contains at minimum two spans: incoming Flask request + outgoing external API call
+- [x] `docker compose up -d` — all services start cleanly including `tempo` and `otel-collector`
+- [x] Verify Tempo is running: `docker compose ps` shows `Up` for tempo (no healthcheck — distroless)
+- [x] Verify Tempo datasource appears in Grafana under **Configuration > Data Sources** with status **OK**
+- [x] Make a request to the weather app — verify a trace appears in Grafana Explore under the Tempo datasource
+- [x] Verify the trace contains at minimum two spans: incoming Flask request + outgoing external API call
 - [ ] Verify clicking a trace in Grafana opens correlated Loki logs (requires logger.py changes and `uid: loki` fix)
-- [ ] Verify statporter trace appears as an isolated root span when Prometheus scrapes `/metrics`
+- [x] Verify statporter trace appears as an isolated root span when Prometheus scrapes `/metrics`
 - [ ] Verify Nginx passes `traceparent` header by checking span attributes in Tempo for `http.request.header.traceparent`
 - [ ] Verify `tempo_data` volume persists traces after `docker compose restart tempo`
-- [ ] Verify OTel Collector and Tempo logs appear in Loki (confirms `logging=true` label is working)
+- [x] Verify OTel Collector and Tempo logs appear in Loki (confirms `logging=true` label is working)
 - [ ] Verify resource limits are applied: `docker stats otel-collector tempo`
-- [ ] Verify unified dashboard loads at `/d/homelab-observability/homelab-observability` with all three rows populated
-- [ ] Verify `$service` template variable filters all panels correctly when switching between `weather-app` and `statporter`
+- [x] Verify unified dashboard loads at `/d/homelab-observability/homelab-observability` with all three rows populated
+- [x] Verify `$service` template variable filters trace and log panels when switching between `weather-app` and `statporter`
 - [ ] Verify Grafana hyperlink in `about_me.html` opens the unified dashboard directly
-- [ ] `pre-commit run --all-files` passes on all new and modified files
-- [ ] All-logs dashboard (`all-logs.json`) loads at `/d/all-logs/all-container-logs`
-- [ ] `$service` dropdown populates with all running containers from Loki label values
-- [ ] Selecting a single service filters the log panel to that container only
-- [ ] "All" selection shows logs from all containers interleaved by time
-- [ ] `weather-dashboard.json` has been deleted — old "Weather App Logs" dashboard no longer appears in Grafana
+- [x] `pre-commit run --all-files` passes on all new and modified files
+- [x] All-logs dashboard loads at `/d/all-containers-logs/all-container-logs`
+- [x] `$container` dropdown populates with all running containers from Loki label values
+- [x] `weather-dashboard.json` has been deleted — old "Weather App Logs" dashboard no longer appears in Grafana
 
 ---
 

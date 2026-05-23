@@ -46,7 +46,7 @@ homelab-infra/
 ├── PLAYGROUND_RFC.md        # RFC for the playground feature (SHIPPED)
 ├── TESTING_CHECKLIST_RFC.md # End-to-end test checklist
 ├── CI_LOOP_RFC.md           # RFC for CI self-healing loop (SHIPPED)
-├── TRACE_LOGS_RFC.md        # RFC for distributed tracing (planned)
+├── TRACE_LOGS_RFC.md        # RFC for distributed tracing (SHIPPED)
 ├── Makefile                 # build-weather, build-statporter, push-*, all, scan
 └── .pre-commit-config.yaml  # black, flake8, yamllint, prettier, end-of-file-fixer
 ```
@@ -71,6 +71,11 @@ prometheus → alertmanager:9093
 loki ← promtail (Docker socket autodiscovery)
 grafana → prometheus (datasource)
 grafana → loki (datasource)
+grafana → tempo (datasource)
+
+weather-app → otel-collector:4317 (OTLP gRPC spans)
+statporter  → otel-collector:4317 (OTLP gRPC spans)
+otel-collector → tempo:4317 (batched spans)
 ```
 
 All services on a single `monitoring` bridge network. Nothing exposes ports except nginx on `:80`.
@@ -79,19 +84,21 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 
 ## Services
 
-| Service        | Image                              | Purpose                                 |
-| -------------- | ---------------------------------- | --------------------------------------- |
-| reverse-proxy  | nginx:stable-alpine3.23            | Reverse proxy, sub-path routing         |
-| weather-app    | burningstar4/weather-app:latest    | Flask portfolio app                     |
-| demo-container | burningstar4/demo-container:latest | Disposable dummy — playground target    |
-| prometheus     | prom/prometheus:v3.11.3            | Metrics collection and alerting         |
-| grafana        | grafana/grafana:13.0.1-security-01 | Dashboard visualization                 |
-| loki           | grafana/loki:3.7.2                 | Log aggregation                         |
-| promtail       | grafana/promtail:3.6.11            | Log shipping from Docker socket         |
-| statporter     | burningstar4/statporter:latest     | Custom Docker stats Prometheus exporter |
-| alertmanager   | prom/alertmanager:v0.32.1          | Alert routing (null receiver)           |
+| Service        | Image                                        | Purpose                                 |
+| -------------- | -------------------------------------------- | --------------------------------------- |
+| reverse-proxy  | nginx:stable-alpine3.23                      | Reverse proxy, sub-path routing         |
+| weather-app    | burningstar4/weather-app:latest              | Flask portfolio app                     |
+| demo-container | burningstar4/demo-container:latest           | Disposable dummy — playground target    |
+| prometheus     | prom/prometheus:v3.11.3                      | Metrics collection and alerting         |
+| grafana        | grafana/grafana:13.0.1-security-01           | Dashboard visualization                 |
+| loki           | grafana/loki:3.7.2                           | Log aggregation                         |
+| promtail       | grafana/promtail:3.6.11                      | Log shipping from Docker socket         |
+| statporter     | burningstar4/statporter:latest               | Custom Docker stats Prometheus exporter |
+| alertmanager   | prom/alertmanager:v0.32.1                    | Alert routing (null receiver)           |
+| tempo          | grafana/tempo:2.10.0                         | Trace storage backend                   |
+| otel-collector | otel/opentelemetry-collector-contrib:0.152.0 | OTLP span receiver, batches to Tempo    |
 
-All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki (distroless image — no shell), Promtail, and reverse-proxy.
+All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki, Tempo (both distroless — no shell), Promtail, and reverse-proxy.
 
 ---
 
@@ -288,6 +295,14 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 13. **Loki and Tempo are distroless images.** `grafana/loki:3.7.2+` and `grafana/tempo:2.10.0+` have no shell, no `wget`, no `curl`, no `nc` — nothing to exec into. Docker healthchecks cannot be configured for either. Grafana, Promtail, and otel-collector use `depends_on: condition: service_started` (not `service_healthy`) for both. In CI, Loki readiness is verified by polling `http://loki:3100/ready` via `docker exec prometheus wget`; Tempo readiness via `http://tempo:3200/ready` the same way (Prometheus is Alpine and has wget). The loki-config.yaml sets `join_after: 0s` and `min_ready_duration: 0s` so the ingester ring goes ACTIVE immediately on single-node startup.
 
+14. **Grafana `traces` panel type does not work with provisioned dashboards.** The `traces` panel uses streaming internally; the standard `/api/ds/query` path returns data but the panel renders "No data." Use `type: "table"` with `queryType: "traceqlSearch"` and a `filters` array instead. The Tempo datasource embeds trace ID deep-link URLs in the response so clicking a row still opens the waterfall view. `queryType: "nativeSearch"` returns HTTP 500 from the Grafana 13 Tempo plugin — do not use it.
+
+15. **nginx CSP requires `'unsafe-eval'` for Grafana trace links.** The table panel's link template engine (`${__value.raw}`) uses `new Function()` internally. Without `'unsafe-eval'` in `script-src`, the panel throws an `EvalError` and shows an error state. This is added to the existing CSP in `nginx.conf` and applies to the full origin.
+
+16. **OTel SDK log field names are `otelTraceID` and `otelSpanID`.** `LoggingInstrumentor(set_logging_format=True)` injects these camelCase fields (not `trace_id`/`span_id`). The `python-json-logger` format string must use `%(otelTraceID)s %(otelSpanID)s` exactly. Using the wrong names produces empty fields in every JSON log line with no error.
+
+17. **Tempo's internal gRPC API runs on port 9095, OTLP receiver on 4317.** `tempo-config.yml` must explicitly set `server.grpc_listen_port: 9095` and `querier.frontend_worker.frontend_address: 127.0.0.1:9095` to silence the "Worker address is empty in single binary mode" startup warning. Without it, Tempo auto-detects but logs a warning on every start.
+
 ---
 
 ## Key Deliberate Trade-offs
@@ -297,6 +312,8 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 - **No HTTPS in docker-compose.** TLS is deferred to the AWS deployment (ACM + ALB). Local dev runs plain HTTP on `:80`.
 - **Single Compose file.** No dev/prod split. The same compose file runs locally and will be adapted for AWS ECS/EKS.
 - **Session auth for playground** (not JWT or OAuth). The playground is behind a passphrase, not a full auth system. It is a demo surface, not a multi-user application.
+- **100% head-based trace sampling.** All spans are collected and exported. Production stacks would use tail-based sampling to reduce volume. At homelab scale this is not a concern.
+- **OTel Collector as middleware, not direct-to-Tempo.** Spans go weather-app → otel-collector → Tempo rather than direct. This adds one hop but decouples the SDK export format from Tempo's ingestion format and allows future pipeline changes (filtering, sampling, fan-out) without touching application code.
 
 ---
 
@@ -329,6 +346,30 @@ Interactive demo page at `/playground`. Implementation lives in `playground.py` 
 `on()` is required — `absent()` returns `{name="demo_container"}` while the left side returns `{job="statporter", instance=...}`. Without `on()`, the label sets never match and the `and` returns nothing. `demo_container` uses an underscore (statporter naming convention).
 
 **statporter stale gauge fix:** When a container stops, statporter's `collect_metrics()` actively removes label sets for containers no longer in `containers.list()` using `gauge.remove(name)`. This ensures `absent()` fires correctly — without this, Prometheus gauges retain their last value indefinitely and `absent()` never returns 1.
+
+### Distributed Tracing (SHIPPED)
+
+End-to-end OTel tracing across weather-app and statporter. Spans flow via OTLP gRPC → otel-collector → Tempo. Grafana unified observability dashboard (`homelab-observability`) surfaces metrics, traces, and logs in one view with a `$service` dropdown.
+
+**Key implementation facts:**
+
+- `FlaskInstrumentor().instrument_app(app)` placed immediately after `app = Flask(__name__)`, before `PrometheusMetrics(app)`
+- `RequestsInstrumentor().instrument()` called before app creation — instruments all `requests` calls including the OpenWeatherMap API call in `weather.py`
+- `LoggingInstrumentor().instrument(set_logging_format=True)` injects `otelTraceID` and `otelSpanID` into every log record; format string updated in `logger.py`
+- All OTel imports must be at the top with other imports; setup code runs after the last import (Flake8 E402)
+- `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317` and `OTEL_SERVICE_NAME` set as env vars in docker-compose; `OTLPSpanExporter()` reads them with no constructor args
+- Tempo config requires explicit `server.grpc_listen_port: 9095` and `querier.frontend_worker.frontend_address: 127.0.0.1:9095` to suppress startup warnings
+- Dashboard traces panel uses `type: "table"` + `queryType: "traceqlSearch"` (not `type: "traces"` which requires streaming)
+- nginx CSP updated to include `'unsafe-eval'` for Grafana table link rendering
+
+**Deferred from this implementation:**
+
+- `about_me.html` Grafana hyperlink not yet updated to point to unified dashboard
+- Trace-to-log correlation (click trace → see correlated Loki logs) not verified end-to-end
+- `tempo_data` volume persistence not verified across restarts
+- Service map / node graph (requires `metrics_generator` — deferred)
+
+---
 
 ### AWS Deployment (deferred)
 
