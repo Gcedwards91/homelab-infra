@@ -566,18 +566,49 @@ On the playground and playground login pages:
 
 ---
 
+## 10. Dependency Management
+
+### 10.1 Dependabot coverage
+
+Dependabot is configured in `.github/dependabot.yml` with weekly scans across five targets:
+
+| Ecosystem        | Directory                              | What it watches                         |
+| ---------------- | -------------------------------------- | --------------------------------------- |
+| `github-actions` | `/`                                    | Action versions in all workflow files   |
+| `docker`         | `/weather-app/docker-final`            | `image:` pins in `docker-compose.yml`   |
+| `docker`         | `/weather-app/docker-src`              | `FROM` pin in weather-app Dockerfile    |
+| `docker`         | `/weather-app/docker-final/statporter` | `FROM` pin in statporter Dockerfile     |
+| `docker`         | `/weather-app/demo-container`          | `FROM` pin in demo-container Dockerfile |
+
+- [ ] Verify Dependabot is enabled in GitHub repo settings: **Settings → Security → Dependabot alerts → Enable**
+- [ ] Confirm Dependabot PRs appear weekly in the GitHub pull requests list
+- [ ] Review and merge any open Dependabot PRs before a significant deployment
+
+### 10.2 Container image CVE scan (integration tests)
+
+The integration test workflow runs a Trivy image scan against every pulled image **before starting the stack**. This catches CVEs in upstream base images (e.g. `nginx:1.28-alpine`, `prom/prometheus`) that Dependabot version bumps may not address immediately.
+
+Scan policy: `--ignore-unfixed --severity CRITICAL` — fails the build only on CRITICAL CVEs that have a published fix available. CVEs without an upstream fix are reported but do not block the run.
+
+- [ ] Confirm "Scan pulled images for critical CVEs" step appears and passes in `integration-tests.yml` run
+- [ ] If the step fails, identify the affected image in the step output and check for a newer tag
+- [ ] Note: this scan is distinct from the `security_lint.yml` Trivy `config` scan, which checks for Dockerfile/compose misconfigurations — not CVEs in pulled images
+
+---
+
 ## Sign-off
 
-| Section          | Result | Notes |
-| ---------------- | ------ | ----- |
-| 1. Stack startup |        |       |
-| 2. Weather app   |        |       |
-| 3. Observability |        |       |
-| 4. Alerting      |        |       |
-| 5. CI/CD         |        |       |
-| 6. Nginx routing |        |       |
-| 7. Pre-commit    |        |       |
-| 8. Environment   |        |       |
-| 9. Playground    |        |       |
+| Section                   | Result | Notes |
+| ------------------------- | ------ | ----- |
+| 1. Stack startup          |        |       |
+| 2. Weather app            |        |       |
+| 3. Observability          |        |       |
+| 4. Alerting               |        |       |
+| 5. CI/CD                  |        |       |
+| 6. Nginx routing          |        |       |
+| 7. Pre-commit             |        |       |
+| 8. Environment            |        |       |
+| 9. Playground             |        |       |
+| 10. Dependency management |        |       |
 
 Date: \***\*\_\_\_\_\*\*** Tester: \***\*\_\_\_\_\*\***

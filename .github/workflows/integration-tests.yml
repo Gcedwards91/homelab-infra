@@ -37,6 +37,17 @@ jobs:
         working-directory: weather-app/docker-final
         run: docker compose pull
 
+      - name: Install Trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan pulled images for critical CVEs
+        working-directory: weather-app/docker-final
+        run: |
+          docker compose config --images | sort -u | while read -r image; do
+            echo "=== Scanning: $image ==="
+            trivy image --ignore-unfixed --severity CRITICAL --exit-code 1 "$image"
+          done
+
       - name: Start stack
         working-directory: weather-app/docker-final
         run: docker compose up -d
