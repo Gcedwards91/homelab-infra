@@ -12,12 +12,27 @@ from flask import (
 )
 from jinja2 import TemplateNotFound
 from logger import get_logger
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from playground import playground_bp
 from prometheus_flask_exporter import PrometheusMetrics
 from weather import get_weather
 
+_provider = TracerProvider()
+_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+trace.set_tracer_provider(_provider)
+
+RequestsInstrumentor().instrument()
+LoggingInstrumentor().instrument(set_logging_format=True)
+
 # Explicit folders ensure Flask looks in /app/templates and /app/static
 app = Flask(__name__, template_folder="templates", static_folder="static")
+FlaskInstrumentor().instrument_app(app)
 PrometheusMetrics(app)
 logger = get_logger("flask")
 

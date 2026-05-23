@@ -1,0 +1,168 @@
+{
+  "id": null,
+  "uid": "homelab-observability",
+  "title": "Homelab Observability",
+  "overwrite": true,
+  "tags": ["prometheus", "tempo", "loki", "homelab", "tracing"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "custom",
+        "label": "Service",
+        "hide": 0,
+        "multi": false,
+        "includeAll": false,
+        "query": "weather-app,statporter",
+        "current": { "value": "weather-app", "text": "weather-app" },
+        "options": [
+          { "text": "weather-app", "value": "weather-app", "selected": true },
+          { "text": "statporter", "value": "statporter", "selected": false }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Metrics",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate (req/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{job=\"weather_app\"}[5m])) by (method, status)",
+          "refId": "A",
+          "legendFormat": "{{method}} {{status}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" },
+        "overrides": []
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate (5xx req/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{job=\"weather_app\", status=~\"5..\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "5xx errors"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "mode": "fixed", "fixedColor": "red" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Latency Percentiles",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m]))",
+          "refId": "C",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" },
+        "overrides": []
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "type": "row",
+      "title": "Traces",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "collapsed": false
+    },
+    {
+      "type": "table",
+      "title": "Trace Search: $service",
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceqlSearch",
+          "query": "{.service.name=\"$service\"}",
+          "filters": [
+            {
+              "id": "service-name",
+              "operator": "=",
+              "scope": "resource",
+              "tag": "service.name",
+              "value": ["$service"],
+              "valueType": "string"
+            }
+          ],
+          "refId": "A",
+          "limit": 20
+        }
+      ],
+      "options": { "footer": { "show": false } },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "nested" },
+            "properties": [{ "id": "custom.hidden", "value": true }]
+          }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 18 }
+    },
+    {
+      "type": "row",
+      "title": "Logs",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+      "collapsed": false
+    },
+    {
+      "type": "logs",
+      "title": "Log Stream: $service",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "{container=\"$service\"}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 31 }
+    }
+  ]
+}

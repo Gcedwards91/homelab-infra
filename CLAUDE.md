@@ -286,7 +286,7 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 12. **`color-scheme: light dark`** is declared on `:root`. This tells browsers to render scrollbars, form controls, and OS-native UI in the appropriate theme.
 
-13. **Loki is a distroless image.** `grafana/loki:3.7.2+` has no shell, no `wget`, no `curl`, no `nc` — nothing to exec into. Docker healthchecks cannot be configured for it. Grafana and Promtail use `depends_on: loki: condition: service_started` (not `service_healthy`). In CI, Loki readiness is verified by polling `http://loki:3100/ready` via `docker exec prometheus wget` (Prometheus is Alpine and has wget). The loki-config.yaml sets `join_after: 0s` and `min_ready_duration: 0s` so the ingester ring goes ACTIVE immediately on single-node startup.
+13. **Loki and Tempo are distroless images.** `grafana/loki:3.7.2+` and `grafana/tempo:2.10.0+` have no shell, no `wget`, no `curl`, no `nc` — nothing to exec into. Docker healthchecks cannot be configured for either. Grafana, Promtail, and otel-collector use `depends_on: condition: service_started` (not `service_healthy`) for both. In CI, Loki readiness is verified by polling `http://loki:3100/ready` via `docker exec prometheus wget`; Tempo readiness via `http://tempo:3200/ready` the same way (Prometheus is Alpine and has wget). The loki-config.yaml sets `join_after: 0s` and `min_ready_duration: 0s` so the ingester ring goes ACTIVE immediately on single-node startup.
 
 ---
 

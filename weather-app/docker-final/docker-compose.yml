@@ -51,6 +51,8 @@ services:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - PLAYGROUND_SECRET=${PLAYGROUND_SECRET}
       - PLAYGROUND_ADMIN_KEY=${PLAYGROUND_ADMIN_KEY}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=weather-app
     labels:
       - "app=weather"
       - "logging=true"
@@ -163,6 +165,8 @@ services:
         condition: service_healthy
       loki:
         condition: service_started
+      tempo:
+        condition: service_started
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
@@ -260,6 +264,8 @@ services:
           memory: 128M
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=statporter
     expose:
       - "9800"
     volumes:
@@ -270,6 +276,64 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    labels:
+      - "logging=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - monitoring
+
+  tempo:
+    image: grafana/tempo:2.10.0
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+    expose:
+      - "3200" # Tempo HTTP API (internal only)
+      - "4317" # Tempo OTLP gRPC receiver (internal only)
+    volumes:
+      - ./tempo-config.yml:/etc/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    labels:
+      - "logging=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - monitoring
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.152.0
+    container_name: otel-collector
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+    expose:
+      - "4317" # OTLP gRPC receiver (internal only)
+      - "4318" # OTLP HTTP receiver (internal only)
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      - tempo
     labels:
       - "logging=true"
     logging:
@@ -320,6 +384,7 @@ volumes:
   prometheus-data:
   promtail-positions:
   alertmanager-data:
+  tempo_data:
 
 networks:
   monitoring:

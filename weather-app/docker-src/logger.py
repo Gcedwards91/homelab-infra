@@ -16,7 +16,8 @@ def get_logger(name: str = "app") -> logging.Logger:
 
     handler = logging.StreamHandler(sys.stdout)
     formatter = JsonFormatter(
-        "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d",
+        "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d"
+        " %(otelTraceID)s %(otelSpanID)s",
         json_ensure_ascii=False,
     )
     handler.setFormatter(formatter)

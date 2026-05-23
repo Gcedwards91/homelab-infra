@@ -8,8 +8,20 @@ from typing import cast
 
 import docker
 from flask import Flask, Response
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from prometheus_client.core import CollectorRegistry
+
+_provider = TracerProvider()
+_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+trace.set_tracer_provider(_provider)
+
+LoggingInstrumentor().instrument(set_logging_format=True)
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -236,6 +248,7 @@ def _collection_loop() -> None:
 
 
 app = Flask(__name__)
+FlaskInstrumentor().instrument_app(app)
 
 
 @app.route("/metrics")
