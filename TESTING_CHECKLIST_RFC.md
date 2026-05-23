@@ -34,7 +34,7 @@ docker compose ps
 - [ ] `weather-app` — status Up, no restart loops
 - [ ] `prometheus` — status Up (healthy)
 - [ ] `grafana` — status Up (healthy)
-- [ ] `loki` — status Up (healthy)
+- [ ] `loki` — status Up, no restart loops (distroless — no healthcheck)
 - [ ] `promtail` — status Up, no restart loops
 - [ ] `statporter` — status Up (healthy)
 - [ ] `alertmanager` — status Up (healthy)
@@ -48,10 +48,17 @@ docker inspect --format='{{.Name}} {{.State.Health.Status}}' $(docker compose ps
 
 - [ ] prometheus — `healthy`
 - [ ] grafana — `healthy`
-- [ ] loki — `healthy`
 - [ ] statporter — `healthy`
 - [ ] alertmanager — `healthy`
 - [ ] demo-container — `healthy`
+
+Loki, Promtail, and reverse-proxy have no Docker healthcheck. Verify Loki is serving:
+
+```bash
+docker exec prometheus wget -q -O- http://loki:3100/ready
+```
+
+- [ ] Returns `ready`
 
 ### 1.3 No container has restarted unexpectedly
 
@@ -222,8 +229,8 @@ Wait 2 minutes, recheck:
 Restore:
 
 ```bash
-# Verify loki is healthy before continuing
-docker inspect loki --format='{{.State.Health.Status}}'
+# Verify loki is ready before continuing (distroless — no Docker healthcheck)
+docker exec prometheus wget -q -O- http://loki:3100/ready
 ```
 
 ### 4.2 ContainerHighMemory alert (manual verify — skip in standard runs)
@@ -586,13 +593,23 @@ Dependabot is configured in `.github/dependabot.yml` with weekly scans across fi
 
 ### 10.2 Container image CVE scan (integration tests)
 
-The integration test workflow runs a Trivy image scan against every pulled image **before starting the stack**. This catches CVEs in upstream base images (e.g. `nginx:1.28-alpine`, `prom/prometheus`) that Dependabot version bumps may not address immediately.
+The integration test workflow runs a Trivy image scan against every pulled image **before starting the stack**. This catches CVEs in upstream base images that Dependabot version bumps may not address immediately.
 
-Scan policy: `--ignore-unfixed --severity CRITICAL` — fails the build only on CRITICAL CVEs that have a published fix available. CVEs without an upstream fix are reported but do not block the run.
+Scan policy: `--ignore-unfixed --severity CRITICAL` — only CRITICAL CVEs with a published fix trigger action.
 
-- [ ] Confirm "Scan pulled images for critical CVEs" step appears and passes in `integration-tests.yml` run
-- [ ] If the step fails, identify the affected image in the step output and check for a newer tag
-- [ ] Note: this scan is distinct from the `security_lint.yml` Trivy `config` scan, which checks for Dockerfile/compose misconfigurations — not CVEs in pulled images
+Two scan paths run in sequence:
+
+| Path                          | Images                                  | On finding                                                             |
+| ----------------------------- | --------------------------------------- | ---------------------------------------------------------------------- |
+| Own images (`burningstar4/*`) | weather-app, statporter, demo-container | CI fails + opens/updates `[OWN-CVE]` issue with `own-image-cve` label  |
+| Vendor images (all others)    | nginx, prometheus, grafana, loki, etc.  | CI passes + opens/updates `[VENDOR-CVE]` issue with `vendor-cve` label |
+
+- [ ] Confirm "Scan own images for critical CVEs" step passes in `integration-tests.yml` run
+- [ ] Confirm "Scan vendor images for critical CVEs" step runs and reports cleanly
+- [ ] If own-image scan fails: rebuild the affected image with `apt-get upgrade -y` and a newer base tag, then push
+- [ ] If vendor scan reports findings: check Docker Hub for a newer tag and bump `docker-compose.yml`
+- [ ] Run `make scan` locally before a significant deployment to verify all images clean
+- [ ] Note: this scan is distinct from the `security_lint.yml` Trivy `config` scan, which checks Dockerfile/compose misconfigurations — not CVEs in pulled images
 
 ---
 

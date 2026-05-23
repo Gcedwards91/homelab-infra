@@ -4,7 +4,7 @@
 
 ## Pre-Implementation Checklist
 
-- [ ] Verify Grafana version is 9.0+ (current stack is 11.6.1 — satisfied)
+- [ ] Verify Grafana version is 9.0+ (current stack is 13.0.1-security-01 — satisfied)
 - [ ] Confirm `uid: loki` is added to `grafana/provisioning/datasources/loki.yaml` before stack restart
 - [ ] Confirm `uid: prometheus` already exists in `grafana/provisioning/datasources/prometheus.yaml`
 

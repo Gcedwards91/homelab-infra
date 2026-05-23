@@ -43,9 +43,11 @@ homelab-infra/
 ├── PRODUCT.md               # Brand/design strategy (Impeccable teach output)
 ├── DESIGN.md                # Visual design system (Impeccable document output)
 ├── .impeccable/design.json  # Impeccable live panel sidecar
-├── PLAYGROUND_PR.md         # PR spec for the playground feature (planned)
-├── TESTING_CHECKLIST.md     # End-to-end test checklist
-├── Makefile                 # build-weather, build-statporter, push-*, all
+├── PLAYGROUND_RFC.md        # RFC for the playground feature (SHIPPED)
+├── TESTING_CHECKLIST_RFC.md # End-to-end test checklist
+├── CI_LOOP_RFC.md           # RFC for CI self-healing loop (SHIPPED)
+├── TRACE_LOGS_RFC.md        # RFC for distributed tracing (planned)
+├── Makefile                 # build-weather, build-statporter, push-*, all, scan
 └── .pre-commit-config.yaml  # black, flake8, yamllint, prettier, end-of-file-fixer
 ```
 
@@ -79,17 +81,17 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 
 | Service        | Image                              | Purpose                                 |
 | -------------- | ---------------------------------- | --------------------------------------- |
-| reverse-proxy  | nginx:1.27-alpine                  | Reverse proxy, sub-path routing         |
+| reverse-proxy  | nginx:stable-alpine3.23            | Reverse proxy, sub-path routing         |
 | weather-app    | burningstar4/weather-app:latest    | Flask portfolio app                     |
 | demo-container | burningstar4/demo-container:latest | Disposable dummy — playground target    |
-| prometheus     | prom/prometheus:v3.3.1             | Metrics collection and alerting         |
-| grafana        | grafana/grafana:11.6.1             | Dashboard visualization                 |
-| loki           | grafana/loki:3.5.0                 | Log aggregation                         |
-| promtail       | grafana/promtail:3.5.0             | Log shipping from Docker socket         |
+| prometheus     | prom/prometheus:v3.11.3            | Metrics collection and alerting         |
+| grafana        | grafana/grafana:13.0.1-security-01 | Dashboard visualization                 |
+| loki           | grafana/loki:3.7.2                 | Log aggregation                         |
+| promtail       | grafana/promtail:3.6.11            | Log shipping from Docker socket         |
 | statporter     | burningstar4/statporter:latest     | Custom Docker stats Prometheus exporter |
-| alertmanager   | prom/alertmanager:v0.28.1          | Alert routing (null receiver)           |
+| alertmanager   | prom/alertmanager:v0.32.1          | Alert routing (null receiver)           |
 
-All services have resource limits, restart policies, healthchecks, and `logging=true` labels for Promtail autodiscovery.
+All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki (distroless image — no shell), Promtail, and reverse-proxy.
 
 ---
 
@@ -234,16 +236,16 @@ Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. 
 
 All workflows trigger on push to `master` (and PRs where applicable).
 
-| Workflow                          | Trigger                                                                                     | What it does                                                                 |
-| --------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `docker-build-weather-app.yml`    | push to `weather-app/docker-src/**`                                                         | Builds and pushes `burningstar4/weather-app:latest`                          |
-| `docker-build-statporter.yml`     | push to `weather-app/docker-final/statporter/**`                                            | Builds and pushes `burningstar4/statporter:latest`                           |
-| `docker-build-demo-container.yml` | push to `weather-app/demo-container/**`                                                     | Builds and pushes `burningstar4/demo-container:latest`                       |
-| `format_and_lint-test.yml`        | all pushes                                                                                  | Black, Flake8, Prettier, Hadolint, yamllint                                  |
-| `security_lint.yml`               | all pushes                                                                                  | Bandit, Trivy, ShellCheck, Gitleaks, npm audit                               |
-| `shellcheck.yml`                  | all pushes                                                                                  | ShellCheck on `.sh` files                                                    |
-| `integration-tests.yml`           | push to `weather-app/docker-final/**`, `weather-app/demo-container/**`; `workflow_dispatch` | Spins up full stack, runs pytest, opens structured GitHub issue on failure   |
-| `targeted-test.yml`               | `workflow_dispatch` only                                                                    | Runs tests for a single service; auto-closes or comments on the linked issue |
+| Workflow                          | Trigger                                                                                     | What it does                                                                                                                                      |
+| --------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docker-build-weather-app.yml`    | push to `weather-app/docker-src/**`                                                         | Builds and pushes `burningstar4/weather-app:latest`                                                                                               |
+| `docker-build-statporter.yml`     | push to `weather-app/docker-final/statporter/**`                                            | Builds and pushes `burningstar4/statporter:latest`                                                                                                |
+| `docker-build-demo-container.yml` | push to `weather-app/demo-container/**`                                                     | Builds and pushes `burningstar4/demo-container:latest`                                                                                            |
+| `format_and_lint-test.yml`        | all pushes                                                                                  | Black, Flake8, Prettier, Hadolint, yamllint                                                                                                       |
+| `security_lint.yml`               | all pushes                                                                                  | Bandit, Trivy, ShellCheck, Gitleaks, npm audit                                                                                                    |
+| `shellcheck.yml`                  | all pushes                                                                                  | ShellCheck on `.sh` files                                                                                                                         |
+| `integration-tests.yml`           | push to `weather-app/docker-final/**`, `weather-app/demo-container/**`; `workflow_dispatch` | Scans images for CVEs (own-image blocks CI; vendor-image opens issue), spins up full stack, runs pytest, opens structured GitHub issue on failure |
+| `targeted-test.yml`               | `workflow_dispatch` only                                                                    | Runs tests for a single service; auto-closes or comments on the linked issue                                                                      |
 
 **Secrets required in GitHub:**
 
@@ -276,13 +278,15 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 8. **`.env` is gitignored.** `.env.example` is the committed template. Never commit `.env`. `GRAFANA_ADMIN_PASSWORD`, `FLASK_SECRET_KEY`, `PLAYGROUND_SECRET`, and `PLAYGROUND_ADMIN_KEY` must all be set before `docker compose up`.
 
-9. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated.
+9. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated. Only one dashboard provider file must exist in `grafana/provisioning/dashboards/` — Grafana 13 raises "Cannot change resource manager" and fails to load all dashboards if two providers point at the same path.
 
 10. **statporter scrape interval is 10s, timeout 5s** — the background collector thread makes scrapes return in ~50ms, so the timeout is not a constraint. Do not raise the scrape_interval without also adjusting the collection loop's `SCRAPE_INTERVAL` env var.
 
 11. **statporter uses underscores in label values.** Container names with hyphens are converted: `demo-container` → `name="demo_container"`, `weather-app` → `name="weather_app"`. Use underscores in all PromQL queries and alert expressions that filter by `name=`. The Docker SDK still uses the hyphenated name for `containers.get()`.
 
 12. **`color-scheme: light dark`** is declared on `:root`. This tells browsers to render scrollbars, form controls, and OS-native UI in the appropriate theme.
+
+13. **Loki is a distroless image.** `grafana/loki:3.7.2+` has no shell, no `wget`, no `curl`, no `nc` — nothing to exec into. Docker healthchecks cannot be configured for it. Grafana and Promtail use `depends_on: loki: condition: service_started` (not `service_healthy`). In CI, Loki readiness is verified by polling `http://loki:3100/ready` via `docker exec prometheus wget` (Prometheus is Alpine and has wget). The loki-config.yaml sets `join_after: 0s` and `min_ready_duration: 0s` so the ingester ring goes ACTIVE immediately on single-node startup.
 
 ---
 
@@ -360,7 +364,7 @@ Still needed:
 - `weather.py` unit tests — mock `requests.get`, assert error messages don't leak the API key URL
 - statporter unit tests — `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
 
-New test files must follow the naming convention in `CI_LOOP_PR.md` Part 4 — file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
+New test files must follow the naming convention in `CI_LOOP_RFC.md` Part 4 — file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
 
 ### Security (session cookie hardening — deferred to AWS)
 

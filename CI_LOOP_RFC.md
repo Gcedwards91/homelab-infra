@@ -300,17 +300,23 @@ jobs:
         run: docker compose up -d
 
       - name: Wait for healthchecks
-        # weather-app, reverse-proxy, and promtail have no HEALTHCHECK in docker-compose
-        # and are intentionally excluded
+        # loki is distroless (no shell/wget) — no Docker healthcheck; polled separately
+        # weather-app, reverse-proxy, and promtail also have no HEALTHCHECK
         run: |
-          for service in prometheus grafana loki statporter alertmanager demo-container; do
+          for service in prometheus grafana statporter alertmanager demo-container; do
             echo "Waiting for $service..."
             timeout 120 bash -c \
               "until [ \"\$(docker inspect \
               --format='{{.State.Health.Status}}' \
               $service 2>/dev/null)\" = 'healthy' ]; do sleep 3; done"
           done
-          sleep 15
+
+      - name: Wait for Loki readiness
+        run: |
+          timeout 120 bash -c \
+            "until docker exec prometheus wget -q --spider http://loki:3100/ready 2>/dev/null; do sleep 3; done"
+          echo "loki is ready"
+          sleep 5
 
       - name: Set up Python
         uses: actions/setup-python@v5

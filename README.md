@@ -49,19 +49,19 @@ A full-stack observability and application platform running on a single Proxmox 
 
 ## Stack
 
-| Service        | Image                         | Purpose                                               |
-| -------------- | ----------------------------- | ----------------------------------------------------- |
-| nginx          | `nginx:1.27-alpine`           | Reverse proxy, sub-path routing                       |
-| weather-app    | `burningstar4/weather-app`    | Flask portfolio app — UI, API, and playground routes  |
-| demo-container | `burningstar4/demo-container` | Disposable dummy container — playground toggle target |
-| prometheus     | `prom/prometheus:v3.3.1`      | Metrics collection, alerting, and storage             |
-| alertmanager   | `prom/alertmanager:v0.28.1`   | Alert routing (null receiver — alerts visible in UI)  |
-| grafana        | `grafana/grafana:11.6.1`      | Metrics and log visualization                         |
-| loki           | `grafana/loki:3.5.0`          | Log aggregation                                       |
-| promtail       | `grafana/promtail:3.5.0`      | Log shipping — Docker socket autodiscovery            |
-| statporter     | `burningstar4/statporter`     | Custom Prometheus exporter for Docker stats           |
+| Service        | Image                                | Purpose                                               |
+| -------------- | ------------------------------------ | ----------------------------------------------------- |
+| nginx          | `nginx:stable-alpine3.23`            | Reverse proxy, sub-path routing                       |
+| weather-app    | `burningstar4/weather-app`           | Flask portfolio app — UI, API, and playground routes  |
+| demo-container | `burningstar4/demo-container`        | Disposable dummy container — playground toggle target |
+| prometheus     | `prom/prometheus:v3.11.3`            | Metrics collection, alerting, and storage             |
+| alertmanager   | `prom/alertmanager:v0.32.1`          | Alert routing (null receiver — alerts visible in UI)  |
+| grafana        | `grafana/grafana:13.0.1-security-01` | Metrics and log visualization                         |
+| loki           | `grafana/loki:3.7.2`                 | Log aggregation                                       |
+| promtail       | `grafana/promtail:3.6.11`            | Log shipping — Docker socket autodiscovery            |
+| statporter     | `burningstar4/statporter`            | Custom Prometheus exporter for Docker stats           |
 
-Every container is configured with explicit CPU and memory limits, reservations, healthchecks, and log rotation (`max-size: 50m`, `max-file: 5`). Grafana exposes anonymous read-only access by default — admin credentials are set via `.env`.
+Every container is configured with explicit CPU and memory limits, reservations, and log rotation (`max-size: 50m`, `max-file: 5`). Healthchecks are configured on all services except Loki (distroless — no shell), Promtail, and nginx. Grafana exposes anonymous read-only access by default — admin credentials are set via `.env`.
 
 ---
 
@@ -190,8 +190,10 @@ homelab-infra/
 ├── CLAUDE.md                # Persistent context for Claude Code sessions
 ├── PRODUCT.md               # Brand and design strategy
 ├── DESIGN.md                # Visual design system tokens and component specs
-├── PLAYGROUND_PR.md         # Full implementation spec for the playground feature
-└── TESTING_CHECKLIST.md     # End-to-end testing checklist
+├── PLAYGROUND_RFC.md        # Implementation spec for the playground feature (SHIPPED)
+├── CI_LOOP_RFC.md           # CI self-healing loop spec (SHIPPED)
+├── TRACE_LOGS_RFC.md        # Distributed tracing spec (planned)
+└── TESTING_CHECKLIST_RFC.md # End-to-end testing checklist
 ```
 
 ---
@@ -200,15 +202,15 @@ homelab-infra/
 
 GitHub Actions handles automated builds and publishes on every push to `master`:
 
-| Workflow                          | Trigger path                                                   | What it does                                                        |
-| --------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `docker-build-weather-app.yml`    | `weather-app/docker-src/**`                                    | Builds and pushes `burningstar4/weather-app:latest`                 |
-| `docker-build-statporter.yml`     | `weather-app/docker-final/statporter/**`                       | Builds and pushes `burningstar4/statporter:latest`                  |
-| `docker-build-demo-container.yml` | `weather-app/demo-container/**`                                | Builds and pushes `burningstar4/demo-container:latest`              |
-| `format_and_lint-test.yml`        | all pushes                                                     | Black, Flake8, Prettier, Hadolint, yamllint                         |
-| `security_lint.yml`               | all pushes                                                     | Bandit, Trivy, ShellCheck, Gitleaks                                 |
-| `integration-tests.yml`           | `weather-app/docker-final/**`, `weather-app/demo-container/**` | Spins up full stack, runs pytest, opens structured issue on failure |
-| `targeted-test.yml`               | manual (`workflow_dispatch`)                                   | Runs tests for one service, auto-closes the linked issue on pass    |
+| Workflow                          | Trigger path                                                   | What it does                                                                                                                        |
+| --------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `docker-build-weather-app.yml`    | `weather-app/docker-src/**`                                    | Builds and pushes `burningstar4/weather-app:latest`                                                                                 |
+| `docker-build-statporter.yml`     | `weather-app/docker-final/statporter/**`                       | Builds and pushes `burningstar4/statporter:latest`                                                                                  |
+| `docker-build-demo-container.yml` | `weather-app/demo-container/**`                                | Builds and pushes `burningstar4/demo-container:latest`                                                                              |
+| `format_and_lint-test.yml`        | all pushes                                                     | Black, Flake8, Prettier, Hadolint, yamllint                                                                                         |
+| `security_lint.yml`               | all pushes                                                     | Bandit, Trivy config scan, ShellCheck, Gitleaks                                                                                     |
+| `integration-tests.yml`           | `weather-app/docker-final/**`, `weather-app/demo-container/**` | Trivy image CVE scan (own-image blocks CI; vendor opens issue), spins up full stack, runs pytest, opens structured issue on failure |
+| `targeted-test.yml`               | manual (`workflow_dispatch`)                                   | Runs tests for one service, auto-closes the linked issue on pass                                                                    |
 
 ---
 
@@ -218,6 +220,7 @@ GitHub Actions handles automated builds and publishes on every push to `master`:
 make build-all    # builds weather-app, statporter, and demo-container
 make push-all     # pushes all three to DockerHub
 make build-demo   # builds demo-container only
+make scan         # Trivy CRITICAL CVE scan across all stack images
 ```
 
 ---
