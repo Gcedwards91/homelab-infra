@@ -12,7 +12,7 @@ WORKDIR /app
 COPY requirements.txt .
 # hadolint ignore=DL3008
 RUN pip install --no-cache-dir -r requirements.txt && \
-    apt-get update && apt-get install -y --no-install-recommends curl && \
+    apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY . .

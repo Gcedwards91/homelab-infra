@@ -10,6 +10,7 @@ WORKDIR /app
 # Install curl for healthcheck (no build tools needed — all deps are pure Python)
 # hadolint ignore=DL3008
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
