@@ -216,7 +216,7 @@
       }
 
       /* -----------------------------------------------------------------------
-         Narrow viewport — stack control buttons full-width
+         Narrow viewport: stack control buttons full-width
       ----------------------------------------------------------------------- */
       @media (max-width: 400px) {
         .control-actions {
@@ -577,7 +577,7 @@
           const firing = (data?.data?.alerts || []).filter((a) => a.state === "firing");
           renderAlerts(firing);
         } catch (_) {
-          // Alert feed failures are non-critical — fail silently
+          // Alert feed failures are non-critical, fail silently
         }
       }
 

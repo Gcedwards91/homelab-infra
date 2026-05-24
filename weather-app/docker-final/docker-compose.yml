@@ -304,7 +304,6 @@ services:
       - "4317" # Tempo OTLP gRPC receiver (internal only)
     volumes:
       - ./tempo-config.yml:/etc/tempo.yaml:ro
-      - tempo_data:/var/tempo
     labels:
       - "logging=true"
     logging:
@@ -384,7 +383,6 @@ volumes:
   prometheus-data:
   promtail-positions:
   alertmanager-data:
-  tempo_data:
 
 networks:
   monitoring:

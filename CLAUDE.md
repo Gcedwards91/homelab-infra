@@ -1,4 +1,4 @@
-# CLAUDE.md — Homelab Infrastructure Project
+# CLAUDE.md : Homelab Infrastructure Project
 
 Persistent context for Claude Code sessions. Read this before doing any work in this repo.
 
@@ -6,7 +6,7 @@ Persistent context for Claude Code sessions. Read this before doing any work in 
 
 ## Project Overview
 
-A self-deployed DevOps portfolio and homelab showcase. A Flask web app serves as both the application and the portfolio surface — About Me, Blog, Resume, Weather App, and a Grafana observability dashboard, all running as a containerized stack behind nginx.
+A self-deployed DevOps portfolio and homelab showcase. A Flask web app serves as both the application and the portfolio surface : About Me, Blog, Resume, Weather App, and a Grafana observability dashboard, all running as a containerized stack behind nginx.
 
 The site is simultaneously the artifact being presented and the proof of capability behind it. Design quality is evaluated as part of the engineering demonstration.
 
@@ -21,14 +21,14 @@ The site is simultaneously the artifact being presented and the proof of capabil
 ```
 homelab-infra/
 ├── weather-app/
-│   ├── docker-src/          # Flask app source — built into burningstar4/weather-app
+│   ├── docker-src/          # Flask app source : built into burningstar4/weather-app
 │   │   ├── main.py          # Flask routes, PrometheusMetrics, request/response logging
 │   │   ├── weather.py       # OpenWeatherMap API client
 │   │   ├── logger.py        # JSON structured logger (python-json-logger)
 │   │   ├── requirements.txt # Flask, Gunicorn, prometheus-flask-exporter
 │   │   ├── templates/       # Jinja2 HTML templates
 │   │   └── static/          # styles.css, favicon, icons/
-│   └── docker-final/        # Production stack — docker compose up from here
+│   └── docker-final/        # Production stack : docker compose up from here
 │       ├── docker-compose.yml
 │       ├── .env.example     # Copy to .env before running
 │       ├── nginx/           # nginx.conf + empty.conf
@@ -88,7 +88,7 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 | -------------- | -------------------------------------------- | --------------------------------------- |
 | reverse-proxy  | nginx:stable-alpine3.23                      | Reverse proxy, sub-path routing         |
 | weather-app    | burningstar4/weather-app:latest              | Flask portfolio app                     |
-| demo-container | burningstar4/demo-container:latest           | Disposable dummy — playground target    |
+| demo-container | burningstar4/demo-container:latest           | Disposable dummy : playground target    |
 | prometheus     | prom/prometheus:v3.11.3                      | Metrics collection and alerting         |
 | grafana        | grafana/grafana:13.0.1-security-01           | Dashboard visualization                 |
 | loki           | grafana/loki:3.7.2                           | Log aggregation                         |
@@ -98,7 +98,7 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 | tempo          | grafana/tempo:2.10.0                         | Trace storage backend                   |
 | otel-collector | otel/opentelemetry-collector-contrib:0.152.0 | OTLP span receiver, batches to Tempo    |
 
-All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki, Tempo (both distroless — no shell), Promtail, and reverse-proxy.
+All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki, Tempo (both distroless : no shell), Promtail, and reverse-proxy.
 
 ---
 
@@ -107,7 +107,7 @@ All services have resource limits, restart policies, and `logging=true` labels f
 ```bash
 cd weather-app/docker-final
 cp .env.example .env
-# Edit .env — set GRAFANA_ADMIN_PASSWORD at minimum
+# Edit .env : set GRAFANA_ADMIN_PASSWORD at minimum
 docker compose pull
 docker compose up -d
 docker compose ps   # verify all healthy
@@ -115,9 +115,9 @@ docker compose ps   # verify all healthy
 
 URLs once running:
 
-- `http://localhost` — Portfolio app
-- `http://localhost/grafana` — Grafana (read-only without login)
-- `http://localhost/prometheus` — Prometheus UI
+- `http://localhost` : Portfolio app
+- `http://localhost/grafana` : Grafana (read-only without login)
+- `http://localhost/prometheus` : Prometheus UI
 
 To build images locally before running:
 
@@ -134,19 +134,19 @@ make build-all          # builds all three
 
 **Routes:**
 
-- `GET /` — Blog index (index.html)
-- `GET /about_me` — About Me / live cover letter (about_me.html)
-- `GET /resume` — Resume page (resume.html)
-- `GET /weather_app` — Weather lookup app (weather_app.html)
-- `GET /grafana.html` — Grafana link page (grafana.html)
-- `POST /weather` — JSON API, calls OpenWeatherMap
-- `GET /healthz` — Health check, returns `{"status": "ok"}`
-- `GET /metrics` — Prometheus metrics (prometheus-flask-exporter)
-- `GET /favicon.ico` — Favicon
+- `GET /` : Blog index (index.html)
+- `GET /about_me` : About Me / live cover letter (about_me.html)
+- `GET /resume` : Resume page (resume.html)
+- `GET /weather_app` : Weather lookup app (weather_app.html)
+- `GET /grafana.html` : Grafana link page (grafana.html)
+- `POST /weather` : JSON API, calls OpenWeatherMap
+- `GET /healthz` : Health check, returns `{"status": "ok"}`
+- `GET /metrics` : Prometheus metrics (prometheus-flask-exporter)
+- `GET /favicon.ico` : Favicon
 
 **Conventions:**
 
-- All template renders go through `safe_render()` — catches `TemplateNotFound` and returns 404
+- All template renders go through `safe_render()` : catches `TemplateNotFound` and returns 404
 - Every request gets a UUID in `g.request_id`, logged on both request and response
 - Structured JSON logging via `python-json-logger`; logger setup in `logger.py`
 - Prometheus metrics are auto-instrumented via `PrometheusMetrics(app)` at app init
@@ -168,9 +168,9 @@ The UI was built and refined using the `/impeccable` skill. PRODUCT.md and DESIG
 ### CSS Architecture
 
 - Single shared stylesheet: `weather-app/docker-src/static/styles.css`
-- CSS custom properties on `:root` for all tokens — no hard-coded values
+- CSS custom properties on `:root` for all tokens : no hard-coded values
 - Page-specific styles (resume) live in `<style>` blocks within the template
-- Prettier formats HTML/CSS on commit — 2-space indent, no trailing whitespace
+- Prettier formats HTML/CSS on commit : 2-space indent, no trailing whitespace
 
 ### Design Tokens (`:root`)
 
@@ -180,19 +180,19 @@ The UI was built and refined using the `/impeccable` skill. PRODUCT.md and DESIG
   --brand-blue-tint: #f0f4ff /* callout backgrounds */ --brand-blue-link: #0058e6
   /* content links (overridden in dark mode) */ --text-primary: #333 /* body text */
   --text-secondary: #555 /* labels, supporting copy */ --text-muted: #717171
-  /* timestamps, captions — min 4.5:1 contrast */ --border-light: #eee /* dividers */
+  /* timestamps, captions : min 4.5:1 contrast */ --border-light: #eee /* dividers */
   --border-input: #ccc /* input borders at rest */ --background-page: #f4f6f9 /* page background */
   --background-card: #ffffff /* card/container background */ --error-color: #b91c1c /* error text */
   --error-bg: #fef2f2 /* error background */ --error-border: #fecaca /* error border */
   --border-radius-card: 12px /* containers */ --border-radius-input: 8px /* inputs, buttons */
   --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05) --tooltip-bg: #333333
   --tooltip-text: var(--text-inverse) --text-inverse: #ffffff
-  /* white text on blue surfaces — nav, buttons, tooltips */;
+  /* white text on blue surfaces : nav, buttons, tooltips */;
 ```
 
 ### Dark Mode
 
-Implemented via `@media screen and (prefers-color-scheme: dark)` at the bottom of `styles.css`. Token overrides only — no JS. Print styles always use light mode (`@media screen` scoping).
+Implemented via `@media screen and (prefers-color-scheme: dark)` at the bottom of `styles.css`. Token overrides only : no JS. Print styles always use light mode (`@media screen` scoping).
 
 Dark mode overrides page/card backgrounds to charcoal family (`#14161d` / `#1e2029`), text to near-white scale, and `--brand-blue-link` to `#7dafff` (8.13:1 contrast on dark bg). Nav stays Blueprint Blue in both modes.
 
@@ -201,9 +201,9 @@ Dark mode overrides page/card backgrounds to charcoal family (`#14161d` / `#1e20
 - No `border-left` or `border-right` > 1px as colored accent (side-stripe pattern)
 - No gradient text (`background-clip: text`)
 - No glassmorphism
-- No `#000` or `#fff` as raw values — use tokens
-- No em dashes in copy — use commas, colons, semicolons, or parentheses
-- Global `ul { list-style: none }` is a reset — any semantic bullet list must explicitly set `list-style: disc`
+- No `#000` or `#fff` as raw values : use tokens
+- No em dashes in copy : use commas, colons, semicolons, or parentheses
+- Global `ul { list-style: none }` is a reset : any semantic bullet list must explicitly set `list-style: disc`
 
 ### Nav
 
@@ -211,11 +211,11 @@ Blueprint Blue background, `var(--text-inverse)` text, 12px radius (matches card
 
 ### Callout/Note
 
-`.note` uses `background-color: var(--brand-blue-tint)` + `border: 1px solid var(--brand-blue-light)`. No `border-left` stripe — that pattern was removed.
+`.note` uses `background-color: var(--brand-blue-tint)` + `border: 1px solid var(--brand-blue-light)`. No `border-left` stripe : that pattern was removed.
 
 ### Line Length
 
-Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. Resume summary is also capped. The wide container (`.container--wide`) itself stays at `max-width: 900px` — only prose paragraphs get the ch cap.
+Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. Resume summary is also capped. The wide container (`.container--wide`) itself stays at `max-width: 900px` : only prose paragraphs get the ch cap.
 
 ### Accessibility
 
@@ -230,13 +230,13 @@ Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. 
 
 ## Naming Conventions
 
-**Commit messages:** conventional commits — `feat:`, `fix:`, `docs:`, `chore:`, `test:`. Body explains the why. Co-authored with Claude via `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`.
+**Commit messages:** conventional commits : `feat:`, `fix:`, `docs:`, `chore:`, `test:`. Body explains the why. Co-authored with Claude via `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`.
 
 **CSS classes:** BEM-adjacent. Component block (`experience-entry`), element separator `__` (`experience-entry__role`), modifier separator `--` (`container--wide`, `btn-download--primary`).
 
 **Python:** snake_case throughout. Flask routes use snake_case function names matching route segments.
 
-**Docker image tags:** `burningstar4/<name>:latest` — no versioned tags currently.
+**Docker image tags:** `burningstar4/<name>:latest` : no versioned tags currently.
 
 **Template naming:** flat, underscore-separated (`about_me.html`, `weather_app.html`, `playground_login.html`).
 
@@ -260,45 +260,45 @@ All workflows trigger on push to `master` (and PRs where applicable).
 **Secrets required in GitHub:**
 
 - `DOCKERHUB_TOKEN`
-- `GITLEAKS_LICENSE_KEY` (optional — Gitleaks runs without it)
+- `GITLEAKS_LICENSE_KEY` (optional : Gitleaks runs without it)
 
 **Variables required in GitHub:**
 
 - `DOCKERHUB_USERNAME`
 
-Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `black`, `flake8`, `yamllint`, `prettier`, `codespell` (commit-msg stage). Prettier reformats HTML/CSS/JSON/Markdown — always re-stage after a failed commit and commit again. The `codespell` hook runs only at commit-msg time and requires `pre-commit install --hook-type commit-msg` on first setup.
+Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `black`, `flake8`, `yamllint`, `prettier`, `codespell` (commit-msg stage). Prettier reformats HTML/CSS/JSON/Markdown : always re-stage after a failed commit and commit again. The `codespell` hook runs only at commit-msg time and requires `pre-commit install --hook-type commit-msg` on first setup.
 
 ---
 
 ## Known Environment Gotchas
 
-1. **Prettier reformats on commit.** When a commit fails due to Prettier, the files are already fixed in the working tree. Re-stage the modified files and commit again — do not amend.
+1. **Prettier reformats on commit.** When a commit fails due to Prettier, the files are already fixed in the working tree. Re-stage the modified files and commit again : do not amend.
 
 2. **Global `ul { list-style: none }`** in styles.css resets bullets sitewide. Any new template with semantic bullet lists must explicitly set `list-style: disc` on the `ul`.
 
-3. **Prometheus scrapes weather-app at `:5000/metrics`** — the prometheus-flask-exporter auto-mounts this route. Do not add a manual `/metrics` route. The nginx `location = /metrics` block returns 403 to external clients; Prometheus bypasses nginx by scraping the container directly at `:5000`.
+3. **Prometheus scrapes weather-app at `:5000/metrics`** : the prometheus-flask-exporter auto-mounts this route. Do not add a manual `/metrics` route. The nginx `location = /metrics` block returns 403 to external clients; Prometheus bypasses nginx by scraping the container directly at `:5000`.
 
-4. **alertmanager.yml uses null receiver.** All alerts are collected but go nowhere. This is intentional — the playground demonstrates the alerting loop visually without requiring external notification credentials.
+4. **alertmanager.yml uses null receiver.** All alerts are collected but go nowhere. This is intentional : the playground demonstrates the alerting loop visually without requiring external notification credentials.
 
-5. **Docker socket access.** statporter mounts `/var/run/docker.sock` read-only. weather-app mounts it read-write for the playground container toggle. These are separate mount declarations — statporter's is `:ro`, weather-app's is default (rw). The RW mount is the highest blast-radius element in the stack; the hardcoded `DEMO_CONTAINER = "demo-container"` constant is the only scope limiter.
+5. **Docker socket access.** statporter mounts `/var/run/docker.sock` read-only. weather-app mounts it read-write for the playground container toggle. These are separate mount declarations : statporter's is `:ro`, weather-app's is default (rw). The RW mount is the highest blast-radius element in the stack; the hardcoded `DEMO_CONTAINER = "demo-container"` constant is the only scope limiter.
 
-6. **Playground service-to-service address.** The stress endpoint in `playground.py` calls `http://demo-container:8080/stress` — that is the internal Docker network address, not localhost. `demo-container` is on the same `monitoring` bridge as `weather-app`. Never use `localhost` or `127.0.0.1` for this call.
+6. **Playground service-to-service address.** The stress endpoint in `playground.py` calls `http://demo-container:8080/stress` : that is the internal Docker network address, not localhost. `demo-container` is on the same `monitoring` bridge as `weather-app`. Never use `localhost` or `127.0.0.1` for this call.
 
-7. **Log rotation.** Docker's built-in json-file rotation (`max-size: 50m`, `max-file: 5`) manages per-container log size. A host-level logrotate config at `weather-app/docker-final/logrotate/docker-containers` handles time-based rotation — copy it to `/etc/logrotate.d/` on the host.
+7. **Log rotation.** Docker's built-in json-file rotation (`max-size: 50m`, `max-file: 5`) manages per-container log size. A host-level logrotate config at `weather-app/docker-final/logrotate/docker-containers` handles time-based rotation : copy it to `/etc/logrotate.d/` on the host.
 
 8. **`.env` is gitignored.** `.env.example` is the committed template. Never commit `.env`. `GRAFANA_ADMIN_PASSWORD`, `FLASK_SECRET_KEY`, `PLAYGROUND_SECRET`, and `PLAYGROUND_ADMIN_KEY` must all be set before `docker compose up`.
 
-9. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated. Only one dashboard provider file must exist in `grafana/provisioning/dashboards/` — Grafana 13 raises "Cannot change resource manager" and fails to load all dashboards if two providers point at the same path.
+9. **Grafana provisioning.** Dashboards and datasources are provisioned as code from `grafana/provisioning/`. Manual changes in the Grafana UI are not persisted across container restarts unless the provisioning files are updated. Only one dashboard provider file must exist in `grafana/provisioning/dashboards/` : Grafana 13 raises "Cannot change resource manager" and fails to load all dashboards if two providers point at the same path.
 
-10. **statporter scrape interval is 10s, timeout 5s** — the background collector thread makes scrapes return in ~50ms, so the timeout is not a constraint. Do not raise the scrape_interval without also adjusting the collection loop's `SCRAPE_INTERVAL` env var.
+10. **statporter scrape interval is 10s, timeout 5s** : the background collector thread makes scrapes return in ~50ms, so the timeout is not a constraint. Do not raise the scrape_interval without also adjusting the collection loop's `SCRAPE_INTERVAL` env var.
 
 11. **statporter uses underscores in label values.** Container names with hyphens are converted: `demo-container` → `name="demo_container"`, `weather-app` → `name="weather_app"`. Use underscores in all PromQL queries and alert expressions that filter by `name=`. The Docker SDK still uses the hyphenated name for `containers.get()`.
 
 12. **`color-scheme: light dark`** is declared on `:root`. This tells browsers to render scrollbars, form controls, and OS-native UI in the appropriate theme.
 
-13. **Loki and Tempo are distroless images.** `grafana/loki:3.7.2+` and `grafana/tempo:2.10.0+` have no shell, no `wget`, no `curl`, no `nc` — nothing to exec into. Docker healthchecks cannot be configured for either. Grafana, Promtail, and otel-collector use `depends_on: condition: service_started` (not `service_healthy`) for both. In CI, Loki readiness is verified by polling `http://loki:3100/ready` via `docker exec prometheus wget`; Tempo readiness via `http://tempo:3200/ready` the same way (Prometheus is Alpine and has wget). The loki-config.yaml sets `join_after: 0s` and `min_ready_duration: 0s` so the ingester ring goes ACTIVE immediately on single-node startup.
+13. **Loki and Tempo are distroless images.** `grafana/loki:3.7.2+` and `grafana/tempo:2.10.0+` have no shell, no `wget`, no `curl`, no `nc` : nothing to exec into. Docker healthchecks cannot be configured for either. Grafana, Promtail, and otel-collector use `depends_on: condition: service_started` (not `service_healthy`) for both. In CI, Loki readiness is verified by polling `http://loki:3100/ready` via `docker exec prometheus wget`; Tempo readiness via `http://tempo:3200/ready` the same way (Prometheus is Alpine and has wget). The loki-config.yaml sets `join_after: 0s` and `min_ready_duration: 0s` so the ingester ring goes ACTIVE immediately on single-node startup.
 
-14. **Grafana `traces` panel type does not work with provisioned dashboards.** The `traces` panel uses streaming internally; the standard `/api/ds/query` path returns data but the panel renders "No data." Use `type: "table"` with `queryType: "traceqlSearch"` and a `filters` array instead. The Tempo datasource embeds trace ID deep-link URLs in the response so clicking a row still opens the waterfall view. `queryType: "nativeSearch"` returns HTTP 500 from the Grafana 13 Tempo plugin — do not use it.
+14. **Grafana `traces` panel type does not work with provisioned dashboards.** The `traces` panel uses streaming internally; the standard `/api/ds/query` path returns data but the panel renders "No data." Use `type: "table"` with `queryType: "traceqlSearch"` and a `filters` array instead. The Tempo datasource embeds trace ID deep-link URLs in the response so clicking a row still opens the waterfall view. `queryType: "nativeSearch"` returns HTTP 500 from the Grafana 13 Tempo plugin : do not use it.
 
 15. **nginx CSP requires `'unsafe-eval'` for Grafana trace links.** The table panel's link template engine (`${__value.raw}`) uses `new Function()` internally. Without `'unsafe-eval'` in `script-src`, the panel throws an `EvalError` and shows an error state. This is added to the existing CSP in `nginx.conf` and applies to the full origin.
 
@@ -327,18 +327,18 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 Interactive demo page at `/playground`. Implementation lives in `playground.py` (Blueprint) and `demo-container/app.py`.
 
 - Log in with a rolling time-limited passphrase (4-hour windows, HMAC-derived)
-- Stop/start `demo-container` — triggers `DemoContainerDown` alert within ~90 seconds
-- Spike CPU for 60 seconds — triggers `DemoContainerHighCPU` alert within ~60 seconds
+- Stop/start `demo-container` : triggers `DemoContainerDown` alert within ~90 seconds
+- Spike CPU for 60 seconds : triggers `DemoContainerHighCPU` alert within ~60 seconds
 - Live alert feed polls `/prometheus/api/v1/alerts` every 10 seconds
 
 **Auth design:** Passphrase derived via HMAC-SHA256 of `PLAYGROUND_SECRET` + current time window. Never stored. Admin retrieves current passphrase via `GET /playground/passphrase` (Bearer `PLAYGROUND_ADMIN_KEY`). 5-minute grace period at window boundaries. Sessions expire after 30 minutes of inactivity.
 
 **Key implementation constraints:**
 
-- CPU stress uses `threading.Event` — `is_set()` means stress is running, `clear()` stops it. `_burn()` loop: `while stop_event.is_set() and time.time() < deadline`. Do NOT invert this.
-- All passphrase comparisons use `hmac.compare_digest` — never `==`
+- CPU stress uses `threading.Event` : `is_set()` means stress is running, `clear()` stops it. `_burn()` loop: `while stop_event.is_set() and time.time() < deadline`. Do NOT invert this.
+- All passphrase comparisons use `hmac.compare_digest` : never `==`
 - Login route must never log `request.form`
-- Toggle endpoint hardcodes `DEMO_CONTAINER = "demo-container"` — never uses container name from request input
+- Toggle endpoint hardcodes `DEMO_CONTAINER = "demo-container"` : never uses container name from request input
 
 **DemoContainerDown alert expression:**
 
@@ -346,9 +346,9 @@ Interactive demo page at `/playground`. Implementation lives in `playground.py` 
 (up{job="statporter"} == 1) and on() absent(container_cpu_percent{name="demo_container"})
 ```
 
-`on()` is required — `absent()` returns `{name="demo_container"}` while the left side returns `{job="statporter", instance=...}`. Without `on()`, the label sets never match and the `and` returns nothing. `demo_container` uses an underscore (statporter naming convention).
+`on()` is required : `absent()` returns `{name="demo_container"}` while the left side returns `{job="statporter", instance=...}`. Without `on()`, the label sets never match and the `and` returns nothing. `demo_container` uses an underscore (statporter naming convention).
 
-**statporter stale gauge fix:** When a container stops, statporter's `collect_metrics()` actively removes label sets for containers no longer in `containers.list()` using `gauge.remove(name)`. This ensures `absent()` fires correctly — without this, Prometheus gauges retain their last value indefinitely and `absent()` never returns 1.
+**statporter stale gauge fix:** When a container stops, statporter's `collect_metrics()` actively removes label sets for containers no longer in `containers.list()` using `gauge.remove(name)`. This ensures `absent()` fires correctly : without this, Prometheus gauges retain their last value indefinitely and `absent()` never returns 1.
 
 ### Distributed Tracing (SHIPPED)
 
@@ -357,7 +357,7 @@ End-to-end OTel tracing across weather-app and statporter. Spans flow via OTLP g
 **Key implementation facts:**
 
 - `FlaskInstrumentor().instrument_app(app)` placed immediately after `app = Flask(__name__)`, before `PrometheusMetrics(app)`
-- `RequestsInstrumentor().instrument()` called before app creation — instruments all `requests` calls including the OpenWeatherMap API call in `weather.py`
+- `RequestsInstrumentor().instrument()` called before app creation : instruments all `requests` calls including the OpenWeatherMap API call in `weather.py`
 - `LoggingInstrumentor().instrument(set_logging_format=True)` injects `otelTraceID` and `otelSpanID` into every log record; format string updated in `logger.py`
 - All OTel imports must be at the top with other imports; setup code runs after the last import (Flake8 E402)
 - `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317` and `OTEL_SERVICE_NAME` set as env vars in docker-compose; `OTLPSpanExporter()` reads them with no constructor args
@@ -369,8 +369,8 @@ End-to-end OTel tracing across weather-app and statporter. Spans flow via OTLP g
 
 - `about_me.html` Grafana hyperlink not yet updated to point to unified dashboard
 - Trace-to-log correlation (click trace → see correlated Loki logs) not verified end-to-end
-- `tempo_data` volume persistence not verified across restarts
-- Service map / node graph (requires `metrics_generator` — deferred)
+- Tempo uses no named volume : trace data is ephemeral by design (wiped on `docker compose down`)
+- Service map / node graph (requires `metrics_generator` : deferred)
 
 ---
 
@@ -397,19 +397,19 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Tests (integration tests shipped — unit tests still needed)
+### Tests (integration tests shipped : unit tests still needed)
 
 Integration tests exist at `weather-app/docker-final/tests/test_stack_startup.py` and run in CI via `integration-tests.yml`. They cover stack startup and health checks (TESTING_CHECKLIST.md sections 1.1–1.4) and statporter scrape performance.
 
 Still needed:
 
-- `pytest` suite for Flask routes (`main.py`) — status codes, healthz, weather error handling
-- Playground auth unit tests — passphrase derivation, window boundary/grace period, session expiry
-- `weather.py` unit tests — mock `requests.get`, assert error messages don't leak the API key URL
-- statporter unit tests — `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
+- `pytest` suite for Flask routes (`main.py`) : status codes, healthz, weather error handling
+- Playground auth unit tests : passphrase derivation, window boundary/grace period, session expiry
+- `weather.py` unit tests : mock `requests.get`, assert error messages don't leak the API key URL
+- statporter unit tests : `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
 
-New test files must follow the naming convention in `CI_LOOP_RFC.md` Part 4 — file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
+New test files must follow the naming convention in `CI_LOOP_RFC.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
 
-### Security (session cookie hardening — deferred to AWS)
+### Security (session cookie hardening : deferred to AWS)
 
 `SESSION_COOKIE_SECURE = True` should be set once the stack is behind ACM/HTTPS. Incorrect to set locally (HTTP). Add to app config at AWS deployment time alongside Secrets Manager migration.

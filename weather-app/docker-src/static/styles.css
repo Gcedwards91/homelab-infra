@@ -80,13 +80,13 @@ p {
   text-wrap: pretty;
 }
 
-/* Narrative prose — cap line length for readability */
+/* Narrative prose: cap line length for readability */
 section.fade-in p,
 .blog-post p {
   max-width: 68ch;
 }
 
-/* About Me chapter headings — extra breathing room between life sections */
+/* About Me chapter headings: extra breathing room between life sections */
 section.fade-in h2 {
   margin-top: 2.5rem;
 }
@@ -336,7 +336,7 @@ select:focus-visible {
 }
 
 /* -----------------------------------------------------------------------
-   Mobile — 600px and below
+   Mobile: 600px and below
 ----------------------------------------------------------------------- */
 @media (max-width: 600px) {
   .container {
@@ -362,7 +362,7 @@ select:focus-visible {
 }
 
 /* -----------------------------------------------------------------------
-   Tablet — 601px to 900px
+   Tablet: 601px to 900px
 ----------------------------------------------------------------------- */
 @media (min-width: 601px) and (max-width: 900px) {
   .container--wide {
@@ -373,7 +373,7 @@ select:focus-visible {
 }
 
 /* -----------------------------------------------------------------------
-   Dark mode — responds to OS preference, screen only (not print)
+   Dark mode: responds to OS preference, screen only (not print)
 ----------------------------------------------------------------------- */
 @media screen and (prefers-color-scheme: dark) {
   :root {
@@ -400,7 +400,7 @@ select:focus-visible {
 }
 
 /* -----------------------------------------------------------------------
-   Reduced motion — respect user OS preference
+   Reduced motion: respect user OS preference
 ----------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .fade-in {

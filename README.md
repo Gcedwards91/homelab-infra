@@ -1,8 +1,8 @@
 # Homelab Infrastructure Project
 
-A structured homelab project built to apply modern DevOps and SRE practices in a self-managed environment. This is not a tutorial stack — every component was configured, debugged, and wired together from scratch.
+A structured homelab project built to apply modern DevOps and SRE practices in a self-managed environment. This is not a tutorial stack; every component was configured, debugged, and wired together from scratch.
 
-> **Live demo:** `http://your-domain.com` _(coming soon — AWS deployment in progress)_
+> **Live demo:** `http://your-domain.com` _(coming soon, AWS deployment in progress)_
 
 ---
 
@@ -10,12 +10,12 @@ A structured homelab project built to apply modern DevOps and SRE practices in a
 
 A full-stack observability and application platform running on a single Proxmox host, built across four phases:
 
-- **Infrastructure as Code** — VMs provisioned with Terraform, configured with Ansible
-- **Containerized application stack** — Flask portfolio app, custom Prometheus exporter, Grafana, Loki, Promtail, Alertmanager, nginx reverse proxy
-- **Custom observability tooling** — a hand-built Prometheus exporter (`statporter`) that collects per-container CPU, memory, network, and disk I/O metrics via the Docker socket
-- **CI/CD pipeline** — GitHub Actions building and publishing Docker images to DockerHub on every push to master
-- **Portfolio web layer** — About Me, Blog, Resume, and Weather App pages built with a structured design system (Impeccable), including dark mode, WCAG AA accessibility, and a responsive layout
-- **Observability Playground** — an interactive demo page where recruiters can stop and start a dummy container, spike its CPU, and watch real Prometheus alerts fire and resolve in real time
+- **Infrastructure as Code:** VMs provisioned with Terraform, configured with Ansible
+- **Containerized application stack:** Flask portfolio app, custom Prometheus exporter, Grafana, Loki, Promtail, Alertmanager, nginx reverse proxy
+- **Custom observability tooling:** a hand-built Prometheus exporter (`statporter`) that collects per-container CPU, memory, network, and disk I/O metrics via the Docker socket
+- **CI/CD pipeline:** GitHub Actions building and publishing Docker images to DockerHub on every push to master
+- **Portfolio web layer:** About Me, Blog, Resume, and Weather App pages built with a structured design system (Impeccable), including dark mode, WCAG AA accessibility, and a responsive layout
+- **Observability Playground:** an interactive demo page where recruiters can stop and start a dummy container, spike its CPU, and watch real Prometheus alerts fire and resolve in real time
 
 ---
 
@@ -54,21 +54,21 @@ A full-stack observability and application platform running on a single Proxmox 
 
 ## Stack
 
-| Service        | Image                                          | Purpose                                               |
-| -------------- | ---------------------------------------------- | ----------------------------------------------------- |
-| nginx          | `nginx:stable-alpine3.23`                      | Reverse proxy, sub-path routing                       |
-| weather-app    | `burningstar4/weather-app`                     | Flask portfolio app — UI, API, and playground routes  |
-| demo-container | `burningstar4/demo-container`                  | Disposable dummy container — playground toggle target |
-| prometheus     | `prom/prometheus:v3.11.3`                      | Metrics collection, alerting, and storage             |
-| alertmanager   | `prom/alertmanager:v0.32.1`                    | Alert routing (null receiver — alerts visible in UI)  |
-| grafana        | `grafana/grafana:13.0.1-security-01`           | Metrics and log visualization                         |
-| loki           | `grafana/loki:3.7.2`                           | Log aggregation                                       |
-| promtail       | `grafana/promtail:3.6.11`                      | Log shipping — Docker socket autodiscovery            |
-| statporter     | `burningstar4/statporter`                      | Custom Prometheus exporter for Docker stats           |
-| tempo          | `grafana/tempo:2.10.0`                         | Distributed trace storage backend                     |
-| otel-collector | `otel/opentelemetry-collector-contrib:0.152.0` | OTLP span receiver, batches traces to Tempo           |
+| Service        | Image                                          | Purpose                                              |
+| -------------- | ---------------------------------------------- | ---------------------------------------------------- |
+| nginx          | `nginx:stable-alpine3.23`                      | Reverse proxy, sub-path routing                      |
+| weather-app    | `burningstar4/weather-app`                     | Flask portfolio app: UI, API, and playground routes  |
+| demo-container | `burningstar4/demo-container`                  | Disposable dummy container, playground toggle target |
+| prometheus     | `prom/prometheus:v3.11.3`                      | Metrics collection, alerting, and storage            |
+| alertmanager   | `prom/alertmanager:v0.32.1`                    | Alert routing (null receiver, alerts visible in UI)  |
+| grafana        | `grafana/grafana:13.0.1-security-01`           | Metrics and log visualization                        |
+| loki           | `grafana/loki:3.7.2`                           | Log aggregation                                      |
+| promtail       | `grafana/promtail:3.6.11`                      | Log shipping, Docker socket autodiscovery            |
+| statporter     | `burningstar4/statporter`                      | Custom Prometheus exporter for Docker stats          |
+| tempo          | `grafana/tempo:2.10.0`                         | Distributed trace storage backend                    |
+| otel-collector | `otel/opentelemetry-collector-contrib:0.152.0` | OTLP span receiver, batches traces to Tempo          |
 
-Every container is configured with explicit CPU and memory limits, reservations, and log rotation (`max-size: 50m`, `max-file: 5`). Healthchecks are configured on all services except Loki (distroless — no shell), Promtail, and nginx. Grafana exposes anonymous read-only access by default — admin credentials are set via `.env`.
+Every container is configured with explicit CPU and memory limits, reservations, and log rotation (`max-size: 50m`, `max-file: 5`). Healthchecks are configured on all services except Loki (distroless, no shell), Promtail, and nginx. Grafana exposes anonymous read-only access by default; admin credentials are set via `.env`.
 
 ---
 
@@ -94,9 +94,9 @@ It collects the following metrics per container by querying the Docker socket di
 
 The playground (`/playground`) is a passphrase-protected interactive demo that makes the full alerting loop tangible:
 
-- **Stop/start `demo-container`** — triggers the `DemoContainerDown` alert in Prometheus within 90 seconds
-- **Spike CPU for 60 seconds** — triggers the `DemoContainerHighCPU` alert within 60 seconds
-- **Live alert feed** — polls `/prometheus/api/v1/alerts` every 10 seconds and displays firing alerts in real time
+- **Stop/start `demo-container`:** triggers the `DemoContainerDown` alert in Prometheus within 90 seconds
+- **Spike CPU for 60 seconds:** triggers the `DemoContainerHighCPU` alert within 60 seconds
+- **Live alert feed:** polls `/prometheus/api/v1/alerts` every 10 seconds and displays firing alerts in real time
 
 `demo-container` is a purpose-built disposable Flask app. Stopping it during a demo does not affect any real service.
 
@@ -114,7 +114,7 @@ The passphrase rotates every 4 hours, derived via HMAC-SHA256 from `PLAYGROUND_S
 
 ![Weather App](docs/screenshots/weather-app.png)
 
-### Grafana — Container Metrics Dashboard
+### Grafana: Container Metrics Dashboard
 
 ![Grafana Dashboard](docs/screenshots/grafana-dashboard.png)
 
@@ -175,13 +175,13 @@ curl -s -H "Authorization: Bearer $PLAYGROUND_ADMIN_KEY" \
 ```
 homelab-infra/
 ├── terraform/               # VM provisioning (Proxmox via Telmate provider)
-├── lamp-ansible/            # Ansible playbooks — LAMP stack
-├── scripts/                 # Bash scripts — VM template preparation
+├── lamp-ansible/            # Ansible playbooks: LAMP stack
+├── scripts/                 # Bash scripts: VM template preparation
 ├── weather-app/
-│   ├── demo-container/      # Disposable Flask app — playground toggle target
-│   ├── docker-src/          # Flask app source — built into burningstar4/weather-app
+│   ├── demo-container/      # Disposable Flask app: playground toggle target
+│   ├── docker-src/          # Flask app source: built into burningstar4/weather-app
 │   │   ├── main.py          # Flask routes and blueprint registration
-│   │   ├── playground.py    # Playground blueprint — auth, toggle, stress, alerts
+│   │   ├── playground.py    # Playground blueprint: auth, toggle, stress, alerts
 │   │   ├── templates/       # Jinja2 HTML templates (all pages)
 │   │   └── static/          # CSS, favicon, icons
 │   └── docker-final/        # Production Docker Compose stack
@@ -235,7 +235,7 @@ make scan         # Trivy CRITICAL CVE scan across all stack images
 ## What's Next
 
 - [x] CI/CD pipeline via GitHub Actions
-- [x] Observability Playground — interactive alert demo for recruiters
+- [x] Observability Playground: interactive alert demo for recruiters
 - [ ] Migrate stack to Kubernetes (manifests in progress)
 - [ ] Deploy to AWS (ECS or EKS) with Terraform
 - [ ] TLS via ACM + Route53 custom domain

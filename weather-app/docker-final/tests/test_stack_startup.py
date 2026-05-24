@@ -27,6 +27,8 @@ ALL_SERVICES = [
     "statporter",
     "alertmanager",
     "demo-container",
+    "tempo",
+    "otel-collector",
 ]
 
 HEALTHCHECK_SERVICES = [
@@ -65,6 +67,20 @@ _KNOWN_SAFE: dict[str, list[str]] = {
         # migration fail tsdb path validation. Local volumes only — CI starts clean.
         # Clears automatically once 168h retention expires the old boltdb tables.
         "invalid tsdb path",
+    ],
+    "tempo": [
+        # WAL block directory exists but meta.json was not written (unclean shutdown).
+        # Tempo removes the incomplete block and continues — benign recovery path.
+        "failed to replay block",
+        # Frontend processor drains in-flight requests on shutdown — always fires on stop.
+        "queue is stopped",
+    ],
+    "otel-collector": [
+        # gRPC warn on initial connection attempt before Tempo accepts connections.
+        "addrConn.createTransport failed",
+        # retry_sender logs at info level but the JSON payload contains "error" — caught
+        # by our regex. These are expected retries while Tempo comes up on any restart.
+        "Exporting failed. Will retry",
     ],
 }
 
@@ -162,6 +178,32 @@ class TestCleanStartupLogs:
                 f"'{name}' has {len(error_lines)} unexpected error log line(s):\n"
                 f"{sample}{tail}"
             )
+
+
+class TestDistrolessReadiness:
+    """Loki and Tempo are distroless — no Docker healthcheck.
+    Verify they are serving by polling /ready via prometheus (Alpine, has wget)."""
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "http://loki:3100/ready",
+            "http://tempo:3200/ready",
+        ],
+    )
+    def test_ready_endpoint(self, containers, url):
+        prom = containers["prometheus"]
+        if prom is None:
+            pytest.skip("prometheus not found — cannot poll distroless readiness")
+        result = prom.exec_run(f"wget -q -O- {url}", demux=False)
+        assert result.exit_code == 0, (
+            f"{url} returned non-zero exit code {result.exit_code} — "
+            f"service may not be ready yet"
+        )
+        body = result.output.decode("utf-8", errors="replace").strip()
+        assert "ready" in body.lower(), (
+            f"{url} response did not contain 'ready': {body!r}"
+        )
 
 
 class TestStatporterCollector:
