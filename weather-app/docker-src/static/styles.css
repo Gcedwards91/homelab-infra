@@ -9,6 +9,7 @@
   --text-primary: #333;
   --text-secondary: #555;
   --text-muted: #717171;
+  --text-inverse: #ffffff;
   --border-light: #eee;
   --border-input: #ccc;
   --background-page: #f4f6f9;
@@ -20,7 +21,7 @@
   --border-radius-input: 8px;
   --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05);
   --tooltip-bg: #333333;
-  --tooltip-text: #ffffff;
+  --tooltip-text: var(--text-inverse);
 }
 
 /* -----------------------------------------------------------------------
@@ -105,7 +106,7 @@ section.fade-in h2 {
 }
 
 .navbar a {
-  color: white;
+  color: var(--text-inverse);
   text-decoration: none;
   font-weight: bold;
   transition: color 0.3s;
@@ -113,7 +114,7 @@ section.fade-in h2 {
 }
 
 .navbar a:hover {
-  color: #ffffff;
+  color: var(--text-inverse);
   text-decoration: underline;
 }
 
@@ -142,6 +143,9 @@ select {
   border-radius: var(--border-radius-input);
   border: 1px solid var(--border-input);
   font-size: 1rem;
+  font-family: inherit;
+  color: inherit;
+  background-color: var(--background-card);
   width: 100%;
   box-sizing: border-box;
 }
@@ -150,11 +154,12 @@ button {
   padding: 0.75rem;
   border: none;
   background: var(--brand-blue);
-  color: white;
+  color: var(--text-inverse);
   font-weight: bold;
+  font-family: inherit;
   border-radius: var(--border-radius-input);
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background-color 0.3s;
 }
 
 button:hover {

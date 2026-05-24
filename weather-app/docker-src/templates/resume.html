@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Resume — George "Cliff" Edwards</title>
+    <title>Resume | George "Cliff" Edwards</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
@@ -87,13 +87,13 @@
       .btn-download--primary {
         background: var(--brand-blue);
         border-color: var(--brand-blue);
-        color: white;
+        color: var(--text-inverse);
       }
 
       .btn-download--primary:hover {
         background: var(--brand-blue-dark);
         border-color: var(--brand-blue-dark);
-        color: white;
+        color: var(--text-inverse);
       }
 
       .btn-download--secondary {
@@ -496,7 +496,7 @@
         <p class="resume-summary">
           Self-taught platform and infrastructure engineer transitioning to DevOps. Deep background
           in large-scale endpoint management, Windows imaging, PowerShell automation, and enterprise
-          systems engineering &mdash; developed as the sole engineer over an 18,000-endpoint POS
+          systems engineering, developed as the sole engineer over an 18,000-endpoint POS
           environment at Inspire Brands. Four years of hands-on exposure to Docker, Kubernetes, and
           SIEM tooling in enterprise customer environments at Tripwire and Tenable. Building toward
           full-stack DevOps ownership through a structured homelab project, active AWS certification
@@ -564,8 +564,7 @@
             </li>
             <li>
               Primary technical contact for enterprise-wide incidents involving Tenable products in
-              complex customer environments &mdash; Docker, Kubernetes, and SIEM integrations at
-              scale.
+              complex customer environments: Docker, Kubernetes, and SIEM integrations at scale.
             </li>
             <li>
               Mentored fellow engineers on technical troubleshooting methodology and professional
@@ -646,9 +645,9 @@
           <ul class="experience-entry__bullets">
             <li>
               Sole infrastructure engineer responsible for the stability and lifecycle of an
-              18,000-endpoint POS environment across 1,200+ corporate locations &mdash; including
-              POS registers, Kitchen Video Systems, Manager&#8217;s Workstations, receipt printers,
-              cash drawers, and order confirmation boards.
+              18,000-endpoint POS environment across 1,200+ corporate locations, including POS
+              registers, Kitchen Video Systems, Manager&#8217;s Workstations, receipt printers, cash
+              drawers, and order confirmation boards.
             </li>
             <li>
               Inherited an environment without a domain controller, WSUS, or WDS server. Built
@@ -664,8 +663,8 @@
             </li>
             <li>
               Reverse-engineered all existing deployment automation written in WinBatch by a prior
-              administrator &mdash; without access to source code &mdash; and rewrote it in
-              PowerShell with added redundancy, error handling, and logging.
+              administrator (without access to source code) and rewrote it in PowerShell with added
+              redundancy, error handling, and logging.
             </li>
             <li>
               Built a suite of GUI-driven configuration tools (RegStager, KPCConf, MWSConf) used by
@@ -708,7 +707,7 @@
             <span class="project-entry__date">May 2025 &ndash; Present</span>
           </div>
           <p class="project-entry__context">
-            Personal &mdash;
+            Personal:
             <a
               href="https://github.com/Gcedwards91/homelab-infra"
               target="_blank"
@@ -719,8 +718,8 @@
           <ul class="project-entry__bullets">
             <li>
               Built a structured, five-phase DevOps homelab project demonstrating end-to-end
-              infrastructure ownership &mdash; from bare-metal Proxmox provisioning through
-              containerized application deployment and custom observability tooling.
+              infrastructure ownership, from bare-metal Proxmox provisioning through containerized
+              application deployment and custom observability tooling.
             </li>
             <li>
               Phase 1 &amp; 2: Provisioned Proxmox hypervisor, built VM templates (Ubuntu, Debian,
@@ -730,22 +729,22 @@
             </li>
             <li>
               Phase 3 &amp; 4: Containerized the full observability and application stack using
-              Docker Compose &mdash; Flask weather app served by Gunicorn, nginx reverse proxy with
+              Docker Compose: Flask weather app served by Gunicorn, nginx reverse proxy with
               sub-path routing, Prometheus, Grafana (dashboards provisioned as code), Loki, and
               Promtail with Docker socket autodiscovery. All images pinned to specific versions. All
               services have healthchecks. Credentials managed via environment variables, excluded
               from version control.
             </li>
             <li>
-              Built Statporter &mdash; a custom Prometheus exporter written in Python/Flask/Gunicorn
-              that collects per-container CPU, memory, network, and disk I/O metrics by querying the
+              Built Statporter, a custom Prometheus exporter written in Python/Flask/Gunicorn that
+              collects per-container CPU, memory, network, and disk I/O metrics by querying the
               Docker socket directly. Built to work around cgroups v2 compatibility issues with
               existing exporters at the time.
             </li>
             <li>
-              Phase 5 (In Progress): Kubernetes manifest migration and AWS deployment &mdash; ALB,
-              ACM, Route53, Secrets Manager, Terraform. AWS Solutions Architect Associate
-              certification in progress.
+              Phase 5 (In Progress): Kubernetes manifest migration and AWS deployment: ALB, ACM,
+              Route53, Secrets Manager, Terraform. AWS Solutions Architect Associate certification
+              in progress.
             </li>
           </ul>
         </article>
@@ -828,6 +827,7 @@
         <a
           href="https://github.com/Gcedwards91"
           target="_blank"
+          rel="noopener noreferrer"
           aria-label="Cliff Edwards on GitHub"
         >
           <img
@@ -839,6 +839,7 @@
         <a
           href="https://www.linkedin.com/in/gcedwards91/"
           target="_blank"
+          rel="noopener noreferrer"
           aria-label="Cliff Edwards on LinkedIn"
         >
           <img

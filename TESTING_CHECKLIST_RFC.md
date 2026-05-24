@@ -39,6 +39,8 @@ docker compose ps
 - [ ] `statporter` — status Up (healthy)
 - [ ] `alertmanager` — status Up (healthy)
 - [ ] `demo-container` — status Up (healthy)
+- [ ] `tempo` — status Up, no restart loops (distroless — no healthcheck)
+- [ ] `otel-collector` — status Up, no restart loops
 
 ### 1.2 Healthchecks pass
 
@@ -52,13 +54,15 @@ docker inspect --format='{{.Name}} {{.State.Health.Status}}' $(docker compose ps
 - [ ] alertmanager — `healthy`
 - [ ] demo-container — `healthy`
 
-Loki, Promtail, and reverse-proxy have no Docker healthcheck. Verify Loki is serving:
+Loki, Tempo, Promtail, otel-collector, and reverse-proxy have no Docker healthcheck. Verify Loki and Tempo are serving:
 
 ```bash
 docker exec prometheus wget -q -O- http://loki:3100/ready
+docker exec prometheus wget -q -O- http://tempo:3200/ready
 ```
 
-- [ ] Returns `ready`
+- [ ] Loki returns `ready`
+- [ ] Tempo returns `ready`
 
 ### 1.3 No container has restarted unexpectedly
 

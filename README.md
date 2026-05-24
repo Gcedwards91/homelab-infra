@@ -42,6 +42,11 @@ A full-stack observability and application platform running on a single Proxmox 
                         │                                          │
                         │  loki ◀── promtail                       │
                         │  promtail ── /var/run/docker.sock        │
+                        │                                          │
+                        │  weather-app ──▶ otel-collector  :4317   │
+                        │  statporter  ──▶ otel-collector  :4317   │
+                        │  otel-collector ──▶ tempo         :4317  │
+                        │  grafana ──▶ tempo                :3200  │
                         └─────────────────────────────────────────┘
 ```
 
@@ -49,17 +54,19 @@ A full-stack observability and application platform running on a single Proxmox 
 
 ## Stack
 
-| Service        | Image                                | Purpose                                               |
-| -------------- | ------------------------------------ | ----------------------------------------------------- |
-| nginx          | `nginx:stable-alpine3.23`            | Reverse proxy, sub-path routing                       |
-| weather-app    | `burningstar4/weather-app`           | Flask portfolio app — UI, API, and playground routes  |
-| demo-container | `burningstar4/demo-container`        | Disposable dummy container — playground toggle target |
-| prometheus     | `prom/prometheus:v3.11.3`            | Metrics collection, alerting, and storage             |
-| alertmanager   | `prom/alertmanager:v0.32.1`          | Alert routing (null receiver — alerts visible in UI)  |
-| grafana        | `grafana/grafana:13.0.1-security-01` | Metrics and log visualization                         |
-| loki           | `grafana/loki:3.7.2`                 | Log aggregation                                       |
-| promtail       | `grafana/promtail:3.6.11`            | Log shipping — Docker socket autodiscovery            |
-| statporter     | `burningstar4/statporter`            | Custom Prometheus exporter for Docker stats           |
+| Service        | Image                                          | Purpose                                               |
+| -------------- | ---------------------------------------------- | ----------------------------------------------------- |
+| nginx          | `nginx:stable-alpine3.23`                      | Reverse proxy, sub-path routing                       |
+| weather-app    | `burningstar4/weather-app`                     | Flask portfolio app — UI, API, and playground routes  |
+| demo-container | `burningstar4/demo-container`                  | Disposable dummy container — playground toggle target |
+| prometheus     | `prom/prometheus:v3.11.3`                      | Metrics collection, alerting, and storage             |
+| alertmanager   | `prom/alertmanager:v0.32.1`                    | Alert routing (null receiver — alerts visible in UI)  |
+| grafana        | `grafana/grafana:13.0.1-security-01`           | Metrics and log visualization                         |
+| loki           | `grafana/loki:3.7.2`                           | Log aggregation                                       |
+| promtail       | `grafana/promtail:3.6.11`                      | Log shipping — Docker socket autodiscovery            |
+| statporter     | `burningstar4/statporter`                      | Custom Prometheus exporter for Docker stats           |
+| tempo          | `grafana/tempo:2.10.0`                         | Distributed trace storage backend                     |
+| otel-collector | `otel/opentelemetry-collector-contrib:0.152.0` | OTLP span receiver, batches traces to Tempo           |
 
 Every container is configured with explicit CPU and memory limits, reservations, and log rotation (`max-size: 50m`, `max-file: 5`). Healthchecks are configured on all services except Loki (distroless — no shell), Promtail, and nginx. Grafana exposes anonymous read-only access by default — admin credentials are set via `.env`.
 
@@ -192,7 +199,7 @@ homelab-infra/
 ├── DESIGN.md                # Visual design system tokens and component specs
 ├── PLAYGROUND_RFC.md        # Implementation spec for the playground feature (SHIPPED)
 ├── CI_LOOP_RFC.md           # CI self-healing loop spec (SHIPPED)
-├── TRACE_LOGS_RFC.md        # Distributed tracing spec (planned)
+├── TRACE_LOGS_RFC.md        # Distributed tracing spec (SHIPPED)
 └── TESTING_CHECKLIST_RFC.md # End-to-end testing checklist
 ```
 

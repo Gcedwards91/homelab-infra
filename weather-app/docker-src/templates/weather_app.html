@@ -9,14 +9,14 @@
   </head>
   <body>
     <div class="container">
-      <div class="navbar">
+      <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
         <a href="{{ url_for('index') }}">Homelab Blog</a>
         <a href="{{ url_for('resume') }}">Resume</a>
-        <a href="{{ url_for('weather_app') }}">Weather App</a>
+        <a href="{{ url_for('weather_app') }}" aria-current="page">Weather App</a>
         <a href="{{ url_for('playground.index') }}">Playground</a>
         <a href="/grafana/">Grafana</a>
-      </div>
+      </nav>
 
       <h1>Weather Finder</h1>
 
@@ -64,6 +64,7 @@
         <a
           href="https://github.com/Gcedwards91"
           target="_blank"
+          rel="noopener noreferrer"
           aria-label="Cliff Edwards on GitHub"
         >
           <img
@@ -75,6 +76,7 @@
         <a
           href="https://www.linkedin.com/in/gcedwards91/"
           target="_blank"
+          rel="noopener noreferrer"
           aria-label="Cliff Edwards on LinkedIn"
         >
           <img

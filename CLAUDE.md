@@ -185,7 +185,9 @@ The UI was built and refined using the `/impeccable` skill. PRODUCT.md and DESIG
   --background-card: #ffffff /* card/container background */ --error-color: #b91c1c /* error text */
   --error-bg: #fef2f2 /* error background */ --error-border: #fecaca /* error border */
   --border-radius-card: 12px /* containers */ --border-radius-input: 8px /* inputs, buttons */
-  --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05) --tooltip-bg: #333333 --tooltip-text: #ffffff;
+  --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05) --tooltip-bg: #333333
+  --tooltip-text: var(--text-inverse) --text-inverse: #ffffff
+  /* white text on blue surfaces — nav, buttons, tooltips */;
 ```
 
 ### Dark Mode
@@ -200,11 +202,12 @@ Dark mode overrides page/card backgrounds to charcoal family (`#14161d` / `#1e20
 - No gradient text (`background-clip: text`)
 - No glassmorphism
 - No `#000` or `#fff` as raw values — use tokens
+- No em dashes in copy — use commas, colons, semicolons, or parentheses
 - Global `ul { list-style: none }` is a reset — any semantic bullet list must explicitly set `list-style: disc`
 
 ### Nav
 
-Blueprint Blue background, white bold text, 12px radius (matches card). Links have `padding: 0.35rem 0.5rem` for touch target size. Focus ring is white (`rgba(255,255,255,0.85)`) not blue-on-blue.
+Blueprint Blue background, `var(--text-inverse)` text, 12px radius (matches card). Links have `padding: 0.35rem 0.5rem` for touch target size. Focus ring is white (`rgba(255,255,255,0.85)`) not blue-on-blue. Active page link uses `aria-current="page"`. All nav elements must be `<nav>` not `<div>`.
 
 ### Callout/Note
 
@@ -220,7 +223,7 @@ Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. 
 - All interactive elements have `:focus-visible` styles
 - `prefers-reduced-motion` block suppresses all animations
 - `role="alert"` and `aria-live` on dynamic regions in weather app
-- Footer icon links use `aria-label` with descriptive text; icons are `aria-hidden="true"`
+- Footer icon links use `aria-label` with descriptive text; icons are `aria-hidden="true"`; all external links include `rel="noopener noreferrer"`
 - Tooltip triggers have `tabindex="0"` and respond to focus/click/tap in addition to hover
 
 ---
