@@ -8,6 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="container">
       <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
@@ -15,10 +16,10 @@
         <a href="{{ url_for('resume') }}">Resume</a>
         <a href="{{ url_for('weather_app') }}" aria-current="page">Weather App</a>
         <a href="{{ url_for('playground.index') }}">Playground</a>
-        <a href="/grafana/">Grafana</a>
+        <a href="/grafana/d/homelab-observability">Grafana</a>
       </nav>
 
-      <h1>Weather Finder</h1>
+      <h1 id="main-content">Weather Finder</h1>
 
       <p class="note">
         <strong>Note:</strong> This app requires you to bring your own

@@ -440,6 +440,7 @@
   </head>
 
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="container container--wide">
       <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
@@ -447,12 +448,12 @@
         <a href="{{ url_for('resume') }}" aria-current="page">Resume</a>
         <a href="{{ url_for('weather_app') }}">Weather App</a>
         <a href="{{ url_for('playground.index') }}">Playground</a>
-        <a href="/grafana/">Grafana</a>
+        <a href="/grafana/d/homelab-observability">Grafana</a>
       </nav>
 
       <!-- Header -->
       <header class="resume-header">
-        <h1>George &#8220;Cliff&#8221; Edwards</h1>
+        <h1 id="main-content">George &#8220;Cliff&#8221; Edwards</h1>
         <p class="resume-subtitle">DevOps Engineer</p>
         <ul class="resume-contact">
           <li>Atlanta, GA</li>

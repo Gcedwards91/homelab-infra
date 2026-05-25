@@ -8,6 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="container container--wide">
       <nav class="navbar">
         <a href="{{ url_for('about_me') }}" aria-current="page">About Me</a>
@@ -15,10 +16,10 @@
         <a href="{{ url_for('resume') }}">Resume</a>
         <a href="{{ url_for('weather_app') }}">Weather App</a>
         <a href="{{ url_for('playground.index') }}">Playground</a>
-        <a href="/grafana/">Grafana</a>
+        <a href="/grafana/d/homelab-observability">Grafana</a>
       </nav>
 
-      <h1>George "Cliff" Edwards</h1>
+      <h1 id="main-content">George "Cliff" Edwards</h1>
 
       <p class="note">
         This page is a live cover letter. It is the story of this project, my story as a man, and as

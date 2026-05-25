@@ -51,6 +51,7 @@
   </head>
 
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="container container--wide">
       <nav class="navbar">
         <a href="{{ url_for('about_me') }}">About Me</a>
@@ -58,10 +59,10 @@
         <a href="{{ url_for('resume') }}">Resume</a>
         <a href="{{ url_for('weather_app') }}">Weather App</a>
         <a href="{{ url_for('playground.index') }}">Playground</a>
-        <a href="/grafana/">Grafana</a>
+        <a href="/grafana/d/homelab-observability">Grafana</a>
       </nav>
 
-      <h1>Homelab Infrastructure Project (Started 5/20/2025)</h1>
+      <h1 id="main-content">Homelab Infrastructure Project (Started 5/20/2025)</h1>
 
       <p>This is a homelab project I spun up to get familiar with:</p>
       <ul class="intro-list">
