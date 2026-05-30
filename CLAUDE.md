@@ -272,15 +272,19 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Tests (integration tests shipped : unit tests still needed)
+### Tests (phases 1 and 2 shipped : unit tests still needed)
 
-Integration tests exist at `weather-app/docker-final/tests/test_stack_startup.py` and run in CI via `integration-tests.yml`. They cover stack startup and health checks (TESTING_CHECKLIST.md sections 1.1–1.4) and statporter scrape performance.
+| File                              | Checklist coverage                                                                                                                                                                                                                                                                             |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/test_stack_startup.py`     | Sections 1.1–1.4 (stack startup, healthchecks, restart counts, clean logs) + statporter scrape performance                                                                                                                                                                                     |
+| `tests/test_weather_app_pages.py` | Section 2 server-side items: page loads (2.1), navbar hrefs + text (2.2), `/weather` input validation and error shape (2.3–2.4), resume download link presence (2.5), `/healthz` + `X-Request-ID` header (2.8). Browser-only items (2.6 dark mode, 2.7 mobile, JS interactions) remain manual. |
+
+Both files run in CI via `integration-tests.yml`. `requirements-dev.txt` includes `pytest`, `docker`, and `requests`.
 
 Still needed:
 
-- `pytest` suite for Flask routes (`main.py`) : status codes, healthz, weather error handling
+- `weather.py` unit tests : mock `requests.get`, assert all error paths return user-friendly messages without leaking the API key URL or raw exception details
 - Playground auth unit tests : passphrase derivation, window boundary/grace period, session expiry
-- `weather.py` unit tests : mock `requests.get`, assert error messages don't leak the API key URL
 - statporter unit tests : `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
 
 New test files must follow the naming convention in `CI_LOOP_RFC.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.

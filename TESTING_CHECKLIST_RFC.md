@@ -85,56 +85,60 @@ docker compose logs --no-color 2>&1 | grep -iE "error|fatal|panic|exception" | g
 
 ## 2. Weather App — All Pages
 
+> **Automation coverage:** Server-side items are covered by `tests/test_weather_app_pages.py` (34 tests).
+> Run `pytest tests/test_weather_app_pages.py -v` after stack startup to exercise all automated items.
+> Items marked _(browser only)_ cannot be automated without a headless browser and must be checked manually.
+
 ### 2.1 Page loads
 
 For each URL, verify: HTTP 200, page renders, navbar is present with all links:
 
-- [ ] `http://localhost` — Blog index page loads, at least 2 blog posts visible
-- [ ] `http://localhost/about_me` — About Me loads, all sections visible, tooltips render
-- [ ] `http://localhost/resume` — Resume page loads, all sections visible (Summary, Skills, Experience, Projects, Education), bullet points have markers, download buttons present
-- [ ] `http://localhost/weather_app` — Weather form loads, all form fields present
+- [ ] `http://localhost` — Blog index page loads, at least 2 blog posts visible _(automated)_
+- [ ] `http://localhost/about_me` — About Me loads, all sections visible, tooltips render _(automated)_
+- [ ] `http://localhost/resume` — Resume page loads, all sections visible (Summary, Skills, Experience, Projects, Education), bullet points have markers, download buttons present _(automated)_
+- [ ] `http://localhost/weather_app` — Weather form loads, all form fields present _(automated)_
 
 ### 2.2 Navbar
 
 On every page:
 
-- [ ] All navbar links are present: About Me, Homelab Blog, Resume, Weather App, Playground, Grafana
-- [ ] Navbar links are functional — clicking each navigates correctly
+- [ ] All navbar links are present: About Me, Homelab Blog, Resume, Weather App, Playground, Grafana _(automated)_
+- [ ] Navbar links are functional — clicking each navigates correctly _(browser only)_
 
 ### 2.3 Weather lookup
 
-- [ ] Enter a valid city name (e.g. "Atlanta") and a valid OpenWeatherMap API key, submit
-- [ ] Weather data appears: city name, temperature, feels like, condition, humidity, wind speed
-- [ ] No `innerHTML` injection — weather data renders as plain text
-- [ ] Enter an invalid city name — error message appears in the error div (not an unhandled exception)
-- [ ] Enter no location — browser-level required field validation fires before submission
+- [ ] Enter a valid city name (e.g. "Atlanta") and a valid OpenWeatherMap API key, submit _(browser only)_
+- [ ] Weather data appears: city name, temperature, feels like, condition, humidity, wind speed _(browser only)_
+- [ ] No `innerHTML` injection — weather data renders as plain text _(browser only)_
+- [ ] Enter an invalid city name — error message appears in the error div (not an unhandled exception) _(browser only — server-side error shape and no-exception-leak automated)_
+- [ ] Enter no location — browser-level required field validation fires before submission _(automated: `required` attribute present; browser behavior itself is browser only)_
 
 ### 2.4 Error states
 
-- [ ] Weather API returns error — `#error` div shows user-friendly message, not raw JSON
-- [ ] Submit button shows "Fetching..." while request is in flight
-- [ ] Submit button re-enables after response (success or error)
-- [ ] Clicking submit rapidly multiple times — only one request fires at a time (button disables on click)
+- [ ] Weather API returns error — `#error` div shows user-friendly message, not raw JSON _(automated: server returns `{"error": "..."}` with no exception tokens; div rendering is browser only)_
+- [ ] Submit button shows "Fetching..." while request is in flight _(browser only)_
+- [ ] Submit button re-enables after response (success or error) _(browser only)_
+- [ ] Clicking submit rapidly multiple times — only one request fires at a time (button disables on click) _(browser only)_
 
 ### 2.5 Resume downloads _(requires files in static/)_
 
-- [ ] "Download PDF" button — browser triggers download of `Cliff_Edwards_Resume.pdf`
-- [ ] "Download DOCX" button — browser triggers download of `Cliff_Edwards_Resume.docx`
+- [ ] "Download PDF" button — browser triggers download of `Cliff_Edwards_Resume.pdf` _(automated: link presence and filename verified; browser download trigger is browser only)_
+- [ ] "Download DOCX" button — browser triggers download of `Cliff_Edwards_Resume.docx` _(automated: link presence and filename verified; browser download trigger is browser only)_
 
 ### 2.6 Dark mode
 
-- [ ] Set OS to dark mode — all pages switch to dark theme automatically
-- [ ] No light-mode colors bleed through in dark mode (check nav, cards, text, error states)
-- [ ] Return OS to light mode — pages return to light theme
+- [ ] Set OS to dark mode — all pages switch to dark theme automatically _(browser only)_
+- [ ] No light-mode colors bleed through in dark mode (check nav, cards, text, error states) _(browser only)_
+- [ ] Return OS to light mode — pages return to light theme _(browser only)_
 
 ### 2.7 Mobile responsiveness
 
 Resize browser to 375px width or use DevTools mobile emulation:
 
-- [ ] Navbar wraps without horizontal scroll
-- [ ] Container padding reduces (no content clipping)
-- [ ] Skills grid on resume collapses to single column
-- [ ] No horizontal scrollbar on any page
+- [ ] Navbar wraps without horizontal scroll _(browser only)_
+- [ ] Container padding reduces (no content clipping) _(browser only)_
+- [ ] Skills grid on resume collapses to single column _(browser only)_
+- [ ] No horizontal scrollbar on any page _(browser only)_
 
 ### 2.8 Health check
 
@@ -142,7 +146,7 @@ Resize browser to 375px width or use DevTools mobile emulation:
 curl http://localhost/healthz
 ```
 
-- [ ] Returns `{"status": "ok"}` with HTTP 200
+- [ ] Returns `{"status": "ok"}` with HTTP 200 _(automated)_
 
 ---
 
