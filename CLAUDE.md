@@ -95,7 +95,7 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 | promtail       | grafana/promtail:3.6.11                      | Log shipping from Docker socket         |
 | statporter     | burningstar4/statporter:latest               | Custom Docker stats Prometheus exporter |
 | alertmanager   | prom/alertmanager:v0.32.1                    | Alert routing (null receiver)           |
-| tempo          | grafana/tempo:2.10.0                         | Trace storage backend                   |
+| tempo          | grafana/tempo:2.10.5                         | Trace storage backend                   |
 | otel-collector | otel/opentelemetry-collector-contrib:0.152.0 | OTLP span receiver, batches to Tempo    |
 
 All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki, Tempo (both distroless : no shell), Promtail, and reverse-proxy.
