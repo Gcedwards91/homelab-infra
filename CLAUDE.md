@@ -102,47 +102,7 @@ All services have resource limits, restart policies, and `logging=true` labels f
 
 ---
 
-## Running Locally
-
-```bash
-cd weather-app/docker-final
-cp .env.example .env
-# Edit .env : set GRAFANA_ADMIN_PASSWORD at minimum
-docker compose pull
-docker compose up -d
-docker compose ps   # verify all healthy
-```
-
-URLs once running:
-
-- `http://localhost` : Portfolio app
-- `http://localhost/grafana` : Grafana (read-only without login)
-- `http://localhost/prometheus` : Prometheus UI
-
-To build images locally before running:
-
-```bash
-make build-weather      # builds burningstar4/weather-app:latest
-make build-statporter   # builds burningstar4/statporter:latest
-make build-demo         # builds burningstar4/demo-container:latest
-make build-all          # builds all three
-```
-
----
-
 ## Flask Application (weather-app/docker-src/)
-
-**Routes:**
-
-- `GET /` : Blog index (index.html)
-- `GET /about_me` : About Me / live cover letter (about_me.html)
-- `GET /resume` : Resume page (resume.html)
-- `GET /weather_app` : Weather lookup app (weather_app.html)
-- `GET /grafana.html` : Grafana link page (grafana.html)
-- `POST /weather` : JSON API, calls OpenWeatherMap
-- `GET /healthz` : Health check, returns `{"status": "ok"}`
-- `GET /metrics` : Prometheus metrics (prometheus-flask-exporter)
-- `GET /favicon.ico` : Favicon
 
 **Conventions:**
 
@@ -151,80 +111,11 @@ make build-all          # builds all three
 - Structured JSON logging via `python-json-logger`; logger setup in `logger.py`
 - Prometheus metrics are auto-instrumented via `PrometheusMetrics(app)` at app init
 
-**Blueprint registration pattern (for playground):**
-
-```python
-from playground import playground_bp
-app.register_blueprint(playground_bp)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-key")
-```
-
 ---
 
-## Design System (Impeccable-based)
+## Design System
 
-The UI was built and refined using the `/impeccable` skill. PRODUCT.md and DESIGN.md are the authoritative source. Key conventions:
-
-### CSS Architecture
-
-- Single shared stylesheet: `weather-app/docker-src/static/styles.css`
-- CSS custom properties on `:root` for all tokens : no hard-coded values
-- Page-specific styles (resume) live in `<style>` blocks within the template
-- Prettier formats HTML/CSS on commit : 2-space indent, no trailing whitespace
-
-### Design Tokens (`:root`)
-
-```css
---brand-blue: #0058e6 /* primary accent, nav, buttons */ --brand-blue-dark: #0044b3
-  /* hover/pressed states */ --brand-blue-light: #cce0ff /* passive tints */
-  --brand-blue-tint: #f0f4ff /* callout backgrounds */ --brand-blue-link: #0058e6
-  /* content links (overridden in dark mode) */ --text-primary: #333 /* body text */
-  --text-secondary: #555 /* labels, supporting copy */ --text-muted: #717171
-  /* timestamps, captions : min 4.5:1 contrast */ --border-light: #eee /* dividers */
-  --border-input: #ccc /* input borders at rest */ --background-page: #f4f6f9 /* page background */
-  --background-card: #ffffff /* card/container background */ --error-color: #b91c1c /* error text */
-  --error-bg: #fef2f2 /* error background */ --error-border: #fecaca /* error border */
-  --border-radius-card: 12px /* containers */ --border-radius-input: 8px /* inputs, buttons */
-  --shadow-card: 0 0 20px rgba(0, 0, 0, 0.05) --tooltip-bg: #333333
-  --tooltip-text: var(--text-inverse) --text-inverse: #ffffff
-  /* white text on blue surfaces : nav, buttons, tooltips */;
-```
-
-### Dark Mode
-
-Implemented via `@media screen and (prefers-color-scheme: dark)` at the bottom of `styles.css`. Token overrides only : no JS. Print styles always use light mode (`@media screen` scoping).
-
-Dark mode overrides page/card backgrounds to charcoal family (`#14161d` / `#1e2029`), text to near-white scale, and `--brand-blue-link` to `#7dafff` (8.13:1 contrast on dark bg). Nav stays Blueprint Blue in both modes.
-
-### Absolute Bans
-
-- No `border-left` or `border-right` > 1px as colored accent (side-stripe pattern)
-- No gradient text (`background-clip: text`)
-- No glassmorphism
-- No `#000` or `#fff` as raw values : use tokens
-- No em dashes in copy : use commas, colons, semicolons, or parentheses
-- Global `ul { list-style: none }` is a reset : any semantic bullet list must explicitly set `list-style: disc`
-
-### Nav
-
-Blueprint Blue background, `var(--text-inverse)` text, 12px radius (matches card). Links have `padding: 0.35rem 0.5rem` for touch target size. Focus ring is white (`rgba(255,255,255,0.85)`) not blue-on-blue. Active page link uses `aria-current="page"`. All nav elements must be `<nav>` not `<div>`.
-
-### Callout/Note
-
-`.note` uses `background-color: var(--brand-blue-tint)` + `border: 1px solid var(--brand-blue-light)`. No `border-left` stripe : that pattern was removed.
-
-### Line Length
-
-Narrative prose (About Me sections, blog posts) is capped at `max-width: 68ch`. Resume summary is also capped. The wide container (`.container--wide`) itself stays at `max-width: 900px` : only prose paragraphs get the ch cap.
-
-### Accessibility
-
-- WCAG AA target throughout
-- All interactive elements have `:focus-visible` styles
-- `prefers-reduced-motion` block suppresses all animations
-- `role="alert"` and `aria-live` on dynamic regions in weather app
-- Footer icon links use `aria-label` with descriptive text; icons are `aria-hidden="true"`; all external links include `rel="noopener noreferrer"`
-- Tooltip triggers have `tabindex="0"` and respond to focus/click/tap in addition to hover
+UI built with `/impeccable`. PRODUCT.md and DESIGN.md are the authoritative source. Single stylesheet: `weather-app/docker-src/static/styles.css`. All values via CSS custom properties on `:root` : no hard-coded colors or radii.
 
 ---
 
@@ -326,11 +217,6 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 Interactive demo page at `/playground`. Implementation lives in `playground.py` (Blueprint) and `demo-container/app.py`.
 
-- Log in with a rolling time-limited passphrase (4-hour windows, HMAC-derived)
-- Stop/start `demo-container` : triggers `DemoContainerDown` alert within ~90 seconds
-- Spike CPU for 60 seconds : triggers `DemoContainerHighCPU` alert within ~60 seconds
-- Live alert feed polls `/prometheus/api/v1/alerts` every 10 seconds
-
 **Auth design:** Passphrase derived via HMAC-SHA256 of `PLAYGROUND_SECRET` + current time window. Never stored. Admin retrieves current passphrase via `GET /playground/passphrase` (Bearer `PLAYGROUND_ADMIN_KEY`). 5-minute grace period at window boundaries. Sessions expire after 30 minutes of inactivity.
 
 **Key implementation constraints:**
@@ -353,17 +239,6 @@ Interactive demo page at `/playground`. Implementation lives in `playground.py` 
 ### Distributed Tracing (SHIPPED)
 
 End-to-end OTel tracing across weather-app and statporter. Spans flow via OTLP gRPC → otel-collector → Tempo. Grafana unified observability dashboard (`homelab-observability`) surfaces metrics, traces, and logs in one view with a `$service` dropdown.
-
-**Key implementation facts:**
-
-- `FlaskInstrumentor().instrument_app(app)` placed immediately after `app = Flask(__name__)`, before `PrometheusMetrics(app)`
-- `RequestsInstrumentor().instrument()` called before app creation : instruments all `requests` calls including the OpenWeatherMap API call in `weather.py`
-- `LoggingInstrumentor().instrument(set_logging_format=True)` injects `otelTraceID` and `otelSpanID` into every log record; format string updated in `logger.py`
-- All OTel imports must be at the top with other imports; setup code runs after the last import (Flake8 E402)
-- `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317` and `OTEL_SERVICE_NAME` set as env vars in docker-compose; `OTLPSpanExporter()` reads them with no constructor args
-- Tempo config requires explicit `server.grpc_listen_port: 9095` and `querier.frontend_worker.frontend_address: 127.0.0.1:9095` to suppress startup warnings
-- Dashboard traces panel uses `type: "table"` + `queryType: "traceqlSearch"` (not `type: "traces"` which requires streaming)
-- nginx CSP updated to include `'unsafe-eval'` for Grafana table link rendering
 
 **Deferred from this implementation:**
 
