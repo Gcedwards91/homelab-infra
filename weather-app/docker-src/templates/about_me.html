@@ -163,9 +163,11 @@
           someone else to fix it, I built my own.
         </p>
         <p>
-          Every service has a healthcheck. Every image is pinned to a specific version. Credentials
-          are managed via environment variables and excluded from version control. The entire stack
-          deploys from a single
+          Every service that can expose a healthcheck has one; Loki and Tempo are distroless images
+          with no shell to probe, so their readiness is verified out-of-band. Vendor images are
+          pinned to specific versions, and my own images rebuild and publish on every push.
+          Credentials are managed via environment variables and excluded from version control. The
+          entire stack deploys from a single
           <code>docker compose up</code>.
         </p>
       </section>
@@ -194,21 +196,14 @@
           forced me to learn a lot, not only in technology or problem-solving. It activated some
           old, lost muscle memory. It forced me to relive my career in a way bullet points on a
           resume never could. To take stock of my journey. The result of that is some self
-          discovery. I am self-taught. I cannot say I am not naturally curious about this industry,
-          but I learn best by demand, not through academic curiosity. Whatever the problem in front
-          of me needs me to learn to overcome it, I learn it. This, of course, leaves me with gaps.
-          I will be honest about that. Even still, building this page, my dynamic resume page, and
-          this project reminded me of one thing. Then reinforced it. No matter the gaps I have, I
-          have a proven track record of high performance under pressure, stress, and constraints. I
-          will show up, and whatever I touch, it improves.
-        </p>
-        <p>
-          I do not intend to sound arrogant or defensive. I intend to sound pragmatic. For any
-          recruiters reading this, if I am not "the guy", I am not "the guy". Simple as that, and I
-          accept it. Simultaneously, if you are the betting type, the people who have bet on me in
-          their careers have all benefitted greatly from it. I have as well. I have learned what I
-          learned the hard way. Not through academia, not through theory alone, but through time in
-          the trenches.
+          discovery. I am self-taught. I am naturally curious about this industry, but I learn best
+          by demand, not through academic curiosity. Whatever the problem in front of me needs me to
+          learn to overcome it, I learn it. This, of course, leaves me with gaps. I will be honest
+          about that. Even still, building this page, my dynamic resume page, and this project
+          reminded me of one thing. Then reinforced it. No matter the gaps I have, I have a proven
+          track record of high performance under pressure, stress, and constraints. I will show up,
+          and whatever I touch, it improves. I had lost sight of where I've been. I see it more
+          clearly than ever now.
         </p>
       </section>
 
