@@ -272,14 +272,15 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Tests (phases 1 and 2 shipped : unit tests still needed)
+### Tests (phases 1, 2, and 3 shipped : unit tests still needed)
 
-| File                              | Checklist coverage                                                                                                                                                                                                                                                                             |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/test_stack_startup.py`     | Sections 1.1–1.4 (stack startup, healthchecks, restart counts, clean logs) + statporter scrape performance                                                                                                                                                                                     |
-| `tests/test_weather_app_pages.py` | Section 2 server-side items: page loads (2.1), navbar hrefs + text (2.2), `/weather` input validation and error shape (2.3–2.4), resume download link presence (2.5), `/healthz` + `X-Request-ID` header (2.8). Browser-only items (2.6 dark mode, 2.7 mobile, JS interactions) remain manual. |
+| File                                | Checklist coverage                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/test_stack_startup.py`       | Sections 1.1–1.4 (stack startup, healthchecks, restart counts, clean logs) + statporter scrape performance                                                                                                                                                                                                                                                            |
+| `tests/test_weather_app_pages.py`   | Section 2 server-side items: page loads (2.1), navbar hrefs + text (2.2), `/weather` input validation and error shape (2.3–2.4), resume download link presence (2.5), `/healthz` + `X-Request-ID` header (2.8). Browser-only items (2.6 dark mode, 2.7 mobile, JS interactions) remain manual.                                                                        |
+| `tests/test_observability_stack.py` | Section 3: Prometheus targets up (3.1), alert groups/rules loaded + none firing at rest (3.2), AlertManager linkage via Prometheus API (3.3), Grafana anonymous load + provisioned dashboard UIDs (3.4), Flask metrics via Prometheus (3.5), Loki ingestion via `docker exec` wget (3.6). Browser-only items (panel rendering, datasource error marks) remain manual. |
 
-Both files run in CI via `integration-tests.yml`. `requirements-dev.txt` includes `pytest`, `docker`, and `requests`.
+All three files run in CI via `integration-tests.yml`. `requirements-dev.txt` includes `pytest`, `docker`, and `requests`.
 
 Still needed:
 

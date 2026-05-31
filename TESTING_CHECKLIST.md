@@ -152,26 +152,31 @@ curl http://localhost/healthz
 
 ## 3. Observability Stack
 
+> **Automation coverage:** Sections 3.1–3.6 are covered by `tests/test_observability_stack.py` (25 tests).
+> Run `pytest tests/test_observability_stack.py -v` after stack startup to exercise all automated items.
+> Tests reach Prometheus and Grafana through nginx; Loki is queried via `docker exec prometheus wget` because Loki is not exposed on the host or routed through nginx. Flask metrics are checked through Prometheus (nginx returns 403 on `/metrics` to external clients), not by curling `/metrics` directly.
+> Items marked _(browser only)_ require visual inspection of rendered Grafana panels and must be checked manually.
+
 ### 3.1 Prometheus targets
 
 Open `http://localhost/prometheus/targets`:
 
-- [ ] `prometheus` - UP
-- [ ] `weather_app` - UP
-- [ ] `grafana` - UP
-- [ ] `loki` - UP
-- [ ] `promtail` - UP
-- [ ] `statporter` - UP
-- [ ] No target is in `DOWN` state
+- [ ] `prometheus` - UP _(automated)_
+- [ ] `weather_app` - UP _(automated)_
+- [ ] `grafana` - UP _(automated)_
+- [ ] `loki` - UP _(automated)_
+- [ ] `promtail` - UP _(automated)_
+- [ ] `statporter` - UP _(automated)_
+- [ ] No target is in `DOWN` state _(automated)_
 
 ### 3.2 Alert rules loaded
 
 Open `http://localhost/prometheus/rules`:
 
-- [ ] `container_alerts` group is present with 3 rules: ContainerDown, ContainerHighMemory, ContainerHighCPU
-- [ ] `stack_alerts` group is present with 2 rules: LokiIngestStopped, WeatherAppHighErrorRate
-- [ ] `playground_alerts` group is present with 2 rules: DemoContainerDown, DemoContainerHighCPU
-- [ ] All rules show state `inactive` (no false alerts at rest)
+- [ ] `container_alerts` group is present with 3 rules: ContainerDown, ContainerHighMemory, ContainerHighCPU _(automated)_
+- [ ] `stack_alerts` group is present with 2 rules: LokiIngestStopped, WeatherAppHighErrorRate _(automated)_
+- [ ] `playground_alerts` group is present with 2 rules: DemoContainerDown, DemoContainerHighCPU _(automated)_
+- [ ] All rules show state `inactive` (no false alerts at rest) _(automated: asserts no rule is `firing`; a transient `pending` is not treated as a failure)_
 
 ### 3.3 AlertManager reachable
 
@@ -181,35 +186,42 @@ curl http://localhost:9093/-/healthy
 
 Or open `http://localhost/prometheus/config` and verify alertmanager target is listed.
 
-- [ ] AlertManager is reachable from Prometheus (`alertmanager:9093`)
+> Note: AlertManager is not published on the host (`:9093` is internal only). The host-level `curl` above only works from inside the `monitoring` network; the automated test verifies the link via the Prometheus API instead.
+
+- [ ] AlertManager is reachable from Prometheus (`alertmanager:9093`) _(automated: verified via Prometheus `/api/v1/alertmanagers` activeAlertmanagers)_
 
 ### 3.4 Grafana dashboards
 
 Open `http://localhost/grafana`:
 
-- [ ] Grafana loads without login (anonymous viewer access)
-- [ ] At least one dashboard is listed in the dashboards panel
-- [ ] Container metrics dashboard renders - CPU, memory, network panels show data
-- [ ] No datasource errors (red exclamation marks on panels)
-- [ ] Loki logs panel shows recent log lines from at least one container
+- [ ] Grafana loads without login (anonymous viewer access) _(automated)_
+- [ ] At least one dashboard is listed in the dashboards panel _(automated: all three provisioned dashboard UIDs verified via `/grafana/api/search`)_
+- [ ] Container metrics dashboard renders - CPU, memory, network panels show data _(browser only)_
+- [ ] No datasource errors (red exclamation marks on panels) _(browser only - Grafana `database: ok` health is automated; per-panel datasource state is visual)_
+- [ ] Loki logs panel shows recent log lines from at least one container _(browser only - Loki ingestion itself is automated in 3.6)_
 
 ### 3.5 Prometheus metrics from Flask
 
+The host command below returns **403** — nginx blocks `/metrics` to external clients (Prometheus scrapes the container directly at `:5000`). Query Prometheus instead to confirm the metrics are being scraped:
+
 ```bash
-curl http://localhost/metrics | grep flask_http
+# This returns 403 (expected - external clients are blocked):
+curl -I http://localhost/metrics
+# Verify through Prometheus instead:
+curl -s 'http://localhost/prometheus/api/v1/query?query=flask_http_request_total' | python3 -m json.tool
 ```
 
-- [ ] `flask_http_request_total` metric is present with label dimensions
-- [ ] `flask_http_request_duration_seconds` metric is present
-- [ ] At least one `status="200"` label combination shows a count > 0
+- [ ] `flask_http_request_total` metric is present with label dimensions _(automated)_
+- [ ] `flask_http_request_duration_seconds` metric is present _(automated)_
+- [ ] At least one `status="200"` label combination shows a count > 0 _(automated)_
 
 ### 3.6 Loki receiving logs
 
-In Grafana Explore, query: `{container_name=~".+"}` with last 5 minutes:
+In Grafana Explore, query: `{container=~".+"}` with last 5 minutes (Promtail relabels the Docker container name to the `container` label, not `container_name`):
 
-- [ ] Log lines are present from `weather-app`
-- [ ] Log lines include structured JSON fields (not raw strings)
-- [ ] Log lines include `request_id` field from Flask logging middleware
+- [ ] Log lines are present from `weather-app` _(automated: queried via `{container="weather-app"}`)_
+- [ ] Log lines include structured JSON fields (not raw strings) _(automated)_
+- [ ] Log lines include `request_id` field from Flask logging middleware _(automated)_
 
 ---
 
