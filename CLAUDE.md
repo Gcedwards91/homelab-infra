@@ -272,15 +272,20 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Tests (phases 1, 2, and 3 shipped : unit tests still needed)
+### Tests (integration sections 1-4, 6, 9 shipped : unit tests still needed)
 
 | File                                | Checklist coverage                                                                                                                                                                                                                                                                                                                                                    |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tests/test_stack_startup.py`       | Sections 1.1–1.4 (stack startup, healthchecks, restart counts, clean logs) + statporter scrape performance                                                                                                                                                                                                                                                            |
 | `tests/test_weather_app_pages.py`   | Section 2 server-side items: page loads (2.1), navbar hrefs + text (2.2), `/weather` input validation and error shape (2.3–2.4), resume download link presence (2.5), `/healthz` + `X-Request-ID` header (2.8). Browser-only items (2.6 dark mode, 2.7 mobile, JS interactions) remain manual.                                                                        |
 | `tests/test_observability_stack.py` | Section 3: Prometheus targets up (3.1), alert groups/rules loaded + none firing at rest (3.2), AlertManager linkage via Prometheus API (3.3), Grafana anonymous load + provisioned dashboard UIDs (3.4), Flask metrics via Prometheus (3.5), Loki ingestion via `docker exec` wget (3.6). Browser-only items (panel rendering, datasource error marks) remain manual. |
+| `tests/test_nginx.py`               | Section 6: routing through nginx (Flask pages carry `X-Request-ID`, Grafana/Prometheus sub-paths, `/playground` 302-to-login, `/api/playground/status` 403, `/metrics` 403), no gateway-error leaks, and security headers (incl. CSP `unsafe-eval` for Grafana trace links). Browser navigation remains manual.                                                       |
+| `tests/test_weather_app.py`         | Section 9 server-side: admin passphrase endpoint auth (9.2), login gate + rolling-passphrase round trip via the admin endpoint (9.2), unauthenticated API 403s (9.3), and security checks (9.10: cross-container toggle rejected, passphrase never logged). Browser toggle/stress UI (9.4) remains manual.                                                            |
+| `tests/test_alerting.py`            | Sections 4 + 9.5/9.6 alerting lifecycle: ContainerDown (loki), DemoContainerDown, DemoContainerHighCPU each fire and resolve. **Destructive** (stops containers, spikes CPU): marked `@pytest.mark.destructive` and excluded from default runs.                                                                                                                       |
 
-All three files run in CI via `integration-tests.yml`. `requirements-dev.txt` includes `pytest`, `docker`, and `requests`.
+All non-destructive files run on every-push CI via `integration-tests.yml`. `requirements-dev.txt` includes `pytest`, `docker`, and `requests`.
+
+`pytest.ini` registers the `destructive` marker and sets `addopts = -m "not destructive"`, so `pytest tests/` skips the alerting lifecycle tests by default. Run them with `pytest tests/ -m destructive`, or in CI via the `integration-tests.yml` manual `workflow_dispatch` with `run_destructive=true` (the `destructive-alerting-tests` job spins up an isolated stack so a mid-run failure cannot poison the every-push suite).
 
 Still needed:
 

@@ -227,6 +227,14 @@ In Grafana Explore, query: `{container=~".+"}` with last 5 minutes (Promtail rel
 
 ## 4. Alerting
 
+> **Automation coverage:** The fire-and-resolve lifecycle for ContainerDown (loki),
+> DemoContainerDown, and DemoContainerHighCPU is covered by `tests/test_alerting.py`.
+> These tests are **destructive** (they stop containers and spike CPU), so they are
+> marked `@pytest.mark.destructive` and excluded from default runs. Run them with
+> `pytest tests/ -m destructive`, or in CI via the `integration-tests.yml` manual
+> dispatch with `run_destructive=true`. The manual steps below remain valid for
+> ad-hoc verification. (4.2 is covered structurally by 3.2 rule loading.)
+
 ### 4.1 ContainerDown alert fires and resolves
 
 ```bash
@@ -350,6 +358,10 @@ Make a change to `weather-app/demo-container/app.py`:
 
 ## 6. Nginx Routing
 
+> **Automation coverage:** Covered by `tests/test_nginx.py` (`TestNginxRouting`).
+> All assertions go through nginx on `:80`, exercising the reverse-proxy location
+> blocks. Browser navigation (clicking links) remains manual.
+
 ```bash
 # Test each location block directly
 curl -I http://localhost/                       # → Flask app (200)
@@ -363,12 +375,12 @@ curl -I http://localhost/playground             # → Flask playground (200 or 3
 curl -I http://localhost/api/playground/status  # → 403 if not authenticated
 ```
 
-- [ ] `/` routes to Flask (check response header `X-Request-ID` is present - set by Flask middleware)
-- [ ] `/grafana/` routes to Grafana (check Grafana-specific response headers)
-- [ ] `/prometheus/` routes to Prometheus
-- [ ] `/playground` routes to Flask
-- [ ] `/api/playground/status` returns 403 without a session
-- [ ] No location block leaks upstream error pages (502, 504)
+- [ ] `/` routes to Flask (check response header `X-Request-ID` is present - set by Flask middleware) _(automated)_
+- [ ] `/grafana/` routes to Grafana (check Grafana-specific response headers) _(automated: 200/302 verified; header inspection is manual)_
+- [ ] `/prometheus/` routes to Prometheus _(automated)_
+- [ ] `/playground` routes to Flask _(automated: 302-to-login verified)_
+- [ ] `/api/playground/status` returns 403 without a session _(automated)_
+- [ ] No location block leaks upstream error pages (502, 504) _(automated)_
 
 ---
 
@@ -447,6 +459,14 @@ git grep -i "password\|secret\|api.key\|token" -- "*.yml" "*.yaml" "*.env*" "*.p
 
 ## 9. Playground Feature
 
+> **Automation coverage:** Server-side auth items are covered by
+> `tests/test_weather_app.py` (`TestWeatherAppPlaygroundAuth`): admin passphrase
+> endpoint auth (9.2), the login gate and a full rolling-passphrase login round
+> trip (9.2), unauthenticated API 403s (9.3), and security checks (9.10). The
+> destructive toggle/alert lifecycle (9.5, 9.6) is in `tests/test_alerting.py`
+> behind the `destructive` marker. Browser-driven items (9.4 toggle UI, 9.7
+> logout, 9.9 design, dark mode) remain manual.
+
 ### 9.1 Stack startup with playground
 
 ```bash
@@ -467,28 +487,28 @@ CURRENT_PASS=$(curl -s -H "Authorization: Bearer $PLAYGROUND_ADMIN_KEY" \
   http://localhost/playground/passphrase | python3 -c "import sys,json; print(json.load(sys.stdin)['current'])")
 ```
 
-- [ ] Admin endpoint returns 401 with wrong or missing `Authorization` header
-- [ ] Admin endpoint returns JSON with `current`, `seconds_until_rotation`, and `next` keys
+- [ ] Admin endpoint returns 401 with wrong or missing `Authorization` header _(automated)_
+- [ ] Admin endpoint returns JSON with `current`, `seconds_until_rotation`, and `next` keys _(automated)_
 
 ```bash
 curl -I http://localhost/playground
 ```
 
-- [ ] Without a session: response is 302 redirect to `/playground/login`
+- [ ] Without a session: response is 302 redirect to `/playground/login` _(automated)_
 
 ```bash
 curl -c cookies.txt -b cookies.txt -X POST http://localhost/playground/login \
   -d "password=wrongpassword"
 ```
 
-- [ ] Wrong passphrase: response is 401, login page re-renders with `.note` error callout
+- [ ] Wrong passphrase: response is 401, login page re-renders with `.note` error callout _(automated)_
 
 ```bash
 curl -c cookies.txt -b cookies.txt -X POST http://localhost/playground/login \
   -d "password=$CURRENT_PASS"
 ```
 
-- [ ] Correct passphrase: response is 302 redirect to `/playground`, session cookie is set
+- [ ] Correct passphrase: response is 302 redirect to `/playground`, session cookie is set _(automated)_
 
 **Passphrase rotation (manual - run near a 4-hour window boundary):**
 
@@ -515,7 +535,7 @@ curl -I http://localhost/api/playground/toggle
 curl -I http://localhost/api/playground/stress
 ```
 
-- [ ] All three return 403 without a valid session cookie
+- [ ] All three return 403 without a valid session cookie _(automated: verified with the correct HTTP method per route, so the auth gate is hit rather than a 405)_
 
 ### 9.4 Container toggle
 
@@ -580,9 +600,9 @@ On the playground and playground login pages:
     -H "Content-Type: application/json" \
     -d '{"container": "prometheus"}'
   ```
-  Expected: 403 response
-- [ ] `PLAYGROUND_PASSWORD` does not appear in `docker compose logs weather-app`
-- [ ] Stress endpoint URL is not configurable - only calls `http://demo-container:8080/stress`
+  Expected: 403 response _(automated: rejected at the auth gate without a session; with a session the endpoint ignores the body and only ever targets the hardcoded demo-container)_
+- [ ] `PLAYGROUND_PASSWORD` does not appear in `docker compose logs weather-app` _(automated: a sentinel passphrase is posted and asserted absent from weather-app logs)_
+- [ ] Stress endpoint URL is not configurable - only calls `http://demo-container:8080/stress` _(verified in code: the endpoint accepts no URL input)_
 
 ### 9.11 Pre-commit and CI
 
