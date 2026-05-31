@@ -193,7 +193,7 @@ def collect_metrics() -> None:
             BLKIO_WRITE.labels(name=name).set(blkio_write)
 
             log.debug(
-                "%s — cpu=%.2f%% mem=%.2f%% net_rx=%d net_tx=%d blkio_r=%d blkio_w=%d",
+                "%s - cpu=%.2f%% mem=%.2f%% net_rx=%d net_tx=%d blkio_r=%d blkio_w=%d",
                 name,
                 cpu,
                 mem_pct,
@@ -232,7 +232,7 @@ def _collection_loop() -> None:
     round doesn't cause immediate back-to-back scrapes but also doesn't stack delay.
     """
     log.info(
-        "Background collector starting — interval=%ds workers=%d",
+        "Background collector starting - interval=%ds workers=%d",
         SCRAPE_INTERVAL,
         _SCRAPE_WORKERS,
     )

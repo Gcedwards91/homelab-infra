@@ -46,7 +46,7 @@ services:
     expose:
       - "5000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # rw — required for playground container toggle
+      - /var/run/docker.sock:/var/run/docker.sock # rw - required for playground container toggle
     environment:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - PLAYGROUND_SECRET=${PLAYGROUND_SECRET}

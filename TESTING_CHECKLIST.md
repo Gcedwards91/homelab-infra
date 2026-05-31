@@ -1,6 +1,6 @@
 # End-to-End Testing Checklist
 
-Use this checklist before any significant merge or deployment. Work through it top to bottom — each section assumes the previous sections passed.
+Use this checklist before any significant merge or deployment. Work through it top to bottom - each section assumes the previous sections passed.
 
 Mark each item: `[x]` pass, `[-]` skip with reason, `[!]` fail (note the failure).
 
@@ -30,17 +30,17 @@ sleep 30
 docker compose ps
 ```
 
-- [ ] `reverse-proxy` — status Up, no restart loops
-- [ ] `weather-app` — status Up, no restart loops
-- [ ] `prometheus` — status Up (healthy)
-- [ ] `grafana` — status Up (healthy)
-- [ ] `loki` — status Up, no restart loops (distroless — no healthcheck)
-- [ ] `promtail` — status Up, no restart loops
-- [ ] `statporter` — status Up (healthy)
-- [ ] `alertmanager` — status Up (healthy)
-- [ ] `demo-container` — status Up (healthy)
-- [ ] `tempo` — status Up, no restart loops (distroless — no healthcheck)
-- [ ] `otel-collector` — status Up, no restart loops
+- [ ] `reverse-proxy` - status Up, no restart loops
+- [ ] `weather-app` - status Up, no restart loops
+- [ ] `prometheus` - status Up (healthy)
+- [ ] `grafana` - status Up (healthy)
+- [ ] `loki` - status Up, no restart loops (distroless - no healthcheck)
+- [ ] `promtail` - status Up, no restart loops
+- [ ] `statporter` - status Up (healthy)
+- [ ] `alertmanager` - status Up (healthy)
+- [ ] `demo-container` - status Up (healthy)
+- [ ] `tempo` - status Up, no restart loops (distroless - no healthcheck)
+- [ ] `otel-collector` - status Up, no restart loops
 
 ### 1.2 Healthchecks pass
 
@@ -48,11 +48,11 @@ docker compose ps
 docker inspect --format='{{.Name}} {{.State.Health.Status}}' $(docker compose ps -q)
 ```
 
-- [ ] prometheus — `healthy`
-- [ ] grafana — `healthy`
-- [ ] statporter — `healthy`
-- [ ] alertmanager — `healthy`
-- [ ] demo-container — `healthy`
+- [ ] prometheus - `healthy`
+- [ ] grafana - `healthy`
+- [ ] statporter - `healthy`
+- [ ] alertmanager - `healthy`
+- [ ] demo-container - `healthy`
 
 Loki, Tempo, Promtail, otel-collector, and reverse-proxy have no Docker healthcheck. Verify Loki and Tempo are serving:
 
@@ -83,7 +83,7 @@ docker compose logs --no-color 2>&1 | grep -iE "error|fatal|panic|exception" | g
 
 ---
 
-## 2. Weather App — All Pages
+## 2. Weather App - All Pages
 
 > **Automation coverage:** Server-side items are covered by `tests/test_weather_app_pages.py` (34 tests).
 > Run `pytest tests/test_weather_app_pages.py -v` after stack startup to exercise all automated items.
@@ -93,43 +93,43 @@ docker compose logs --no-color 2>&1 | grep -iE "error|fatal|panic|exception" | g
 
 For each URL, verify: HTTP 200, page renders, navbar is present with all links:
 
-- [ ] `http://localhost` — Blog index page loads, at least 2 blog posts visible _(automated)_
-- [ ] `http://localhost/about_me` — About Me loads, all sections visible, tooltips render _(automated)_
-- [ ] `http://localhost/resume` — Resume page loads, all sections visible (Summary, Skills, Experience, Projects, Education), bullet points have markers, download buttons present _(automated)_
-- [ ] `http://localhost/weather_app` — Weather form loads, all form fields present _(automated)_
+- [ ] `http://localhost` - Blog index page loads, at least 2 blog posts visible _(automated)_
+- [ ] `http://localhost/about_me` - About Me loads, all sections visible, tooltips render _(automated)_
+- [ ] `http://localhost/resume` - Resume page loads, all sections visible (Summary, Skills, Experience, Projects, Education), bullet points have markers, download buttons present _(automated)_
+- [ ] `http://localhost/weather_app` - Weather form loads, all form fields present _(automated)_
 
 ### 2.2 Navbar
 
 On every page:
 
 - [ ] All navbar links are present: About Me, Homelab Blog, Resume, Weather App, Playground, Grafana _(automated)_
-- [ ] Navbar links are functional — clicking each navigates correctly _(browser only)_
+- [ ] Navbar links are functional - clicking each navigates correctly _(browser only)_
 
 ### 2.3 Weather lookup
 
 - [ ] Enter a valid city name (e.g. "Atlanta") and a valid OpenWeatherMap API key, submit _(browser only)_
 - [ ] Weather data appears: city name, temperature, feels like, condition, humidity, wind speed _(browser only)_
-- [ ] No `innerHTML` injection — weather data renders as plain text _(browser only)_
-- [ ] Enter an invalid city name — error message appears in the error div (not an unhandled exception) _(browser only — server-side error shape and no-exception-leak automated)_
-- [ ] Enter no location — browser-level required field validation fires before submission _(automated: `required` attribute present; browser behavior itself is browser only)_
+- [ ] No `innerHTML` injection - weather data renders as plain text _(browser only)_
+- [ ] Enter an invalid city name - error message appears in the error div (not an unhandled exception) _(browser only - server-side error shape and no-exception-leak automated)_
+- [ ] Enter no location - browser-level required field validation fires before submission _(automated: `required` attribute present; browser behavior itself is browser only)_
 
 ### 2.4 Error states
 
-- [ ] Weather API returns error — `#error` div shows user-friendly message, not raw JSON _(automated: server returns `{"error": "..."}` with no exception tokens; div rendering is browser only)_
+- [ ] Weather API returns error - `#error` div shows user-friendly message, not raw JSON _(automated: server returns `{"error": "..."}` with no exception tokens; div rendering is browser only)_
 - [ ] Submit button shows "Fetching..." while request is in flight _(browser only)_
 - [ ] Submit button re-enables after response (success or error) _(browser only)_
-- [ ] Clicking submit rapidly multiple times — only one request fires at a time (button disables on click) _(browser only)_
+- [ ] Clicking submit rapidly multiple times - only one request fires at a time (button disables on click) _(browser only)_
 
 ### 2.5 Resume downloads _(requires files in static/)_
 
-- [ ] "Download PDF" button — browser triggers download of `Cliff_Edwards_Resume.pdf` _(automated: link presence and filename verified; browser download trigger is browser only)_
-- [ ] "Download DOCX" button — browser triggers download of `Cliff_Edwards_Resume.docx` _(automated: link presence and filename verified; browser download trigger is browser only)_
+- [ ] "Download PDF" button - browser triggers download of `Cliff_Edwards_Resume.pdf` _(automated: link presence and filename verified; browser download trigger is browser only)_
+- [ ] "Download DOCX" button - browser triggers download of `Cliff_Edwards_Resume.docx` _(automated: link presence and filename verified; browser download trigger is browser only)_
 
 ### 2.6 Dark mode
 
-- [ ] Set OS to dark mode — all pages switch to dark theme automatically _(browser only)_
+- [ ] Set OS to dark mode - all pages switch to dark theme automatically _(browser only)_
 - [ ] No light-mode colors bleed through in dark mode (check nav, cards, text, error states) _(browser only)_
-- [ ] Return OS to light mode — pages return to light theme _(browser only)_
+- [ ] Return OS to light mode - pages return to light theme _(browser only)_
 
 ### 2.7 Mobile responsiveness
 
@@ -156,12 +156,12 @@ curl http://localhost/healthz
 
 Open `http://localhost/prometheus/targets`:
 
-- [ ] `prometheus` — UP
-- [ ] `weather_app` — UP
-- [ ] `grafana` — UP
-- [ ] `loki` — UP
-- [ ] `promtail` — UP
-- [ ] `statporter` — UP
+- [ ] `prometheus` - UP
+- [ ] `weather_app` - UP
+- [ ] `grafana` - UP
+- [ ] `loki` - UP
+- [ ] `promtail` - UP
+- [ ] `statporter` - UP
 - [ ] No target is in `DOWN` state
 
 ### 3.2 Alert rules loaded
@@ -189,7 +189,7 @@ Open `http://localhost/grafana`:
 
 - [ ] Grafana loads without login (anonymous viewer access)
 - [ ] At least one dashboard is listed in the dashboards panel
-- [ ] Container metrics dashboard renders — CPU, memory, network panels show data
+- [ ] Container metrics dashboard renders - CPU, memory, network panels show data
 - [ ] No datasource errors (red exclamation marks on panels)
 - [ ] Loki logs panel shows recent log lines from at least one container
 
@@ -237,11 +237,11 @@ Wait 2 minutes, recheck:
 Restore:
 
 ```bash
-# Verify loki is ready before continuing (distroless — no Docker healthcheck)
+# Verify loki is ready before continuing (distroless - no Docker healthcheck)
 docker exec prometheus wget -q -O- http://loki:3100/ready
 ```
 
-### 4.2 ContainerHighMemory alert (manual verify — skip in standard runs)
+### 4.2 ContainerHighMemory alert (manual verify - skip in standard runs)
 
 - [ ] Alert rule expression is syntactically valid (check Prometheus rules page, no error on the rule)
 
@@ -268,7 +268,7 @@ Wait 60 seconds, recheck:
 ### 4.4 DemoContainerHighCPU fires and resolves
 
 Trigger via the playground UI "Spike CPU" button. To trigger directly, exec into a
-container on the `monitoring` network — `demo-container:8080` is not reachable from the
+container on the `monitoring` network - `demo-container:8080` is not reachable from the
 host:
 
 ```bash
@@ -351,7 +351,7 @@ curl -I http://localhost/playground             # → Flask playground (200 or 3
 curl -I http://localhost/api/playground/status  # → 403 if not authenticated
 ```
 
-- [ ] `/` routes to Flask (check response header `X-Request-ID` is present — set by Flask middleware)
+- [ ] `/` routes to Flask (check response header `X-Request-ID` is present - set by Flask middleware)
 - [ ] `/grafana/` routes to Grafana (check Grafana-specific response headers)
 - [ ] `/prometheus/` routes to Prometheus
 - [ ] `/playground` routes to Flask
@@ -412,7 +412,7 @@ grep -E "^(GRAFANA_ADMIN_USER|GRAFANA_ADMIN_PASSWORD|GRAFANA_URL|PROMETHEUS_URL)
 git ls-files weather-app/docker-final/.env
 ```
 
-- [ ] Output is empty — `.env` is not tracked by git
+- [ ] Output is empty - `.env` is not tracked by git
 
 ### 8.3 No secrets in git history
 
@@ -478,7 +478,7 @@ curl -c cookies.txt -b cookies.txt -X POST http://localhost/playground/login \
 
 - [ ] Correct passphrase: response is 302 redirect to `/playground`, session cookie is set
 
-**Passphrase rotation (manual — run near a 4-hour window boundary):**
+**Passphrase rotation (manual - run near a 4-hour window boundary):**
 
 - [ ] At rotation: old passphrase is rejected, new passphrase (from admin endpoint) is accepted
 - [ ] Within 5-minute grace period: both old and new passphrases are accepted
@@ -510,9 +510,9 @@ curl -I http://localhost/api/playground/stress
 In the browser, log into the playground:
 
 - [ ] Status badge shows "Running" initially
-- [ ] Click "Stop Container" — badge updates to "Stopped", button changes to "Start Container"
+- [ ] Click "Stop Container" - badge updates to "Stopped", button changes to "Start Container"
 - [ ] "Spike CPU" button is disabled/grayed out when container is stopped
-- [ ] Click "Start Container" — badge updates to "Running", Spike CPU button re-enables
+- [ ] Click "Start Container" - badge updates to "Running", Spike CPU button re-enables
 
 Verify from the host:
 
@@ -533,7 +533,7 @@ After stopping demo-container via the toggle button:
 
 ### 9.6 CPU stress lifecycle
 
-- [ ] Click "Spike CPU (60s)" — button changes to "Stress Active"
+- [ ] Click "Spike CPU (60s)" - button changes to "Stress Active"
 - [ ] Within ~30 seconds: `DemoContainerHighCPU` appears in FIRING state at `/prometheus/alerts` (alert has `for: 10s`; allow one scrape cycle to register CPU above 80%)
 - [ ] Alert appears in playground alert feed within one poll cycle (10s)
 - [ ] After 60 seconds: stress ends automatically, button resets to "Spike CPU (60s)"
@@ -541,7 +541,7 @@ After stopping demo-container via the toggle button:
 
 ### 9.7 Logout
 
-- [ ] Click logout button — session is cleared, browser redirects to `/playground/login`
+- [ ] Click logout button - session is cleared, browser redirects to `/playground/login`
 - [ ] After logout, `/api/playground/status` returns 403
 
 ### 9.8 Navbar
@@ -558,7 +558,7 @@ On the playground and playground login pages:
 - [ ] All colors use CSS custom properties (no hard-coded hex values in inline styles)
 - [ ] Dark mode works: enable OS dark mode, verify playground renders with dark token set
 - [ ] Mobile: at 375px width, no horizontal scroll, buttons are tappable
-- [ ] Status badge does not use raw red/green — uses design token classes
+- [ ] Status badge does not use raw red/green - uses design token classes
 
 ### 9.10 Security verification
 
@@ -570,7 +570,7 @@ On the playground and playground login pages:
   ```
   Expected: 403 response
 - [ ] `PLAYGROUND_PASSWORD` does not appear in `docker compose logs weather-app`
-- [ ] Stress endpoint URL is not configurable — only calls `http://demo-container:8080/stress`
+- [ ] Stress endpoint URL is not configurable - only calls `http://demo-container:8080/stress`
 
 ### 9.11 Pre-commit and CI
 
@@ -603,7 +603,7 @@ Dependabot is configured in `.github/dependabot.yml` with weekly scans across fi
 
 The integration test workflow runs a Trivy image scan against every pulled image **before starting the stack**. This catches CVEs in upstream base images that Dependabot version bumps may not address immediately.
 
-Scan policy: `--ignore-unfixed --severity CRITICAL` — only CRITICAL CVEs with a published fix trigger action.
+Scan policy: `--ignore-unfixed --severity CRITICAL` - only CRITICAL CVEs with a published fix trigger action.
 
 Two scan paths run in sequence:
 
@@ -617,7 +617,7 @@ Two scan paths run in sequence:
 - [ ] If own-image scan fails: rebuild the affected image with `apt-get upgrade -y` and a newer base tag, then push
 - [ ] If vendor scan reports findings: check Docker Hub for a newer tag and bump `docker-compose.yml`
 - [ ] Run `make scan` locally before a significant deployment to verify all images clean
-- [ ] Note: this scan is distinct from the `security_lint.yml` Trivy `config` scan, which checks Dockerfile/compose misconfigurations — not CVEs in pulled images
+- [ ] Note: this scan is distinct from the `security_lint.yml` Trivy `config` scan, which checks Dockerfile/compose misconfigurations - not CVEs in pulled images
 
 ---
 

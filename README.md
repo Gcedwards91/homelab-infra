@@ -197,10 +197,10 @@ homelab-infra/
 ├── CLAUDE.md                # Persistent context for Claude Code sessions
 ├── PRODUCT.md               # Brand and design strategy
 ├── DESIGN.md                # Visual design system tokens and component specs
-├── PLAYGROUND_RFC.md        # Implementation spec for the playground feature (SHIPPED)
-├── CI_LOOP_RFC.md           # CI self-healing loop spec (SHIPPED)
-├── TRACE_LOGS_RFC.md        # Distributed tracing spec (SHIPPED)
-└── TESTING_CHECKLIST_RFC.md # End-to-end testing checklist
+├── PLAYGROUND_DESIGN.md     # Design doc for the playground feature (SHIPPED)
+├── CI_LOOP_DESIGN.md        # CI self-healing loop design doc (SHIPPED)
+├── TRACE_LOGS_DESIGN.md     # Distributed tracing design doc (SHIPPED)
+└── TESTING_CHECKLIST.md     # End-to-end testing checklist
 ```
 
 ---

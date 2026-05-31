@@ -1,9 +1,9 @@
 """
-Integration tests — Phase 2: Weather App Pages.
+Integration tests - Phase 2: Weather App Pages.
 
 Mirrors TESTING_CHECKLIST.md sections 2.1 through 2.8.
 
-Prerequisites (automated by CI — or run locally after stack is up):
+Prerequisites (automated by CI - or run locally after stack is up):
     cd weather-app/docker-final
     docker compose up -d && sleep 30
     pip install -r requirements-dev.txt
@@ -158,7 +158,7 @@ class TestWeatherAppNavbar:
 
 
 # ---------------------------------------------------------------------------
-# 2.3 / 2.4  /weather endpoint — input validation and error response shape
+# 2.3 / 2.4  /weather endpoint - input validation and error response shape
 # ---------------------------------------------------------------------------
 
 
@@ -208,7 +208,7 @@ class TestWeatherAppWeatherEndpoint:
         assert error_msg, "400 error message is empty"
         for leak_token in ("Traceback", "raise ", "Exception", 'File "'):
             assert leak_token not in error_msg, (
-                f"400 error response looks like a raw exception — "
+                f"400 error response looks like a raw exception - "
                 f"token {leak_token!r} found in: {error_msg!r}"
             )
 

@@ -1,4 +1,4 @@
-# CI Self-Healing Loop — PR Specification
+# CI Self-Healing Loop - PR Specification
 
 **Status:** SHIPPED (Parts 1 and 2). Part 3 (labels) completed as prerequisite.
 **Branch target:** `master`
@@ -10,7 +10,7 @@
 
 This is intentionally implemented before the unit test suite. Once unit tests exist and start failing in CI, the structured issue format (per-service labels, log capture, auto-close workflow) makes those failures easier to track and resolve. Implementing the loop first means the infrastructure is in place when it is first needed.
 
-The service detection in Part 1 uses two passes: one for integration test output (single-quoted container names) and one for unit test output (FAILED lines matched against normalized service terms). Both paths produce per-service labels automatically — no special formatting required in failure messages, only the class/file naming convention in Part 4.
+The service detection in Part 1 uses two passes: one for integration test output (single-quoted container names) and one for unit test output (FAILED lines matched against normalized service terms). Both paths produce per-service labels automatically - no special formatting required in failure messages, only the class/file naming convention in Part 4.
 
 ---
 
@@ -18,10 +18,10 @@ The service detection in Part 1 uses two passes: one for integration test output
 
 Before implementing, read:
 
-- `CLAUDE.md` — architecture, conventions, CI/CD pipeline description
-- `.github/workflows/integration-tests.yml` — the existing workflow being modified
-- `weather-app/docker-final/tests/test_stack_startup.py` — the test file; note how `pytest.fail(f"'{name}' has...")` messages use single-quoted container names — this feeds Pass 1 of the service detector
-- `TESTING_CHECKLIST.md` — full end-to-end test scope; the startup section (1.1–1.4) is the current automated coverage
+- `CLAUDE.md` - architecture, conventions, CI/CD pipeline description
+- `.github/workflows/integration-tests.yml` - the existing workflow being modified
+- `weather-app/docker-final/tests/test_stack_startup.py` - the test file; note how `pytest.fail(f"'{name}' has...")` messages use single-quoted container names - this feeds Pass 1 of the service detector
+- `TESTING_CHECKLIST.md` - full end-to-end test scope; the startup section (1.1–1.4) is the current automated coverage
 
 ---
 
@@ -29,9 +29,9 @@ Before implementing, read:
 
 Implements a three-part self-healing CI architecture:
 
-1. **Enhanced issue creation** — structured ticket naming, per-service labels, log extraction per failing service, empty output fallback
-2. **Targeted test workflow** — parameterized `workflow_dispatch` workflow that runs tests for a specific service in isolation
-3. **Auto-close on resolution** — targeted workflow closes single-service issues automatically; STACK issues require manual close after all services verified
+1. **Enhanced issue creation** - structured ticket naming, per-service labels, log extraction per failing service, empty output fallback
+2. **Targeted test workflow** - parameterized `workflow_dispatch` workflow that runs tests for a specific service in isolation
+3. **Auto-close on resolution** - targeted workflow closes single-service issues automatically; STACK issues require manual close after all services verified
 
 ```
 push → integration tests fail
@@ -46,13 +46,13 @@ push → integration tests fail
 
 ---
 
-## Part 1 — Enhanced Issue Creation
+## Part 1 - Enhanced Issue Creation
 
 ### Files to Modify: `.github/workflows/integration-tests.yml`
 
 Two changes: a new log-capture step, and a full replacement of the `Create GitHub issue on test failure` step.
 
-**New step — insert immediately after `Run integration tests`:**
+**New step - insert immediately after `Run integration tests`:**
 
 ```yaml
 - name: Capture service logs on failure
@@ -65,7 +65,7 @@ Two changes: a new log-capture step, and a full replacement of the `Create GitHu
     done
 ```
 
-**Replacement step — `Create GitHub issue on test failure`:**
+**Replacement step - `Create GitHub issue on test failure`:**
 
 The script block goes inside `actions/github-script@v7` with `with: script: |`.
 
@@ -105,7 +105,7 @@ if (isEmpty) {
   labels = ["test-failure", "ci"];
   title = `[CI-${seq}] test suite failed to launch (commit: ${shortSha})`;
   body = [
-    "## CI failure — test output empty",
+    "## CI failure - test output empty",
     "",
     "`pytest` either failed to start or produced no output.",
     "",
@@ -114,7 +114,7 @@ if (isEmpty) {
     "",
     "## To investigate",
     "```",
-    "Check the Actions run log directly — no test output was captured.",
+    "Check the Actions run log directly - no test output was captured.",
     "```",
     "",
     "## To close this issue",
@@ -210,7 +210,7 @@ if (isEmpty) {
   ].join("\n");
 }
 
-// Duplicate check — don't open a second issue for the same commit
+// Duplicate check - don't open a second issue for the same commit
 const existing = await github.rest.issues.listForRepo({
   owner: context.repo.owner,
   repo: context.repo.repo,
@@ -221,7 +221,7 @@ const existing = await github.rest.issues.listForRepo({
 
 const duplicate = existing.data.find((i) => i.title.includes(shortSha));
 if (duplicate) {
-  console.log(`Duplicate suppressed — issue #${duplicate.number} already exists for ${shortSha}`);
+  console.log(`Duplicate suppressed - issue #${duplicate.number} already exists for ${shortSha}`);
   return;
 }
 
@@ -236,7 +236,7 @@ await github.rest.issues.create({
 
 ---
 
-## Part 2 — Targeted Test Workflow
+## Part 2 - Targeted Test Workflow
 
 ### File to Create: `.github/workflows/targeted-test.yml`
 
@@ -300,7 +300,7 @@ jobs:
         run: docker compose up -d
 
       - name: Wait for healthchecks
-        # loki is distroless (no shell/wget) — no Docker healthcheck; polled separately
+        # loki is distroless (no shell/wget) - no Docker healthcheck; polled separately
         # weather-app, reverse-proxy, and promtail also have no HEALTHCHECK
         run: |
           for service in prometheus grafana statporter alertmanager demo-container; do
@@ -368,14 +368,14 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## Targeted test passed — \`${{ inputs.service }}\`\n\n**Run:** ${runUrl}\n\nThis is a multi-service issue. Verify all other failing services before closing manually.`,
+                body: `## Targeted test passed - \`${{ inputs.service }}\`\n\n**Run:** ${runUrl}\n\nThis is a multi-service issue. Verify all other failing services before closing manually.`,
               });
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## Targeted test passed — closing\n\n**Service:** \`${{ inputs.service }}\`\n**Run:** ${runUrl}`,
+                body: `## Targeted test passed - closing\n\n**Service:** \`${{ inputs.service }}\`\n**Run:** ${runUrl}`,
               });
 
               await github.rest.issues.update({
@@ -424,7 +424,7 @@ jobs:
 
 ---
 
-## Part 3 — Required Labels
+## Part 3 - Required Labels
 
 **Step 0: Create all labels in the repo before running any workflow.**
 
@@ -441,28 +441,28 @@ jobs:
 | `svc:alertmanager`   | `#e4541a` | Alertmanager failures                                                                |
 | `svc:nginx`          | `#0e8a16` | Nginx/reverse-proxy failures                                                         |
 | `svc:demo-container` | `#cfd3d7` | Demo container failures                                                              |
-| `severity:critical`  | `#b60205` | Reserved — stack won't start                                                         |
-| `severity:high`      | `#d93f0b` | Reserved — service down                                                              |
-| `severity:low`       | `#e4e669` | Reserved — non-blocking                                                              |
+| `severity:critical`  | `#b60205` | Reserved - stack won't start                                                         |
+| `severity:high`      | `#d93f0b` | Reserved - service down                                                              |
+| `severity:low`       | `#e4e669` | Reserved - non-blocking                                                              |
 | `vendor-cve`         | `#e11d48` | CRITICAL CVEs in vendor images (auto-managed by image scan step)                     |
-| `own-image-cve`      | `#b60205` | CRITICAL CVEs in burningstar4/ images — CI blocked (auto-managed by image scan step) |
+| `own-image-cve`      | `#b60205` | CRITICAL CVEs in burningstar4/ images - CI blocked (auto-managed by image scan step) |
 
 The three `severity:*` labels are reserved for future auto-assignment and are not used by any workflow in this spec.
 
 ---
 
-## Part 4 — Test Filter Convention
+## Part 4 - Test Filter Convention
 
 `targeted-test.yml` uses `-k "${{ inputs.service }}"` to filter pytest. Pytest matches this expression as a substring against the full test node ID (file::class::function[param]), so parametrized tests are filtered by their parameter values automatically.
 
 **Current behavior with existing tests:**
 
 - `-k "statporter"` matches `TestStatporterCollector` (class name) and any parametrized case with `statporter` in the ID
-- `-k "weather-app"` matches `test_container_exists[weather-app]`, `test_container_is_running[weather-app]`, etc. — all parametrized cases for that container
+- `-k "weather-app"` matches `test_container_exists[weather-app]`, `test_container_is_running[weather-app]`, etc. - all parametrized cases for that container
 
 **Convention for new test files:**
 
-Class names must include the service name they test, and files must be named accordingly. This drives both the `-k` filter and the issue labeling — no special formatting in failure messages is required.
+Class names must include the service name they test, and files must be named accordingly. This drives both the `-k` filter and the issue labeling - no special formatting in failure messages is required.
 
 | Test target           | File name                | Class name                     | Label assigned       |
 | --------------------- | ------------------------ | ------------------------------ | -------------------- |
@@ -476,24 +476,24 @@ Class names must include the service name they test, and files must be named acc
 
 Pass 2 lowercases all `FAILED` lines from pytest output and checks each service's `terms` array against them. A failing test in `test_weather_app.py::TestWeatherAppRoutes` produces a FAILED line containing `weather_app`, which matches the `weather-app` entry's term. No changes to failure message text are needed.
 
-The only requirement is that file and class names follow the table above. A test that does not match any term still produces a structured `[CI-NNNN]` issue — it is never silently dropped.
+The only requirement is that file and class names follow the table above. A test that does not match any term still produces a structured `[CI-NNNN]` issue - it is never silently dropped.
 
 ---
 
 ## Testing Checklist
 
 - [ ] **Step 0: Verify all labels in Part 3 exist in the repo**
-- [ ] Push a change that causes a known single-service test to fail — verify issue title is `[PREFIX-NNNN]` format
+- [ ] Push a change that causes a known single-service test to fail - verify issue title is `[PREFIX-NNNN]` format
 - [ ] Verify correct `svc:` label applied for single service failure
-- [ ] Push a change that causes multiple services to fail — verify `STACK` prefix and multiple `svc:` labels
+- [ ] Push a change that causes multiple services to fail - verify `STACK` prefix and multiple `svc:` labels
 - [ ] Verify `[CI-NNNN]` title and `ci` label when test output is empty
 - [ ] Verify per-service log sections appear in issue body
 - [ ] Verify close/investigate instructions appear in issue body (single-service and STACK variants differ)
-- [ ] Trigger `targeted-test.yml` for a passing single-service issue — verify issue auto-closes with comment
-- [ ] Trigger `targeted-test.yml` for a passing STACK issue — verify comment is posted but issue stays open
-- [ ] Trigger `targeted-test.yml` for a failing service — verify failure comment includes test output and service logs, issue stays open
-- [ ] Introduce a failing unit test in a file following the Part 4 naming convention — verify it receives a per-service label (not `[CI-NNNN]`)
-- [ ] Verify duplicate check — same commit SHA doesn't open two issues
+- [ ] Trigger `targeted-test.yml` for a passing single-service issue - verify issue auto-closes with comment
+- [ ] Trigger `targeted-test.yml` for a passing STACK issue - verify comment is posted but issue stays open
+- [ ] Trigger `targeted-test.yml` for a failing service - verify failure comment includes test output and service logs, issue stays open
+- [ ] Introduce a failing unit test in a file following the Part 4 naming convention - verify it receives a per-service label (not `[CI-NNNN]`)
+- [ ] Verify duplicate check - same commit SHA doesn't open two issues
 - [ ] Verify `Fixes #N` in commit message also closes the issue as an alternative path
 - [ ] `pre-commit run --all-files` passes on all new and modified files
 
@@ -501,7 +501,7 @@ The only requirement is that file and class names follow the table above. A test
 
 ## What This Does Not Cover
 
-- **Automatic targeted test trigger on push** — requires a PAT with `workflow` scope; deferred
-- **Severity label auto-assignment** — requires tests to emit severity signals; labels exist in repo as placeholders
-- **STACK issue auto-close** — multi-service resolution tracking is out of scope; STACK issues are closed manually after all services verified
-- **Cross-issue deduplication beyond same-commit SHA** — the same service failing across multiple commits will open multiple issues; deduplication is by SHA only
+- **Automatic targeted test trigger on push** - requires a PAT with `workflow` scope; deferred
+- **Severity label auto-assignment** - requires tests to emit severity signals; labels exist in repo as placeholders
+- **STACK issue auto-close** - multi-service resolution tracking is out of scope; STACK issues are closed manually after all services verified
+- **Cross-issue deduplication beyond same-commit SHA** - the same service failing across multiple commits will open multiple issues; deduplication is by SHA only

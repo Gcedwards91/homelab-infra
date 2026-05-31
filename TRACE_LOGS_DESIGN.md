@@ -1,4 +1,4 @@
-# feat: distributed tracing — OpenTelemetry, Tempo, and Grafana observability dashboard
+# feat: distributed tracing - OpenTelemetry, Tempo, and Grafana observability dashboard
 
 **STATUS: SHIPPED**
 
@@ -6,7 +6,7 @@
 
 ## Pre-Implementation Checklist
 
-- [x] Verify Grafana version is 9.0+ (current stack is 13.0.1-security-01 — satisfied)
+- [x] Verify Grafana version is 9.0+ (current stack is 13.0.1-security-01 - satisfied)
 - [x] Confirm `uid: loki` is added to `grafana/provisioning/datasources/loki.yaml` before stack restart
 - [x] Confirm `uid: prometheus` already exists in `grafana/provisioning/datasources/prometheus.yaml`
 
@@ -16,7 +16,7 @@
 
 Implements end-to-end distributed tracing across the Python stack using the OpenTelemetry standard. Trace context is generated at the edge (weather-app), propagated through outgoing HTTP calls via W3C TraceContext headers, and collected by the OpenTelemetry Collector before being stored in Grafana Tempo. Grafana provides native waterfall visualization of individual request traces and a unified observability dashboard combining metrics, traces, and logs in a single view.
 
-The homelab landing page Grafana hyperlink points to the unified dashboard — one URL, no tab switching.
+The homelab landing page Grafana hyperlink points to the unified dashboard - one URL, no tab switching.
 
 This establishes a pre-migration baseline on the Python stack. After the Statporter Go rewrite, the same Grafana dashboard will provide a concrete before/after latency comparison per service using identical queries.
 
@@ -36,7 +36,7 @@ Prometheus scrapes statporter /metrics
   → Grafana shows statporter traces as isolated root spans (no parent-child relationship with weather-app)
 ```
 
-Note: weather-app and statporter produce independent trace trees. There is no direct call path between them — statporter is scraped by Prometheus on its own interval, not called by weather-app.
+Note: weather-app and statporter produce independent trace trees. There is no direct call path between them - statporter is scraped by Prometheus on its own interval, not called by weather-app.
 
 ---
 
@@ -63,7 +63,7 @@ Note: weather-app and statporter produce independent trace trees. There is no di
 
 ---
 
-## Part 1 — docker-compose.yml Changes
+## Part 1 - docker-compose.yml Changes
 
 ### New services
 
@@ -127,7 +127,7 @@ tempo:
         memory: 128M
 ```
 
-> **Distroless note:** `grafana/tempo:2.10.0` has no shell or wget — healthcheck cannot be configured. No `healthcheck:` block on the tempo service. `depends_on` uses `condition: service_started` everywhere tempo is a dependency.
+> **Distroless note:** `grafana/tempo:2.10.0` has no shell or wget - healthcheck cannot be configured. No `healthcheck:` block on the tempo service. `depends_on` uses `condition: service_started` everywhere tempo is a dependency.
 
 ### Named volume to add
 
@@ -160,11 +160,11 @@ tempo:
   condition: service_started
 ```
 
-> `service_healthy` cannot be used — Tempo is distroless and has no healthcheck.
+> `service_healthy` cannot be used - Tempo is distroless and has no healthcheck.
 
 ---
 
-## Part 2 — New Configuration Files
+## Part 2 - New Configuration Files
 
 ### `otel-collector-config.yml`
 
@@ -224,7 +224,7 @@ compactor:
 
 ---
 
-## Part 3 — Existing Datasource Fix
+## Part 3 - Existing Datasource Fix
 
 ### `grafana/provisioning/datasources/loki.yaml`
 
@@ -246,7 +246,7 @@ Without this, Grafana auto-generates a random UID and the tracesToLogs link in t
 
 ---
 
-## Part 4 — New Tempo Datasource
+## Part 4 - New Tempo Datasource
 
 ### `grafana/provisioning/datasources/tempo.yaml`
 
@@ -273,11 +273,11 @@ datasources:
         mapTagNamesEnabled: true
 ```
 
-Note: `nodeGraph.enabled: false` — the service map node graph requires Tempo's `metrics_generator` component which is not in scope for this PR. Deferred to a follow-up.
+Note: `nodeGraph.enabled: false` - the service map node graph requires Tempo's `metrics_generator` component which is not in scope for this PR. Deferred to a follow-up.
 
 ---
 
-## Part 5 — Python Instrumentation
+## Part 5 - Python Instrumentation
 
 ### `requirements.txt` additions (both weather-app and statporter)
 
@@ -290,13 +290,13 @@ opentelemetry-instrumentation-requests
 opentelemetry-instrumentation-logging
 ```
 
-Note: `OTEL_TRACES_EXPORTER` env var is intentionally omitted. The spec uses explicit programmatic TracerProvider initialization — the env var is only relevant for auto-instrumentation via `opentelemetry-distro` and is ignored when the provider is configured manually.
+Note: `OTEL_TRACES_EXPORTER` env var is intentionally omitted. The spec uses explicit programmatic TracerProvider initialization - the env var is only relevant for auto-instrumentation via `opentelemetry-distro` and is ignored when the provider is configured manually.
 
 ---
 
-### weather-app — `main.py` changes
+### weather-app - `main.py` changes
 
-**Step 1 — Add at the top of main.py, before any other app code:**
+**Step 1 - Add at the top of main.py, before any other app code:**
 
 ```python
 from opentelemetry import trace
@@ -307,7 +307,7 @@ from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
-# TracerProvider setup — must come before app creation
+# TracerProvider setup - must come before app creation
 provider = TracerProvider()
 otlp_exporter = OTLPSpanExporter()
 provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
@@ -321,7 +321,7 @@ RequestsInstrumentor().instrument()
 LoggingInstrumentor().instrument(set_logging_format=True)
 ```
 
-**Step 2 — Immediately after `app = Flask(__name__)` (line ~20):**
+**Step 2 - Immediately after `app = Flask(__name__)` (line ~20):**
 
 ```python
 # Must come after app creation
@@ -330,9 +330,9 @@ FlaskInstrumentor().instrument_app(app)
 
 ---
 
-### statporter — `statporter.py` changes
+### statporter - `statporter.py` changes
 
-**Step 1 — Add at the top of statporter.py, before any other app code:**
+**Step 1 - Add at the top of statporter.py, before any other app code:**
 
 ```python
 from opentelemetry import trace
@@ -342,7 +342,7 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
-# TracerProvider setup — must come before app creation
+# TracerProvider setup - must come before app creation
 provider = TracerProvider()
 otlp_exporter = OTLPSpanExporter()
 provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
@@ -352,14 +352,14 @@ trace.set_tracer_provider(provider)
 LoggingInstrumentor().instrument(set_logging_format=True)
 ```
 
-**Step 2 — Immediately after `app = Flask(__name__)` (line ~234):**
+**Step 2 - Immediately after `app = Flask(__name__)` (line ~234):**
 
 ```python
 # Must come after app creation
 FlaskInstrumentor().instrument_app(app)
 ```
 
-**Step 3 — Optional manual span for metric collection timing:**
+**Step 3 - Optional manual span for metric collection timing:**
 
 Wrap the collection logic in a manual span to time the metric collection itself separately from the Flask request overhead:
 
@@ -376,7 +376,7 @@ def collect_metrics():
 
 ### logger.py changes (weather-app)
 
-`LoggingInstrumentor(set_logging_format=True)` injects OTel context into Python log records. The actual attribute names injected are `otelTraceID` and `otelSpanID` (not `trace_id`/`span_id` as the OTel spec docs suggest — the Python SDK uses camelCase prefixed names). Update the `python-json-logger` format string:
+`LoggingInstrumentor(set_logging_format=True)` injects OTel context into Python log records. The actual attribute names injected are `otelTraceID` and `otelSpanID` (not `trace_id`/`span_id` as the OTel spec docs suggest - the Python SDK uses camelCase prefixed names). Update the `python-json-logger` format string:
 
 ```python
 formatter = JsonFormatter(
@@ -390,7 +390,7 @@ Using `trace_id`/`span_id` instead will silently produce empty fields in every l
 
 ---
 
-## Part 6 — Nginx Trace Header Passthrough
+## Part 6 - Nginx Trace Header Passthrough
 
 ### `nginx.conf` changes
 
@@ -407,38 +407,38 @@ proxy_set_header tracestate  $http_tracestate;
 
 ---
 
-## Part 7 — Unified Observability Dashboard
+## Part 7 - Unified Observability Dashboard
 
 ### New file: `grafana/dashboards/homelab-observability.json`
 
-This is the primary dashboard for the homelab. The Grafana hyperlink in `about_me.html` points directly to this dashboard. One URL surfaces metrics, traces, and logs simultaneously — no tab switching required.
+This is the primary dashboard for the homelab. The Grafana hyperlink in `about_me.html` points directly to this dashboard. One URL surfaces metrics, traces, and logs simultaneously - no tab switching required.
 
 ### Dashboard structure
 
 **Template variable**
 
-- `service` — dropdown, values: `weather-app`, `statporter`. Drives all three rows simultaneously.
+- `service` - dropdown, values: `weather-app`, `statporter`. Drives all three rows simultaneously.
 
-**Top row — Metrics (Prometheus)**
+**Top row - Metrics (Prometheus)**
 
 | Panel                      | Query                                                                                                |
 | -------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Request rate by service    | `rate(flask_http_request_total{service="$service"}[5m])`                                             |
 | Error rate by service      | `rate(flask_http_request_total{service="$service",status=~"5.."}[5m])`                               |
 | P50 / P95 / P99 latency    | `histogram_quantile(0.99, rate(flask_http_request_duration_seconds_bucket{service="$service"}[5m]))` |
-| External API call duration | Tempo TraceQL — spans filtered by `http.url` containing weather API host                             |
+| External API call duration | Tempo TraceQL - spans filtered by `http.url` containing weather API host                             |
 
-**Middle row — Traces (Tempo)**
+**Middle row - Traces (Tempo)**
 
 | Panel        | Notes                                                                                                                                                                                        |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Trace search | Native Tempo panel, filtered by `$service`. Clicking a trace opens the waterfall view. With `tracesToLogs` configured, each trace links directly to correlated Loki log lines by `trace_id`. |
 
-**Bottom row — Logs (Loki)**
+**Bottom row - Logs (Loki)**
 
 | Panel      | Query                                                                                                                                 |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Log stream | `{container="$service"}` — time-synced to dashboard time range. `trace_id` and `span_id` fields present in log lines for correlation. |
+| Log stream | `{container="$service"}` - time-synced to dashboard time range. `trace_id` and `span_id` fields present in log lines for correlation. |
 
 ### Dashboard JSON requirements
 
@@ -457,11 +457,11 @@ Update the existing Grafana hyperlink to point to the unified dashboard. Once th
 http://<grafana-host>/d/<dashboard-uid>/homelab-observability
 ```
 
-The dashboard UID is set explicitly in the JSON under the `uid` field — use `homelab-observability` as the UID so the URL is predictable and does not change if the dashboard is re-imported.
+The dashboard UID is set explicitly in the JSON under the `uid` field - use `homelab-observability` as the UID so the URL is predictable and does not change if the dashboard is re-imported.
 
 ### Implementation notes
 
-- The Grafana `traces` panel type uses a streaming query path internally. When queried via the standard `/api/ds/query` endpoint (used by provisioned dashboards), it returns no data. Use `type: table` instead — the Tempo datasource response has `preferredVisualisationType: "table"` and renders correctly. Trace ID links to the waterfall view are embedded in the response.
+- The Grafana `traces` panel type uses a streaming query path internally. When queried via the standard `/api/ds/query` endpoint (used by provisioned dashboards), it returns no data. Use `type: table` instead - the Tempo datasource response has `preferredVisualisationType: "table"` and renders correctly. Trace ID links to the waterfall view are embedded in the response.
 - Use `queryType: "traceqlSearch"` with a `filters` array. `queryType: "nativeSearch"` returns HTTP 500 from the Grafana 13 Tempo plugin. `queryType: "traceql"` works but `traceqlSearch` with filters is the correct structured form.
 - The nginx CSP must include `'unsafe-eval'` in `script-src` for the table panel's trace ID link rendering to work. Grafana's link template engine (`${__value.raw}`) uses `new Function()` internally. Without it, the panel throws an `EvalError` and shows an error state.
 - Prometheus metrics panels filter by `job="weather_app"` (underscore), not `$service`. The Flask HTTP metrics only exist for weather-app (statporter uses `prometheus_client` directly, not `prometheus-flask-exporter`). The `$service` variable drives Tempo and Loki panels only.
@@ -469,16 +469,16 @@ The dashboard UID is set explicitly in the JSON under the `uid` field — use `h
 
 ---
 
-## Part 8 — Retention and Storage
+## Part 8 - Retention and Storage
 
-- Tempo configured for 7-day local trace retention — sufficient for homelab scale
-- Traces stored in named Docker volume `tempo_data` — persists across container restarts
-- OTel Collector batch processor set to 1s timeout, 1024 span batch size — appropriate for single-host low-volume stack
-- Tempo runs in single binary mode — distributed mode not needed at this scale
+- Tempo configured for 7-day local trace retention - sufficient for homelab scale
+- Traces stored in named Docker volume `tempo_data` - persists across container restarts
+- OTel Collector batch processor set to 1s timeout, 1024 span batch size - appropriate for single-host low-volume stack
+- Tempo runs in single binary mode - distributed mode not needed at this scale
 
 ---
 
-## Part 9 — All-Logs Dashboard (replaces weather-dashboard.json)
+## Part 9 - All-Logs Dashboard (replaces weather-dashboard.json)
 
 The existing `grafana/dashboards/weather-dashboard.json` is a single-panel dashboard scoped only to weather-app logs. Replace it with a unified all-logs dashboard covering every container, with a service dropdown to filter the view.
 
@@ -496,12 +496,12 @@ Delete `grafana/dashboards/weather-dashboard.json`. Create `grafana/dashboards/a
 - Name: `service`
 - Type: Query
 - Datasource: Loki
-- Query: `label_values(container)` — populates dynamically from Loki label values, so new containers appear automatically without editing the dashboard
+- Query: `label_values(container)` - populates dynamically from Loki label values, so new containers appear automatically without editing the dashboard
 - Multi-value: false
 - Include All option: true (shows logs from all containers when "All" selected)
 - Default: All
 
-**Single panel — Log stream**
+**Single panel - Log stream**
 
 | Setting       | Value                          |
 | ------------- | ------------------------------ |
@@ -513,18 +513,18 @@ Delete `grafana/dashboards/weather-dashboard.json`. Create `grafana/dashboards/a
 | Wrap lines    | On                             |
 | Time          | Synced to dashboard time range |
 
-Show structured fields: `level`, `request_id`, `method`, `path`, `status_code` — these are present in weather-app and statporter JSON logs. Other containers emit plain text and will display as raw lines.
+Show structured fields: `level`, `request_id`, `method`, `path`, `status_code` - these are present in weather-app and statporter JSON logs. Other containers emit plain text and will display as raw lines.
 
-The all-logs dashboard already existed as `all-containers.json` (uid `all-containers-logs`) before this RFC was implemented. `weather-dashboard.json` was deleted. No new file was needed.
+The all-logs dashboard already existed as `all-containers.json` (uid `all-containers-logs`) before this design doc was implemented. `weather-dashboard.json` was deleted. No new file was needed.
 
 ---
 
 ## Testing Checklist
 
-- [x] `docker compose up -d` — all services start cleanly including `tempo` and `otel-collector`
-- [x] Verify Tempo is running: `docker compose ps` shows `Up` for tempo (no healthcheck — distroless)
+- [x] `docker compose up -d` - all services start cleanly including `tempo` and `otel-collector`
+- [x] Verify Tempo is running: `docker compose ps` shows `Up` for tempo (no healthcheck - distroless)
 - [x] Verify Tempo datasource appears in Grafana under **Configuration > Data Sources** with status **OK**
-- [x] Make a request to the weather app — verify a trace appears in Grafana Explore under the Tempo datasource
+- [x] Make a request to the weather app - verify a trace appears in Grafana Explore under the Tempo datasource
 - [x] Verify the trace contains at minimum two spans: incoming Flask request + outgoing external API call
 - [ ] Verify clicking a trace in Grafana opens correlated Loki logs (requires logger.py changes and `uid: loki` fix)
 - [x] Verify statporter trace appears as an isolated root span when Prometheus scrapes `/metrics`
@@ -538,17 +538,17 @@ The all-logs dashboard already existed as `all-containers.json` (uid `all-contai
 - [x] `pre-commit run --all-files` passes on all new and modified files
 - [x] All-logs dashboard loads at `/d/all-containers-logs/all-container-logs`
 - [x] `$container` dropdown populates with all running containers from Loki label values
-- [x] `weather-dashboard.json` has been deleted — old "Weather App Logs" dashboard no longer appears in Grafana
+- [x] `weather-dashboard.json` has been deleted - old "Weather App Logs" dashboard no longer appears in Grafana
 
 ---
 
 ## What This Does Not Cover
 
-- **Service map / node graph** — requires Tempo `metrics_generator` with `service_graphs` processor; non-trivial addition, deferred to follow-up PR
-- **Sampling strategy** — all traces collected at 100% head-based sampling; production deployments would configure tail-based sampling to reduce volume; deferred
-- **Alerting on trace-derived SLOs** — deferred until after K8s migration
-- **Instrumentation of Prometheus, Loki, Alertmanager, Grafana internals** — observability overhead not worth the noise at this scale
-- **Tempo distributed mode** — single binary mode is correct for homelab scale
+- **Service map / node graph** - requires Tempo `metrics_generator` with `service_graphs` processor; non-trivial addition, deferred to follow-up PR
+- **Sampling strategy** - all traces collected at 100% head-based sampling; production deployments would configure tail-based sampling to reduce volume; deferred
+- **Alerting on trace-derived SLOs** - deferred until after K8s migration
+- **Instrumentation of Prometheus, Loki, Alertmanager, Grafana internals** - observability overhead not worth the noise at this scale
+- **Tempo distributed mode** - single binary mode is correct for homelab scale
 
 ---
 

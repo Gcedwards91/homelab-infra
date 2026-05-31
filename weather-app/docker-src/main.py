@@ -38,7 +38,7 @@ logger = get_logger("flask")
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-key")
 if app.secret_key == "dev-only-insecure-key":
-    logger.warning("FLASK_SECRET_KEY is not set — using insecure development default")
+    logger.warning("FLASK_SECRET_KEY is not set - using insecure development default")
 
 app.register_blueprint(playground_bp)
 

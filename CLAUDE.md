@@ -43,10 +43,10 @@ homelab-infra/
 ├── PRODUCT.md               # Brand/design strategy (Impeccable teach output)
 ├── DESIGN.md                # Visual design system (Impeccable document output)
 ├── .impeccable/design.json  # Impeccable live panel sidecar
-├── PLAYGROUND_RFC.md        # RFC for the playground feature (SHIPPED)
-├── TESTING_CHECKLIST_RFC.md # End-to-end test checklist
-├── CI_LOOP_RFC.md           # RFC for CI self-healing loop (SHIPPED)
-├── TRACE_LOGS_RFC.md        # RFC for distributed tracing (SHIPPED)
+├── PLAYGROUND_DESIGN.md     # Design doc for the playground feature (SHIPPED)
+├── TESTING_CHECKLIST.md     # End-to-end test checklist
+├── CI_LOOP_DESIGN.md        # Design doc for CI self-healing loop (SHIPPED)
+├── TRACE_LOGS_DESIGN.md     # Design doc for distributed tracing (SHIPPED)
 ├── Makefile                 # build-weather, build-statporter, push-*, all, scan
 └── .pre-commit-config.yaml  # black, flake8, yamllint, prettier, end-of-file-fixer
 ```
@@ -287,7 +287,7 @@ Still needed:
 - Playground auth unit tests : passphrase derivation, window boundary/grace period, session expiry
 - statporter unit tests : `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
 
-New test files must follow the naming convention in `CI_LOOP_RFC.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
+New test files must follow the naming convention in `CI_LOOP_DESIGN.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
 
 ### Security (session cookie hardening : deferred to AWS)
 

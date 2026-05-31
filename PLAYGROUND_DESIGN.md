@@ -1,4 +1,4 @@
-# Playground Feature — PR Specification
+# Playground Feature - PR Specification
 
 **Status:** SHIPPED.
 **Branch target:** `master`
@@ -16,14 +16,14 @@ The playground is an interactive demo page at `/playground` that allows recruite
 
 Before implementing, read:
 
-- `CLAUDE.md` — architecture, conventions, gotchas
-- `DESIGN.md` and `PRODUCT.md` — design system and brand strategy
-- `weather-app/docker-src/main.py` — how routes are structured, how blueprints register
-- `weather-app/docker-src/templates/about_me.html` — canonical template structure including navbar
-- `weather-app/docker-src/static/styles.css` — full token set and dark mode implementation
-- `weather-app/docker-final/docker-compose.yml` — current service definitions
-- `weather-app/docker-final/prometheus/rules/alerts.yml` — existing alert rules
-- `weather-app/docker-final/nginx/nginx.conf` — existing routing
+- `CLAUDE.md` - architecture, conventions, gotchas
+- `DESIGN.md` and `PRODUCT.md` - design system and brand strategy
+- `weather-app/docker-src/main.py` - how routes are structured, how blueprints register
+- `weather-app/docker-src/templates/about_me.html` - canonical template structure including navbar
+- `weather-app/docker-src/static/styles.css` - full token set and dark mode implementation
+- `weather-app/docker-final/docker-compose.yml` - current service definitions
+- `weather-app/docker-final/prometheus/rules/alerts.yml` - existing alert rules
+- `weather-app/docker-final/nginx/nginx.conf` - existing routing
 
 ---
 
@@ -46,7 +46,7 @@ browser     → /prometheus/api/v1/alerts          → poll alert feed (every 10
 
 ## Rolling Passphrase Design
 
-The passphrase rotates every 4 hours automatically. No passphrase is ever stored in a database, log file, or environment variable — it is derived on demand from a secret seed. Cliff retrieves the current passphrase from a protected admin endpoint before sharing the playground link with a recruiter.
+The passphrase rotates every 4 hours automatically. No passphrase is ever stored in a database, log file, or environment variable - it is derived on demand from a secret seed. Cliff retrieves the current passphrase from a protected admin endpoint before sharing the playground link with a recruiter.
 
 ### How it works
 
@@ -58,7 +58,7 @@ PLAYGROUND_SECRET  (env var, 32+ char random string)
                     └─► base64url(digest)[0:14]  →  current passphrase
 ```
 
-The time window ID (`floor(unix_time / 14400)`) changes every 4 hours. Anyone who knows the window ID and the secret can reproduce the passphrase — that is only the server.
+The time window ID (`floor(unix_time / 14400)`) changes every 4 hours. Anyone who knows the window ID and the secret can reproduce the passphrase - that is only the server.
 
 ### Grace period
 
@@ -116,7 +116,7 @@ Requires `Authorization: Bearer <PLAYGROUND_ADMIN_KEY>` header. Returns 401 if m
 }
 ```
 
-Cliff bookmarks this URL and checks it before sending the playground link. He tells the recruiter: "Here is the passphrase — it is valid for up to 4 hours. Reach out if you need more time."
+Cliff bookmarks this URL and checks it before sending the playground link. He tells the recruiter: "Here is the passphrase - it is valid for up to 4 hours. Reach out if you need more time."
 
 ---
 
@@ -142,7 +142,7 @@ def require_auth(f):
     return decorated
 
 def require_auth_redirect(f):
-    """For page routes — redirects instead of 403."""
+    """For page routes - redirects instead of 403."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if not session.get("playground_auth"):
@@ -174,9 +174,9 @@ CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "2", "
 
 A minimal Flask app with three endpoints.
 
-**CRITICAL implementation constraint:** Use `threading.Event` to signal stop, not `threading.Lock`. A Lock blocks `stop_stress()` from acquiring the lock while the stress loop holds it — meaning a stop request while stress is running will hang. An Event can be cleared from any thread at any time without blocking.
+**CRITICAL implementation constraint:** Use `threading.Event` to signal stop, not `threading.Lock`. A Lock blocks `stop_stress()` from acquiring the lock while the stress loop holds it - meaning a stop request while stress is running will hang. An Event can be cleared from any thread at any time without blocking.
 
-**Event semantics:** `_stop_event.is_set()` means "stress is currently running." `set()` starts it, `clear()` stops it. The burn loop condition is `while stop_event.is_set()` — runs while set, exits when cleared. Do NOT invert this to `while not stop_event.is_set()` — that would cause `_burn()` to exit immediately on start.
+**Event semantics:** `_stop_event.is_set()` means "stress is currently running." `set()` starts it, `clear()` stops it. The burn loop condition is `while stop_event.is_set()` - runs while set, exits when cleared. Do NOT invert this to `while not stop_event.is_set()` - that would cause `_burn()` to exit immediately on start.
 
 ```python
 import threading
@@ -189,7 +189,7 @@ _stop_event = threading.Event()
 def _burn(stop_event: threading.Event) -> None:
     deadline = time.time() + 30
     while stop_event.is_set() and time.time() < deadline:
-        pass  # busy loop — intentional CPU burn
+        pass  # busy loop - intentional CPU burn
     stop_event.clear()
 
 @app.route("/healthz")
@@ -216,21 +216,21 @@ A Flask Blueprint. Register in `main.py` as `playground_bp`.
 
 **Endpoints:**
 
-`GET /playground` — requires auth (redirect to login if not). Queries Docker for current demo-container state. Renders `playground.html` with `container_state` ("running", "stopped", or "not_found").
+`GET /playground` - requires auth (redirect to login if not). Queries Docker for current demo-container state. Renders `playground.html` with `container_state` ("running", "stopped", or "not_found").
 
-`GET /playground/login` — renders `playground_login.html`. If already authenticated, redirect to `/playground`.
+`GET /playground/login` - renders `playground_login.html`. If already authenticated, redirect to `/playground`.
 
-`POST /playground/login` — checks `request.form["password"]` against `valid_passphrases()` using `hmac.compare_digest` for constant-time comparison. On match: sets `session["playground_auth"] = True`, `session["last_active"] = time.time()`, redirects to `/playground`. On mismatch: re-renders login with `error=True`, status 401.
+`POST /playground/login` - checks `request.form["password"]` against `valid_passphrases()` using `hmac.compare_digest` for constant-time comparison. On match: sets `session["playground_auth"] = True`, `session["last_active"] = time.time()`, redirects to `/playground`. On mismatch: re-renders login with `error=True`, status 401.
 
-`POST /playground/logout` — clears session entirely, redirects to `/playground/login`.
+`POST /playground/logout` - clears session entirely, redirects to `/playground/login`.
 
-`GET /playground/passphrase` — admin endpoint. Checks `Authorization` header for `Bearer <PLAYGROUND_ADMIN_KEY>`. Returns 401 if missing or wrong. Returns `passphrase_info()` as JSON. This endpoint must not update `session["last_active"]` — it is not a recruiter-facing endpoint.
+`GET /playground/passphrase` - admin endpoint. Checks `Authorization` header for `Bearer <PLAYGROUND_ADMIN_KEY>`. Returns 401 if missing or wrong. Returns `passphrase_info()` as JSON. This endpoint must not update `session["last_active"]` - it is not a recruiter-facing endpoint.
 
-`POST /api/playground/toggle` — requires auth (`require_auth`). Hardcodes container name to `"demo-container"` — ignores any request body. Gets container via `docker.from_env().containers.get("demo-container")`. If running: stops it. If stopped/exited: starts it. Returns `{"status": "stopped"|"started"}`, 200. Returns `{"error": "not_found"}`, 404 if container doesn't exist.
+`POST /api/playground/toggle` - requires auth (`require_auth`). Hardcodes container name to `"demo-container"` - ignores any request body. Gets container via `docker.from_env().containers.get("demo-container")`. If running: stops it. If stopped/exited: starts it. Returns `{"status": "stopped"|"started"}`, 200. Returns `{"error": "not_found"}`, 404 if container doesn't exist.
 
-`POST /api/playground/stress` — requires auth. Makes `requests.post("http://demo-container:8080/stress", timeout=5)`. Returns `{"status": "stress started"}`, 200. Returns `{"error": "unreachable"}`, 502 on connection failure. Never uses `exec_run`.
+`POST /api/playground/stress` - requires auth. Makes `requests.post("http://demo-container:8080/stress", timeout=5)`. Returns `{"status": "stress started"}`, 200. Returns `{"error": "unreachable"}`, 502 on connection failure. Never uses `exec_run`.
 
-`GET /api/playground/status` — requires auth. Returns:
+`GET /api/playground/status` - requires auth. Returns:
 
 ```json
 {
@@ -239,16 +239,16 @@ A Flask Blueprint. Register in `main.py` as `playground_bp`.
 }
 ```
 
-Determine `stress_active` by calling `requests.get("http://demo-container:8080/stress_status", timeout=2)` if the container is running — or add a `GET /stress_status` endpoint to `demo-container/app.py` that returns `{"active": _stop_event.is_set()}`.
+Determine `stress_active` by calling `requests.get("http://demo-container:8080/stress_status", timeout=2)` if the container is running - or add a `GET /stress_status` endpoint to `demo-container/app.py` that returns `{"active": _stop_event.is_set()}`.
 
-**Security guardrails — non-negotiable:**
+**Security guardrails - non-negotiable:**
 
 - Toggle endpoint ignores any container name in the request. `"demo-container"` is hardcoded in the server.
 - Stress endpoint calls `http://demo-container:8080` only. The URL is not configurable via any input.
 - All `/api/playground/*` routes return 403 immediately if session is invalid or expired.
 - `PLAYGROUND_SECRET` and `PLAYGROUND_ADMIN_KEY` must never appear in any log output.
 - Login route must not log `request.form` or `request.data`.
-- Use `hmac.compare_digest` for all passphrase comparisons — never `==`.
+- Use `hmac.compare_digest` for all passphrase comparisons - never `==`.
 
 ### 4. `weather-app/docker-src/templates/playground_login.html`
 
@@ -259,7 +259,7 @@ Follows the exact template structure of `weather_app.html`. Narrow `.container` 
 - Navbar with all links including `/playground` (`aria-current="page"`)
 - `<h1>Playground</h1>`
 - `<p>Log in to interact with the observability stack in real time.</p>`
-- If `error` is truthy: a `.note` callout — "Incorrect passphrase. Try again." Do not create a new error style; reuse `.note`.
+- If `error` is truthy: a `.note` callout - "Incorrect passphrase. Try again." Do not create a new error style; reuse `.note`.
 - Form: `method="POST"`, `action="/playground/login"`
   - One `<label>` + `<input type="password" id="password" name="password" required autocomplete="current-password">`
   - Submit button: "Enter"
@@ -277,7 +277,7 @@ Uses `.container--wide`. Navbar with `/playground` active.
 <h1>Observability Playground</h1>
 
 <p class="note">
-  This container is a purpose-built dummy — stopping it triggers a real alert
+  This container is a purpose-built dummy - stopping it triggers a real alert
   in Prometheus. Restarting it resolves the alert. The CPU spike drives the
   DemoContainerHighCPU rule above 80% for 30 seconds.
 </p>
@@ -291,7 +291,7 @@ Uses `.container--wide`. Navbar with `/playground` active.
 
 `<h2>demo-container</h2>`
 
-Status badge: `<span id="status-badge">` — shows "Running" or "Stopped". Use CSS classes that stay within the token system:
+Status badge: `<span id="status-badge">` - shows "Running" or "Stopped". Use CSS classes that stay within the token system:
 
 ```css
 .badge {
@@ -318,8 +318,8 @@ Do not use raw green/red colors.
 
 Two buttons:
 
-- `<button id="btn-toggle">` — label is "Stop Container" when running, "Start Container" when stopped
-- `<button id="btn-stress">` — "Spike CPU (30s)". Disabled when container is stopped. Shows "Stress Active" when stress is running.
+- `<button id="btn-toggle">` - label is "Stop Container" when running, "Start Container" when stopped
+- `<button id="btn-stress">` - "Spike CPU (30s)". Disabled when container is stopped. Shows "Stress Active" when stress is running.
 
 **Alert Feed section:**
 
@@ -355,19 +355,19 @@ Style `.btn-logout` as a secondary/ghost button using `--brand-blue-link` for bo
 - On page load: call `/api/playground/status`, set initial badge and button states
 - Toggle click: POST `/api/playground/toggle`, update badge and button labels from response, enable/disable stress button
 - Stress click: POST `/api/playground/stress`, change button text to "Stress Active", `setTimeout(30000)` to reset label
-- Alert feed: `setInterval(() => fetchAlerts(), 10000)` — fetch `/prometheus/api/v1/alerts`, filter where `alert.state === "firing"`, render into `#alert-feed`
+- Alert feed: `setInterval(() => fetchAlerts(), 10000)` - fetch `/prometheus/api/v1/alerts`, filter where `alert.state === "firing"`, render into `#alert-feed`
 - All fetch calls: catch network errors, display inline error text, never throw uncaught exceptions
-- Vanilla JS only — no external libraries
+- Vanilla JS only - no external libraries
 - On 403 response from any API call: redirect to `/playground/login` (session expired)
 
 **Design alignment checklist for both templates:**
 
-- All colors via CSS custom properties — no hard-coded hex values
+- All colors via CSS custom properties - no hard-coded hex values
 - Dark mode automatic via `prefers-color-scheme` token overrides
 - All interactive elements have `:focus-visible` styles (inherited from styles.css)
 - `aria-label` on icon links, `aria-current="page"` on active nav link
 - No `border-left` stripe patterns, no gradient text, no glassmorphism
-- `prefers-reduced-motion` respected — no new animations
+- `prefers-reduced-motion` respected - no new animations
 
 ### 6. `weather-app/docker-final/logrotate/docker-containers`
 
@@ -392,12 +392,12 @@ Committed default logrotate config. Users copy to `/etc/logrotate.d/docker-conta
 
 Key decisions:
 
-- `daily` AND `size 50M` — whichever comes first triggers rotation
-- `rotate 7` — 7 archives kept (1 week at daily rotation)
-- `compress` + `compresscmd gzip` — `.gz` archives (Docker log files are JSON, compress extremely well)
-- `copytruncate` — truncates the live file rather than moving it, avoiding the need to signal Docker
-- `dateext` + `dateformat` — archive names include timestamp, not just sequence number
-- `delaycompress` — the most recent rotated file stays uncompressed for one cycle (useful for debugging)
+- `daily` AND `size 50M` - whichever comes first triggers rotation
+- `rotate 7` - 7 archives kept (1 week at daily rotation)
+- `compress` + `compresscmd gzip` - `.gz` archives (Docker log files are JSON, compress extremely well)
+- `copytruncate` - truncates the live file rather than moving it, avoiding the need to signal Docker
+- `dateext` + `dateformat` - archive names include timestamp, not just sequence number
+- `delaycompress` - the most recent rotated file stays uncompressed for one cycle (useful for debugging)
 
 Note in Ansible: override `daily`, `size`, and `rotate` values for production environments with different retention requirements.
 
@@ -415,7 +415,7 @@ from playground import playground_bp
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-key")
 if app.secret_key == "dev-only-insecure-key":
-    logger.warning("FLASK_SECRET_KEY is not set — using insecure development default")
+    logger.warning("FLASK_SECRET_KEY is not set - using insecure development default")
 app.register_blueprint(playground_bp)
 ```
 
@@ -491,12 +491,12 @@ demo-container:
     - monitoring
 ```
 
-**Modify `weather-app` service** — add Docker socket mount and new env vars:
+**Modify `weather-app` service** - add Docker socket mount and new env vars:
 
 ```yaml
 weather-app:
   volumes:
-    - /var/run/docker.sock:/var/run/docker.sock # rw — required for playground container toggle
+    - /var/run/docker.sock:/var/run/docker.sock # rw - required for playground container toggle
   environment:
     - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
     - PLAYGROUND_SECRET=${PLAYGROUND_SECRET}
@@ -529,7 +529,7 @@ Add a new group `playground_alerts` after the existing groups:
         description: "demo-container CPU has been above 80% for 30 seconds."
 ```
 
-**Why this DemoContainerDown expression:** `absent(...)` alone fires when statporter goes down, not just when demo-container stops. Adding `(up{job="statporter"} == 1) and` ensures the alert only fires when statporter is actively scraping but sees no demo-container metric — meaning the container itself is down.
+**Why this DemoContainerDown expression:** `absent(...)` alone fires when statporter goes down, not just when demo-container stops. Adding `(up{job="statporter"} == 1) and` ensures the alert only fires when statporter is actively scraping but sees no demo-container metric - meaning the container itself is down.
 
 **Note on timing:** statporter scrapes every 30s (scrape_interval in prometheus.yml). After demo-container stops, the metric may persist for one scrape cycle before becoming absent. The 60s `for` duration absorbs this lag.
 
@@ -566,16 +566,16 @@ location /api/playground/ {
 Replace `PLAYGROUND_PASSWORD` with the three new variables:
 
 ```bash
-# Flask session secret key — generate with:
+# Flask session secret key - generate with:
 #   python3 -c "import secrets; print(secrets.token_hex(32))"
 FLASK_SECRET_KEY=change-me-generate-a-real-secret
 
-# Playground rolling passphrase seed — generate with:
+# Playground rolling passphrase seed - generate with:
 #   python3 -c "import secrets; print(secrets.token_hex(32))"
 # This never changes unless you want to invalidate all existing passphrases.
 PLAYGROUND_SECRET=change-me-generate-a-real-secret
 
-# Playground admin key — protects GET /playground/passphrase
+# Playground admin key - protects GET /playground/passphrase
 # Generate with: python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 PLAYGROUND_ADMIN_KEY=change-me-generate-a-real-secret
 ```
@@ -596,7 +596,7 @@ build-all: build-weather build-statporter build-demo
 push-all: push-weather push-statporter push-demo
 ```
 
-### 14. All existing templates — add `/playground` to navbar
+### 14. All existing templates - add `/playground` to navbar
 
 Files:
 
@@ -647,24 +647,24 @@ jobs:
 
 Before merging, verify every item:
 
-- [ ] Toggle endpoint hardcodes `"demo-container"` — container name never comes from request input
-- [ ] Stress endpoint URL is `http://demo-container:8080` — not configurable via any input
+- [ ] Toggle endpoint hardcodes `"demo-container"` - container name never comes from request input
+- [ ] Stress endpoint URL is `http://demo-container:8080` - not configurable via any input
 - [ ] All `/api/playground/*` routes return 403 immediately if session is invalid or expired
 - [ ] Session inactivity timeout is enforced server-side (not just client-side)
-- [ ] `PLAYGROUND_SECRET` does not appear in any log line — confirmed by reading log_request() and playground.py
+- [ ] `PLAYGROUND_SECRET` does not appear in any log line - confirmed by reading log_request() and playground.py
 - [ ] `PLAYGROUND_ADMIN_KEY` does not appear in any log line
 - [ ] Login route does not log `request.form` or `request.data`
-- [ ] All passphrase comparisons use `hmac.compare_digest` — no `==` operator on secret values
+- [ ] All passphrase comparisons use `hmac.compare_digest` - no `==` operator on secret values
 - [ ] `/playground/passphrase` returns 401 with no detail on wrong admin key (do not distinguish "wrong key" from "missing key")
 - [ ] Docker socket mount on weather-app is rw and documented in comments in docker-compose.yml
-- [ ] Bandit scan passes on `playground.py` — no B105/B106 (hardcoded password) findings
-- [ ] `FLASK_SECRET_KEY` fallback logs a warning at startup — visible in `docker compose logs weather-app`
+- [ ] Bandit scan passes on `playground.py` - no B105/B106 (hardcoded password) findings
+- [ ] `FLASK_SECRET_KEY` fallback logs a warning at startup - visible in `docker compose logs weather-app`
 
 ---
 
 ## Testing
 
-See `TESTING_CHECKLIST.md` — Section 9 (Playground).
+See `TESTING_CHECKLIST.md` - Section 9 (Playground).
 
 ---
 
@@ -709,4 +709,4 @@ Response:
 
 Convert `seconds_until_rotation` to human-readable: `python3 -c "print(8134 // 3600, 'h', (8134 % 3600) // 60, 'm')"`.
 
-Tell the recruiter: _"The passphrase is `aB3xK9mQ2z7w4R` — it is valid for approximately 2 hours 15 minutes. If you need more time, reach back out."_
+Tell the recruiter: _"The passphrase is `aB3xK9mQ2z7w4R` - it is valid for approximately 2 hours 15 minutes. If you need more time, reach back out."_

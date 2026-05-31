@@ -36,7 +36,7 @@ def _derive(secret: bytes, window_id: int) -> str:
     digest = hmac.new(secret, str(window_id).encode(), hashlib.sha256).digest()
     return base64.urlsafe_b64encode(digest)[
         :14
-    ].decode()  # 14 url-safe chars ≈ 84 bits — sufficient for short-lived passphrases
+    ].decode()  # 14 url-safe chars ≈ 84 bits - sufficient for short-lived passphrases
 
 
 def _valid_passphrases() -> list:
@@ -68,7 +68,7 @@ def _session_valid() -> bool:
 
 
 def require_auth(f):
-    """For API routes — returns 403 on failure."""
+    """For API routes - returns 403 on failure."""
 
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -82,7 +82,7 @@ def require_auth(f):
 
 
 def require_auth_redirect(f):
-    """For page routes — redirects to login on failure."""
+    """For page routes - redirects to login on failure."""
 
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -121,7 +121,7 @@ def login():
         return redirect(url_for("playground.index"))
 
     if request.method == "POST":
-        # Never log request.form — passphrase must not appear in logs
+        # Never log request.form - passphrase must not appear in logs
         password = request.form.get("password", "")
         try:
             valid = _valid_passphrases()

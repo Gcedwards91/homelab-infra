@@ -11,4 +11,4 @@ def docker_client():
         client.ping()
         return client
     except Exception as exc:
-        pytest.skip(f"Docker daemon not reachable — is the stack running? ({exc})")
+        pytest.skip(f"Docker daemon not reachable - is the stack running? ({exc})")
