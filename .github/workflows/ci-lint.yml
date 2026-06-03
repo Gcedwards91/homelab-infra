@@ -53,12 +53,12 @@ jobs:
 
       # ---- DOCKER ----
       - name: Run Hadolint (docker-src)
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: "weather-app/docker-src/Dockerfile"
 
       - name: Run Hadolint (docker-final)
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: "weather-app/docker-final/statporter/Dockerfile"
 
