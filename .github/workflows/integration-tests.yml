@@ -72,7 +72,7 @@ jobs:
 
       - name: Open GitHub issue for own image CVEs
         if: failure() && steps.own-image-scan.outcome == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -139,7 +139,7 @@ jobs:
 
       - name: Close own image CVE issue if scan passes
         if: always() && steps.own-image-scan.outcome == 'success'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const existing = await github.rest.issues.listForRepo({
@@ -189,7 +189,7 @@ jobs:
           done
 
       - name: Report vendor CVEs via GitHub issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -328,7 +328,7 @@ jobs:
 
       - name: Create GitHub issue on test failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require("fs");
