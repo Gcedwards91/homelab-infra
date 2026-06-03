@@ -1,0 +1,36 @@
+---
+name: CI - Unit Tests
+
+"on":
+  push:
+    branches: [master]
+    paths:
+      - "weather-app/docker-src/**"
+      - "weather-app/docker-final/statporter/**"
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Flask app unit tests
+        run: |
+          pip install -r weather-app/docker-src/requirements.txt pytest
+          set -o pipefail
+          pytest weather-app/docker-src/tests/ -v --tb=short 2>&1 | tee unit-output.txt
+
+      - name: Statporter unit tests
+        run: |
+          pip install -r weather-app/docker-final/statporter/requirements.txt pytest
+          set -o pipefail
+          pytest weather-app/docker-final/statporter/tests/ -v --tb=short 2>&1 | tee -a unit-output.txt
