@@ -1,5 +1,5 @@
 ---
-name: Security Linting
+name: CI - Security
 
 "on":
   push:
@@ -8,7 +8,7 @@ name: Security Linting
     branches: [master]
 
 jobs:
-  security-checks:
+  security:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,13 +31,6 @@ jobs:
         with:
           scan-type: "config"
           scan-ref: "."
-
-      - name: Install ShellCheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
-
-      - name: Run ShellCheck on all .sh scripts
-        run: |
-          find . -type f -name "*.sh" | xargs -r shellcheck -x -e SC1091
 
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2

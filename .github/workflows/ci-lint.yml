@@ -1,5 +1,5 @@
 ---
-name: CI - Format, Lint, and Test
+name: CI - Lint
 
 "on":
   push:
@@ -8,7 +8,7 @@ name: CI - Format, Lint, and Test
     branches: [master]
 
 jobs:
-  lint-format-test:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +31,13 @@ jobs:
 
       - name: Run Flake8 (lint)
         run: flake8 weather-app/docker-src/ weather-app/docker-final/statporter/
+
+      # ---- SHELL ----
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on all .sh scripts
+        run: find . -type f -name "*.sh" | xargs -r shellcheck -x -e SC1091
 
       # ---- FRONTEND/WEB ----
       - name: Set up Node.js
