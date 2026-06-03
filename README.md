@@ -61,7 +61,7 @@ A full-stack observability and application platform running on a single Proxmox 
 | demo-container | `burningstar4/demo-container`                  | Disposable dummy container, playground toggle target |
 | prometheus     | `prom/prometheus:v3.11.3`                      | Metrics collection, alerting, and storage            |
 | alertmanager   | `prom/alertmanager:v0.32.1`                    | Alert routing (null receiver, alerts visible in UI)  |
-| grafana        | `grafana/grafana:13.0.1-security-01`           | Metrics and log visualization                        |
+| grafana        | `grafana/grafana:13.0.2`                       | Metrics and log visualization                        |
 | loki           | `grafana/loki:3.7.2`                           | Log aggregation                                      |
 | promtail       | `grafana/promtail:3.6.11`                      | Log shipping, Docker socket autodiscovery            |
 | statporter     | `burningstar4/statporter`                      | Custom Prometheus exporter for Docker stats          |
@@ -183,7 +183,8 @@ homelab-infra/
 │   │   ├── main.py          # Flask routes and blueprint registration
 │   │   ├── playground.py    # Playground blueprint: auth, toggle, stress, alerts
 │   │   ├── templates/       # Jinja2 HTML templates (all pages)
-│   │   └── static/          # CSS, favicon, icons
+│   │   ├── static/          # CSS, favicon, icons
+│   │   └── tests/           # Unit tests: weather client, playground auth (no stack)
 │   └── docker-final/        # Production Docker Compose stack
 │       ├── docker-compose.yml
 │       ├── .env.example
@@ -193,6 +194,9 @@ homelab-infra/
 │       ├── grafana/         # Provisioned dashboards and datasources
 │       ├── loki/            # Log retention config
 │       ├── promtail/        # Log shipping config
+│       ├── statporter/
+│       │   └── tests/       # Unit tests: statporter collector (no stack)
+│       ├── tests/           # Integration tests (full stack required)
 │       └── logrotate/       # Host-level log rotation config (copy to /etc/logrotate.d/)
 ├── CLAUDE.md                # Persistent context for Claude Code sessions
 ├── PRODUCT.md               # Brand and design strategy
@@ -209,15 +213,16 @@ homelab-infra/
 
 GitHub Actions handles automated builds and publishes on every push to `master`:
 
-| Workflow                          | Trigger path                                                   | What it does                                                                                                                        |
-| --------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `docker-build-weather-app.yml`    | `weather-app/docker-src/**`                                    | Builds and pushes `burningstar4/weather-app:latest`                                                                                 |
-| `docker-build-statporter.yml`     | `weather-app/docker-final/statporter/**`                       | Builds and pushes `burningstar4/statporter:latest`                                                                                  |
-| `docker-build-demo-container.yml` | `weather-app/demo-container/**`                                | Builds and pushes `burningstar4/demo-container:latest`                                                                              |
-| `format_and_lint-test.yml`        | all pushes                                                     | Black, Flake8, Prettier, Hadolint, yamllint                                                                                         |
-| `security_lint.yml`               | all pushes                                                     | Bandit, Trivy config scan, ShellCheck, Gitleaks                                                                                     |
-| `integration-tests.yml`           | `weather-app/docker-final/**`, `weather-app/demo-container/**` | Trivy image CVE scan (own-image blocks CI; vendor opens issue), spins up full stack, runs pytest, opens structured issue on failure |
-| `targeted-test.yml`               | manual (`workflow_dispatch`)                                   | Runs tests for one service, auto-closes the linked issue on pass                                                                    |
+| Workflow                          | Trigger path                                                          | What it does                                                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `docker-build-weather-app.yml`    | `weather-app/docker-src/**`                                           | Builds and pushes `burningstar4/weather-app:latest`                                                                                 |
+| `docker-build-statporter.yml`     | `weather-app/docker-final/statporter/**`                              | Builds and pushes `burningstar4/statporter:latest`                                                                                  |
+| `docker-build-demo-container.yml` | `weather-app/demo-container/**`                                       | Builds and pushes `burningstar4/demo-container:latest`                                                                              |
+| `format_and_lint-test.yml`        | all pushes                                                            | Black, Flake8, Prettier, Hadolint, yamllint                                                                                         |
+| `security_lint.yml`               | all pushes                                                            | Bandit, Trivy config scan, ShellCheck, Gitleaks                                                                                     |
+| `unit-tests.yml`                  | `weather-app/docker-src/**`, `weather-app/docker-final/statporter/**` | Stack-free unit tests for weather client, playground auth, and statporter collector                                                 |
+| `integration-tests.yml`           | `weather-app/docker-final/**`, `weather-app/demo-container/**`        | Trivy image CVE scan (own-image blocks CI; vendor opens issue), spins up full stack, runs pytest, opens structured issue on failure |
+| `targeted-test.yml`               | manual (`workflow_dispatch`)                                          | Runs tests for one service, auto-closes the linked issue on pass                                                                    |
 
 ---
 
@@ -236,6 +241,7 @@ make scan         # Trivy CRITICAL CVE scan across all stack images
 
 - [x] CI/CD pipeline via GitHub Actions
 - [x] Observability Playground: interactive alert demo for recruiters
+- [x] Unit test suite: stack-free tests for weather client, playground auth, and statporter collector
 - [ ] Migrate stack to Kubernetes (manifests in progress)
 - [ ] Deploy to AWS (ECS or EKS) with Terraform
 - [ ] TLS via ACM + Route53 custom domain

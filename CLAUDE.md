@@ -90,7 +90,7 @@ All services on a single `monitoring` bridge network. Nothing exposes ports exce
 | weather-app    | burningstar4/weather-app:latest              | Flask portfolio app                     |
 | demo-container | burningstar4/demo-container:latest           | Disposable dummy : playground target    |
 | prometheus     | prom/prometheus:v3.11.3                      | Metrics collection and alerting         |
-| grafana        | grafana/grafana:13.0.1-security-01           | Dashboard visualization                 |
+| grafana        | grafana/grafana:13.0.2                       | Dashboard visualization                 |
 | loki           | grafana/loki:3.7.2                           | Log aggregation                         |
 | promtail       | grafana/promtail:3.6.11                      | Log shipping from Docker socket         |
 | statporter     | burningstar4/statporter:latest               | Custom Docker stats Prometheus exporter |
@@ -145,6 +145,7 @@ All workflows trigger on push to `master` (and PRs where applicable).
 | `format_and_lint-test.yml`        | all pushes                                                                                  | Black, Flake8, Prettier, Hadolint, yamllint                                                                                                       |
 | `security_lint.yml`               | all pushes                                                                                  | Bandit, Trivy, ShellCheck, Gitleaks, npm audit                                                                                                    |
 | `shellcheck.yml`                  | all pushes                                                                                  | ShellCheck on `.sh` files                                                                                                                         |
+| `unit-tests.yml`                  | push to `weather-app/docker-src/**`, `weather-app/docker-final/statporter/**`               | Stack-free unit tests : weather client, playground auth, statporter collector. No Docker daemon required.                                         |
 | `integration-tests.yml`           | push to `weather-app/docker-final/**`, `weather-app/demo-container/**`; `workflow_dispatch` | Scans images for CVEs (own-image blocks CI; vendor-image opens issue), spins up full stack, runs pytest, opens structured GitHub issue on failure |
 | `targeted-test.yml`               | `workflow_dispatch` only                                                                    | Runs tests for a single service; auto-closes or comments on the linked issue                                                                      |
 
@@ -240,6 +241,14 @@ Interactive demo page at `/playground`. Implementation lives in `playground.py` 
 
 End-to-end OTel tracing across weather-app and statporter. Spans flow via OTLP gRPC → otel-collector → Tempo. Grafana unified observability dashboard (`homelab-observability`) surfaces metrics, traces, and logs in one view with a `$service` dropdown.
 
+**Dashboard layout (`homelab-observability`):**
+
+- **Request Rate** and **Error Rate** : side-by-side timeseries (w=12 each)
+- **Request Latency Percentiles** : aggregated timeseries (p50/p95/p99, `sum by (le)`) -- 3 clean lines, no per-route explosion (w=14)
+- **Latency by Route (1h window)** : instant table alongside the timeseries showing p50/p95/p99 per Flask path, sorted by p99 desc, inactive routes show `—` (w=10). Uses `[1h]` rate window to match dashboard default and prevent row cycling on sparse traffic.
+- **Trace Search** : Tempo traceqlSearch table with `$service` filter
+- **Log Stream** : Loki log panel with `$service` filter
+
 **Deferred from this implementation:**
 
 - `about_me.html` Grafana hyperlink not yet updated to point to unified dashboard
@@ -272,7 +281,9 @@ The resume page is built and styled. The download buttons link to:
 
 Neither file is committed. Drop them into `static/` to activate the download buttons.
 
-### Tests (integration sections 1-4, 6, 9 shipped : unit tests still needed)
+### Tests (integration sections 1-4, 6, 9 shipped : unit tests shipped)
+
+**Integration tests** (live stack required) -- `weather-app/docker-final/tests/`
 
 | File                                | Checklist coverage                                                                                                                                                                                                                                                                                                                                                    |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -287,11 +298,17 @@ All non-destructive files run on every-push CI via `integration-tests.yml`. `req
 
 `pytest.ini` registers the `destructive` marker and sets `addopts = -m "not destructive"`, so `pytest tests/` skips the alerting lifecycle tests by default. Run them with `pytest tests/ -m destructive`, or in CI via the `integration-tests.yml` manual `workflow_dispatch` with `run_destructive=true` (the `destructive-alerting-tests` job spins up an isolated stack so a mid-run failure cannot poison the every-push suite).
 
-Still needed:
+**Unit tests** (no stack, no Docker daemon) -- co-located with the source they test
 
-- `weather.py` unit tests : mock `requests.get`, assert all error paths return user-friendly messages without leaking the API key URL or raw exception details
-- Playground auth unit tests : passphrase derivation, window boundary/grace period, session expiry
-- statporter unit tests : `_cpu_percent()`, `_blkio_bytes()`, stale label cleanup logic
+| File                                                           | Coverage                                                                                                                                                                                                                                     |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `weather-app/docker-src/tests/test_weather.py`                 | `get_weather()` : all error paths (404, 5xx, connection error, timeout), param mode (city vs. zip), API key never leaked in error output (9 tests)                                                                                           |
+| `weather-app/docker-src/tests/test_playground.py`              | `_derive()` determinism, `_valid_passphrases()` mid-window/grace/boundary, `_passphrase_info()` math, `_session_valid()` idle expiry, login route accept/reject/grace (12 tests)                                                             |
+| `weather-app/docker-final/statporter/tests/test_statporter.py` | `_cpu_percent()` all zero-return branches + percpu multiplier, `_blkio_bytes()` read/write/case/missing, `_scrape_one()` name normalisation + error suppression, `collect_metrics()` stale-label cleanup + `_seen_names` tracking (12 tests) |
+
+Run: `python3 -m pytest weather-app/docker-src/tests/ weather-app/docker-final/statporter/tests/ -v`
+
+Unit tests trigger `unit-tests.yml` on pushes to `docker-src/**` and `statporter/**`. No `__init__.py` in either test directory -- required to avoid `ImportPathMismatchError` when running both trees together.
 
 New test files must follow the naming convention in `CI_LOOP_DESIGN.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
 

@@ -75,17 +75,17 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m]))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m])))",
           "refId": "A",
           "legendFormat": "p50"
         },
         {
-          "expr": "histogram_quantile(0.95, rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m]))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m])))",
           "refId": "B",
           "legendFormat": "p95"
         },
         {
-          "expr": "histogram_quantile(0.99, rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m]))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[5m])))",
           "refId": "C",
           "legendFormat": "p99"
         }
@@ -94,8 +94,87 @@
         "defaults": { "unit": "s" },
         "overrides": []
       },
-      "options": { "tooltip": { "mode": "multi" } },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 9 }
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "gridPos": { "h": 8, "w": 14, "x": 0, "y": 9 }
+    },
+    {
+      "type": "table",
+      "title": "Latency by Route (1h window)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, path) (rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[1h])))",
+          "refId": "A",
+          "legendFormat": "{{path}}",
+          "instant": true
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, path) (rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[1h])))",
+          "refId": "B",
+          "legendFormat": "{{path}}",
+          "instant": true
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, path) (rate(flask_http_request_duration_seconds_bucket{job=\"weather_app\"}[1h])))",
+          "refId": "C",
+          "legendFormat": "{{path}}",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "renameByName": {
+              "Value #A": "p50",
+              "Value #B": "p95",
+              "Value #C": "p99"
+            },
+            "indexByName": {
+              "path": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "—",
+          "custom": { "align": "left" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "path" },
+            "properties": [
+              { "id": "unit", "value": "string" },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "text" } },
+              { "id": "custom.width", "value": 200 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [{ "displayName": "p99", "desc": true }],
+        "footer": { "show": false }
+      },
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 9 }
     },
     {
       "type": "row",
