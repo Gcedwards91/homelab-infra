@@ -4,9 +4,9 @@ gunicorn==25.3.0
 python-json-logger==3.3.0
 prometheus-flask-exporter==0.23.1
 docker==7.1.0
-opentelemetry-api
-opentelemetry-sdk
-opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-instrumentation-flask
-opentelemetry-instrumentation-requests
-opentelemetry-instrumentation-logging
+opentelemetry-api==1.42.1
+opentelemetry-sdk==1.42.1
+opentelemetry-exporter-otlp-proto-grpc==1.42.1
+opentelemetry-instrumentation-flask==0.63b1
+opentelemetry-instrumentation-requests==0.63b1
+opentelemetry-instrumentation-logging==0.63b1

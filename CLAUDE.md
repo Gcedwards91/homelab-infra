@@ -76,27 +76,31 @@ grafana → tempo (datasource)
 weather-app → otel-collector:4317 (OTLP gRPC spans)
 statporter  → otel-collector:4317 (OTLP gRPC spans)
 otel-collector → tempo:4317 (batched spans)
+
+weather-app → docker-socket-proxy:2375 (filtered Docker API : playground toggle)
+statporter  → docker-socket-proxy:2375 (filtered Docker API : container stats)
 ```
 
-All services on a single `monitoring` bridge network. Nothing exposes ports except nginx on `:80`.
+All services on a single `monitoring` bridge network, plus an `internal: true` `docker-proxy` network shared only by docker-socket-proxy, weather-app, and statporter. Nothing exposes ports except nginx on `:80`.
 
 ---
 
 ## Services
 
-| Service        | Image                                        | Purpose                                 |
-| -------------- | -------------------------------------------- | --------------------------------------- |
-| reverse-proxy  | nginx:stable-alpine3.23                      | Reverse proxy, sub-path routing         |
-| weather-app    | burningstar4/weather-app:latest              | Flask portfolio app                     |
-| demo-container | burningstar4/demo-container:latest           | Disposable dummy : playground target    |
-| prometheus     | prom/prometheus:v3.11.3                      | Metrics collection and alerting         |
-| grafana        | grafana/grafana:13.0.2                       | Dashboard visualization                 |
-| loki           | grafana/loki:3.7.2                           | Log aggregation                         |
-| promtail       | grafana/promtail:3.6.11                      | Log shipping from Docker socket         |
-| statporter     | burningstar4/statporter:latest               | Custom Docker stats Prometheus exporter |
-| alertmanager   | prom/alertmanager:v0.32.1                    | Alert routing (null receiver)           |
-| tempo          | grafana/tempo:2.10.5                         | Trace storage backend                   |
-| otel-collector | otel/opentelemetry-collector-contrib:0.152.0 | OTLP span receiver, batches to Tempo    |
+| Service             | Image                                        | Purpose                                          |
+| ------------------- | -------------------------------------------- | ------------------------------------------------ |
+| reverse-proxy       | nginx:stable-alpine3.23                      | Reverse proxy, sub-path routing                  |
+| weather-app         | burningstar4/weather-app:latest              | Flask portfolio app                              |
+| docker-socket-proxy | tecnativa/docker-socket-proxy:v0.4.2         | Filtered Docker API (containers start/stop only) |
+| demo-container      | burningstar4/demo-container:latest           | Disposable dummy : playground target             |
+| prometheus          | prom/prometheus:v3.11.3                      | Metrics collection and alerting                  |
+| grafana             | grafana/grafana:13.0.2                       | Dashboard visualization                          |
+| loki                | grafana/loki:3.7.2                           | Log aggregation                                  |
+| promtail            | grafana/promtail:3.6.11                      | Log shipping from Docker socket                  |
+| statporter          | burningstar4/statporter:latest               | Custom Docker stats Prometheus exporter          |
+| alertmanager        | prom/alertmanager:v0.32.1                    | Alert routing (null receiver)                    |
+| tempo               | grafana/tempo:2.10.5                         | Trace storage backend                            |
+| otel-collector      | otel/opentelemetry-collector-contrib:0.152.0 | OTLP span receiver, batches to Tempo             |
 
 All services have resource limits, restart policies, and `logging=true` labels for Promtail autodiscovery. Healthchecks are configured on all services except Loki, Tempo (both distroless : no shell), Promtail, and reverse-proxy.
 
@@ -171,7 +175,7 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 4. **alertmanager.yml uses null receiver.** All alerts are collected but go nowhere. This is intentional : the playground demonstrates the alerting loop visually without requiring external notification credentials.
 
-5. **Docker socket access.** statporter mounts `/var/run/docker.sock` read-only. weather-app mounts it read-write for the playground container toggle. These are separate mount declarations : statporter's is `:ro`, weather-app's is default (rw). The RW mount is the highest blast-radius element in the stack; the hardcoded `DEMO_CONTAINER = "demo-container"` constant is the only scope limiter.
+5. **Docker socket access goes through docker-socket-proxy.** Neither weather-app nor statporter mounts the socket. Both set `DOCKER_HOST=tcp://docker-socket-proxy:2375` and reach a tecnativa/docker-socket-proxy that mounts the socket `:ro` and allows only `CONTAINERS`, `POST`, `ALLOW_START`, `ALLOW_STOP` (exec/create/images/volumes stay denied). The proxy lives on an `internal: true` `docker-proxy` network reachable only by those two services. Promtail still mounts the socket directly (`:ro`, vendor image, log discovery only). The hardcoded `DEMO_CONTAINER = "demo-container"` constant remains the application-level scope limiter.
 
 6. **Playground service-to-service address.** The stress endpoint in `playground.py` calls `http://demo-container:8080/stress` : that is the internal Docker network address, not localhost. `demo-container` is on the same `monitoring` bridge as `weather-app`. Never use `localhost` or `127.0.0.1` for this call.
 
@@ -191,11 +195,17 @@ Pre-commit hooks run locally before commit: `end-of-file-fixer`, `trailing-white
 
 14. **Grafana `traces` panel type does not work with provisioned dashboards.** The `traces` panel uses streaming internally; the standard `/api/ds/query` path returns data but the panel renders "No data." Use `type: "table"` with `queryType: "traceqlSearch"` and a `filters` array instead. The Tempo datasource embeds trace ID deep-link URLs in the response so clicking a row still opens the waterfall view. `queryType: "nativeSearch"` returns HTTP 500 from the Grafana 13 Tempo plugin : do not use it.
 
-15. **nginx CSP requires `'unsafe-eval'` for Grafana trace links.** The table panel's link template engine (`${__value.raw}`) uses `new Function()` internally. Without `'unsafe-eval'` in `script-src`, the panel throws an `EvalError` and shows an error state. This is added to the existing CSP in `nginx.conf` and applies to the full origin.
+15. **nginx CSP requires `'unsafe-eval'` for Grafana trace links - scoped to `/grafana/` and `/prometheus/` only.** The table panel's link template engine (`${__value.raw}`) uses `new Function()` internally. Without `'unsafe-eval'` in `script-src`, the panel throws an `EvalError` and shows an error state. The Flask app surface gets a strict CSP (no `unsafe-eval`) at the server level; the `/grafana/` and `/prometheus/` location blocks redeclare ALL security headers with the looser policy. nginx gotcha: `add_header` inside a location block replaces the entire server-level `add_header` set, so any location declaring its own headers must redeclare all four.
 
 16. **OTel SDK log field names are `otelTraceID` and `otelSpanID`.** `LoggingInstrumentor(set_logging_format=True)` injects these camelCase fields (not `trace_id`/`span_id`). The `python-json-logger` format string must use `%(otelTraceID)s %(otelSpanID)s` exactly. Using the wrong names produces empty fields in every JSON log line with no error.
 
-17. **Tempo's internal gRPC API runs on port 9095, OTLP receiver on 4317.** `tempo-config.yml` must explicitly set `server.grpc_listen_port: 9095` and `querier.frontend_worker.frontend_address: 127.0.0.1:9095` to silence the "Worker address is empty in single binary mode" startup warning. Without it, Tempo auto-detects but logs a warning on every start.
+17. **nginx rate limits.** `/playground/login` and `/playground/passphrase` share a `10r/m` zone with `burst=10 nodelay` per client IP (brute-force protection); `/prometheus/` has a `10r/s` zone with `burst=20` (anonymous PromQL abuse). Tests or scripts that hammer the login endpoint more than ~11 times in a minute from one IP will start seeing HTTP 429.
+
+18. **Playground POST APIs require the `X-Requested-With: fetch` header** (CSRF guard in `require_auth`). Cross-origin pages cannot set custom headers without a CORS preflight, which is never granted. The playground.html fetch calls send it; any new client (tests, curl) POSTing to `/api/playground/*` with a session must include it or get 403.
+
+19. **Editing `nginx.conf` requires recreating the reverse-proxy container, not just a reload.** `nginx.conf` is bind-mounted as a single file, so the container's mount is pinned to the file's inode. Editors that replace-and-rename (most, including these tooling edits) write a new inode, and the container keeps serving the old one - `nginx -s reload` re-reads the same stale inode. After any `nginx.conf` change run `docker compose up -d --force-recreate reverse-proxy`. A full `docker compose up -d` from a stopped state is fine because the mount resolves fresh at create time.
+
+20. **Tempo's internal gRPC API runs on port 9095, OTLP receiver on 4317.** `tempo-config.yml` must explicitly set `server.grpc_listen_port: 9095` and `querier.frontend_worker.frontend_address: 127.0.0.1:9095` to silence the "Worker address is empty in single binary mode" startup warning. Without it, Tempo auto-detects but logs a warning on every start.
 
 ---
 

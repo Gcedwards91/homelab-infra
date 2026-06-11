@@ -23,6 +23,11 @@ COPY main.py logger.py weather.py playground.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
 
+# Run as an unprivileged user: gunicorn binds a high port and the Docker API
+# is reached over TCP via the socket proxy, so nothing here needs root.
+RUN useradd --create-home --uid 10001 appuser
+USER appuser
+
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

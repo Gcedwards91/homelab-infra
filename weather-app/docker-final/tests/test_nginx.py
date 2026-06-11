@@ -131,11 +131,23 @@ class TestNginxRouting:
 
     def test_csp_allows_unsafe_eval_for_grafana_links(self):
         """The Grafana trace-link table panel uses new Function() internally, so the
-        CSP must include 'unsafe-eval' in script-src (CLAUDE.md gotcha #15)."""
+        /grafana/ location's CSP must include 'unsafe-eval' in script-src
+        (CLAUDE.md gotcha #15). The policy is scoped to that location only."""
+        resp = http.get(f"{BASE_URL}/grafana/", timeout=10, allow_redirects=False)
+        csp = resp.headers.get("Content-Security-Policy", "")
+        assert csp, "Content-Security-Policy header is missing on /grafana/"
+        assert "'unsafe-eval'" in csp, (
+            "CSP on /grafana/ missing 'unsafe-eval' - Grafana trace-link table "
+            "panel will throw EvalError (CLAUDE.md gotcha #15)"
+        )
+
+    def test_csp_strict_on_app_surface(self):
+        """The Flask app surface must NOT carry 'unsafe-eval' - the loose policy
+        is scoped to the /grafana/ and /prometheus/ location blocks only."""
         resp = http.get(f"{BASE_URL}/", timeout=10)
         csp = resp.headers.get("Content-Security-Policy", "")
-        assert csp, "Content-Security-Policy header is missing"
-        assert "'unsafe-eval'" in csp, (
-            "CSP missing 'unsafe-eval' - Grafana trace-link table panel will throw "
-            "EvalError (CLAUDE.md gotcha #15)"
+        assert csp, "Content-Security-Policy header is missing on /"
+        assert "'unsafe-eval'" not in csp, (
+            "CSP on the Flask app surface contains 'unsafe-eval' - the loose "
+            "policy must stay scoped to the Grafana/Prometheus locations"
         )

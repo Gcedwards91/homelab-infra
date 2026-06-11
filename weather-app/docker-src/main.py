@@ -22,6 +22,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from playground import playground_bp
 from prometheus_flask_exporter import PrometheusMetrics
 from weather import get_weather
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 _provider = TracerProvider()
 _provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
@@ -36,9 +37,18 @@ FlaskInstrumentor().instrument_app(app)
 PrometheusMetrics(app)
 logger = get_logger("flask")
 
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-key")
-if app.secret_key == "dev-only-insecure-key":
-    logger.warning("FLASK_SECRET_KEY is not set - using insecure development default")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError(
+        "FLASK_SECRET_KEY must be set - refusing to start with a forgeable session key"
+    )
+
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# nginx is the only ingress; trust exactly one proxy hop so logs record the
+# real client address instead of the proxy container's.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 app.register_blueprint(playground_bp)
 

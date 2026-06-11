@@ -29,6 +29,7 @@ ALL_SERVICES = [
     "demo-container",
     "tempo",
     "otel-collector",
+    "docker-socket-proxy",
 ]
 
 HEALTHCHECK_SERVICES = [

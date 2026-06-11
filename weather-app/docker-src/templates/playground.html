@@ -437,7 +437,10 @@
         btnToggle.disabled = true;
         clearError();
         try {
-          const res = await fetchWithTimeout("/api/playground/toggle", { method: "POST" });
+          const res = await fetchWithTimeout("/api/playground/toggle", {
+            method: "POST",
+            headers: { "X-Requested-With": "fetch" },
+          });
           if (res.status === 403) {
             window.location.href = "/playground/login";
             return;
@@ -471,7 +474,10 @@
 
         if (isActive) {
           try {
-            const res = await fetchWithTimeout("/api/playground/stop_stress", { method: "POST" });
+            const res = await fetchWithTimeout("/api/playground/stop_stress", {
+              method: "POST",
+              headers: { "X-Requested-With": "fetch" },
+            });
             if (res.status === 403) {
               window.location.href = "/playground/login";
               return;
@@ -495,7 +501,10 @@
         }
 
         try {
-          const res = await fetchWithTimeout("/api/playground/stress", { method: "POST" });
+          const res = await fetchWithTimeout("/api/playground/stress", {
+            method: "POST",
+            headers: { "X-Requested-With": "fetch" },
+          });
           if (res.status === 403) {
             window.location.href = "/playground/login";
             return;

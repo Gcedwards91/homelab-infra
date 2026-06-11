@@ -17,6 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 
 COPY . .
 
+# Run as an unprivileged user: the Docker API is reached over TCP via the
+# socket proxy, so no socket group membership (or root) is needed.
+RUN useradd --create-home --uid 10001 appuser
+USER appuser
+
 EXPOSE 9800
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

@@ -31,6 +31,40 @@ services:
         max-size: "50m"
         max-file: "5"
 
+  # Filtered Docker API gateway: the raw socket is mounted only here (ro).
+  # weather-app and statporter talk to this proxy over TCP instead of
+  # mounting the socket themselves - a compromised app can at worst
+  # start/stop containers, never exec/create/mount.
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    container_name: docker-socket-proxy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 64M
+        reservations:
+          cpus: "0.1"
+          memory: 16M
+    environment:
+      - CONTAINERS=1 # GET /containers/* (list, inspect, stats)
+      - POST=1
+      - ALLOW_START=1 # POST /containers/*/start
+      - ALLOW_STOP=1 # POST /containers/*/stop
+      # everything else (exec, create, images, volumes, networks) stays denied
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-proxy
+    labels:
+      - "logging=true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
   weather-app:
     image: burningstar4/weather-app:latest
     container_name: weather-app
@@ -45,14 +79,19 @@ services:
           memory: 128M
     expose:
       - "5000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # rw - required for playground container toggle
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - PLAYGROUND_SECRET=${PLAYGROUND_SECRET}
       - PLAYGROUND_ADMIN_KEY=${PLAYGROUND_ADMIN_KEY}
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375 # playground toggle via filtered proxy
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_SERVICE_NAME=weather-app
+    depends_on:
+      - docker-socket-proxy
     labels:
       - "app=weather"
       - "logging=true"
@@ -63,6 +102,7 @@ services:
         max-file: "5"
     networks:
       - monitoring
+      - docker-proxy
 
   demo-container:
     image: burningstar4/demo-container:latest
@@ -80,6 +120,10 @@ services:
           memory: 64M
     expose:
       - "8080"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     healthcheck:
       test:
         [
@@ -263,13 +307,17 @@ services:
           cpus: "0.1"
           memory: 128M
     environment:
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375 # stats reads via filtered proxy
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_SERVICE_NAME=statporter
     expose:
       - "9800"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      - docker-socket-proxy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9800/healthz"]
       interval: 30s
@@ -285,6 +333,7 @@ services:
         max-file: "5"
     networks:
       - monitoring
+      - docker-proxy
 
   tempo:
     image: grafana/tempo:2.10.5
@@ -387,3 +436,8 @@ volumes:
 networks:
   monitoring:
     driver: bridge
+  # Isolated segment for the Docker API proxy: only weather-app and
+  # statporter can reach it, and it has no route anywhere else.
+  docker-proxy:
+    driver: bridge
+    internal: true

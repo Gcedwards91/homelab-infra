@@ -75,6 +75,13 @@ def require_auth(f):
         if not _session_valid():
             session.clear()
             abort(403)
+        # CSRF guard: cross-origin requests cannot set custom headers without
+        # passing a CORS preflight, which this app never grants.
+        if (
+            request.method == "POST"
+            and request.headers.get("X-Requested-With") != "fetch"
+        ):
+            abort(403)
         session["last_active"] = time.time()
         return f(*args, **kwargs)
 
@@ -128,7 +135,8 @@ def login():
         except KeyError:
             logger.error("PLAYGROUND_SECRET env var not set")
             abort(503)
-        if any(hmac.compare_digest(password, p) for p in valid):
+        # compare bytes: compare_digest raises TypeError on non-ASCII str input
+        if any(hmac.compare_digest(password.encode(), p.encode()) for p in valid):
             session.clear()
             session["playground_auth"] = True
             session["last_active"] = time.time()
@@ -151,7 +159,7 @@ def passphrase():
         abort(503)
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer ") or not hmac.compare_digest(
-        auth_header[7:], admin_key
+        auth_header[7:].encode(), admin_key.encode()
     ):
         abort(401)
     try:
