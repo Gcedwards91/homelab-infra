@@ -94,3 +94,48 @@ class TestWeatherAppWeatherClient:
         error_text = result.get("error", "")
         for token in ("Traceback", "raise ", "Exception", 'File "'):
             assert token not in error_text
+
+    @patch("weather.logger")
+    @patch("weather.requests.get")
+    def test_weather_app_api_key_never_logged_on_http_error(self, mock_get, mock_log):
+        """requests embeds the full URL (with appid=<key>) in the HTTPError
+        string. The error path must scrub the key before logging or it leaks to
+        Loki, which is world-readable via anonymous Grafana."""
+        leaky_url = (
+            "https://api.openweathermap.org/data/2.5/weather"
+            f"?q=Atlanta&appid={_SENTINEL_KEY}&units=imperial"
+        )
+        resp = MagicMock(status_code=401)
+        resp.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            f"401 Client Error: Unauthorized for url: {leaky_url}"
+        )
+        mock_get.return_value = resp
+
+        weather.get_weather("Atlanta", _SENTINEL_KEY, "city")
+
+        logged = " ".join(str(c) for c in mock_log.error.call_args_list)
+        assert _SENTINEL_KEY not in logged, (
+            "API key leaked into the HTTP-error log line - _scrub() did not "
+            "redact the appid embedded in the requests exception URL"
+        )
+
+    @patch("weather.logger")
+    @patch("weather.requests.get")
+    def test_weather_app_api_key_never_logged_on_connection_error(
+        self, mock_get, mock_log
+    ):
+        """ConnectionError/Timeout strings also carry the URL with the key."""
+        leaky = (
+            "HTTPSConnectionPool(host='api.openweathermap.org', port=443): "
+            "Max retries exceeded with url: "
+            f"/data/2.5/weather?q=Atlanta&appid={_SENTINEL_KEY}"
+        )
+        mock_get.side_effect = requests.exceptions.ConnectionError(leaky)
+
+        weather.get_weather("Atlanta", _SENTINEL_KEY, "city")
+
+        logged = " ".join(str(c) for c in mock_log.error.call_args_list)
+        assert _SENTINEL_KEY not in logged, (
+            "API key leaked into the connection-error log line - _scrub() did "
+            "not redact the appid embedded in the requests exception URL"
+        )

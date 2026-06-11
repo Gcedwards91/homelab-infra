@@ -19,6 +19,16 @@ class WeatherError(TypedDict):
     error: str
 
 
+def _scrub(text: str, secret: str) -> str:
+    """Remove the caller's API key from text bound for logs.
+
+    requests embeds the full request URL (including the appid query param) in
+    HTTPError/ConnectionError strings, so logging str(err) verbatim would leak
+    the user's key into Loki - which is world-readable via anonymous Grafana.
+    """
+    return text.replace(secret, "***REDACTED***") if secret else text
+
+
 def get_weather(
     location: str, api_key: str, mode: str = "city"
 ) -> WeatherData | WeatherError:
@@ -73,7 +83,7 @@ def get_weather(
             extra={
                 "event": "http_error",
                 "status_code": status_code,
-                "detail": str(http_err),
+                "detail": _scrub(str(http_err), api_key),
             },
         )
         if status_code == 404:
@@ -85,6 +95,6 @@ def get_weather(
     except Exception as err:
         logger.error(
             "Unexpected error fetching weather",
-            extra={"event": "general_error", "detail": str(err)},
+            extra={"event": "general_error", "detail": _scrub(str(err), api_key)},
         )
         return {"error": "An unexpected error occurred. Please try again."}
