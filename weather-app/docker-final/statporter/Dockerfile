@@ -1,4 +1,4 @@
-FROM python:3.11.15-slim
+FROM python:3.14.0-slim
 
 LABEL maintainer="George Edwards gcedwards91@gmail.com"
 LABEL description="A custom Prometheus exporter exposing Docker container metrics via Flask/Gunicorn."
