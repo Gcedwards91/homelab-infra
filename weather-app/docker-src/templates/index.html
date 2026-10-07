@@ -124,7 +124,7 @@
               </li>
               <li>
                 dnsmasq was installed and configured to serve DHCP leases and internal DNS
-                resoltution on vmbr0, allowing VMS to be accessed by Fully Qualified Domain Names
+                resolution on vmbr0, allowing VMS to be accessed by Fully Qualified Domain Names
                 (FQDN).
               </li>
               <li>
@@ -277,8 +277,8 @@
 
       <div class="blog-post">
         <h2>
-          Phase 4 - Build and Containerize Weather App using Docker, K8s, and CI/CD. Deploy App
-          locally and to AWS. (7/16/2025 - 8/30/2025)
+          Phase 4 - Build and Containerize Weather App using Docker and CI/CD. Deploy App locally.
+          (7/16/2025 - 8/30/2025)
         </h2>
         <time>7/16/2025 – 8/30/2025</time>
 
@@ -402,17 +402,19 @@
         </ul>
 
         <h3>In Progress</h3>
-        <ul>
-          <li>Implement further containerization with Kubernetes</li>
-          <li>Deploy App to AWS (ECS or EKS) with Terraform</li>
-        </ul>
+        <p>N/A</p>
 
         <h3>Not Begun</h3>
         <ul>
+          <li>Implement further containerization with Kubernetes: carried into Phase 6</li>
+          <li>Deploy App to AWS (ECS or EKS) with Terraform</li>
           <li>TLS via ACM + Route53 custom domain</li>
           <li>Secrets management via AWS Secrets Manager</li>
           <li>Explore failover process handling</li>
-          <li>Unit tests: Flask routes, playground auth, weather.py, statporter internals</li>
+          <li>
+            Unit tests: Flask routes, playground auth, weather.py, statporter internals (shipped in
+            Phase 6)
+          </li>
         </ul>
 
         <h3>Lessons Learned: Phase 5 (5/2/2026 – 5/17/2026)</h3>
@@ -423,7 +425,7 @@
             grepping for random hex codes. This is true for the entire frontend.
           </li>
           <li>
-            <code>statporter</code>'s <code>/scrape</code> endpoint was taking ~37 seconds. Root
+            <code>statporter</code>'s <code>/metrics</code> endpoint was taking ~37 seconds. Root
             cause: Docker stats blocks until the kernel returns a fresh measurement. That's fine for
             a daemon, unusable per request. I moved collection to a background thread on a fixed
             interval and cached the result. Scrapes now return in ~50ms.
@@ -459,6 +461,105 @@
             <i
               >VSCode, Python, Flask, Docker, Docker Compose, GitHub Actions, pytest, Prometheus,
               Grafana, Loki, Promtail, Alertmanager, nginx, JavaScript, Bash.</i
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="blog-post">
+        <h2>
+          Phase 6 - Distributed Tracing, Test Coverage, and Stack Hardening (5/21/2026 - 6/11/2026)
+        </h2>
+        <time>5/21/2026 – 6/11/2026</time>
+
+        <h3>Completed</h3>
+        <ul>
+          <li>
+            Instrument weather-app and statporter with OpenTelemetry: spans flow over OTLP gRPC to
+            an OTel Collector, which batches them to Tempo
+          </li>
+          <li>
+            Build a unified Grafana dashboard: request rate, error rate, latency percentiles, trace
+            search, and log stream in one view with a service dropdown
+          </li>
+          <li>Inject trace and span IDs into the structured JSON logs</li>
+          <li>
+            Expand the integration suite: page content, nginx routing and security headers,
+            Prometheus targets and rules, Grafana provisioning, Loki ingestion, playground auth
+          </li>
+          <li>
+            Add alert lifecycle tests that stop containers and spike CPU, kept behind a
+            <code>destructive</code> marker so they never run on a normal push
+          </li>
+          <li>
+            Add 35 stack-free unit tests: weather client, playground auth, statporter collector
+          </li>
+          <li>
+            Add Trivy image scanning to CI: critical CVEs in my own images block the run, vendor
+            image CVEs open a tracking issue
+          </li>
+          <li>
+            Isolate the Docker socket behind a filtered proxy on an internal network: weather-app
+            and statporter can list, start, and stop containers and nothing else
+          </li>
+          <li>
+            Run my own containers as a non-root user with all capabilities dropped and
+            <code>no-new-privileges</code> set
+          </li>
+          <li>Refuse to start without a session secret instead of falling back to a default</li>
+          <li>
+            Tighten nginx: strict CSP on the app, a looser one scoped to Grafana and Prometheus
+            only, and rate limits on the login and PromQL endpoints
+          </li>
+          <li>Redact the OpenWeatherMap API key from error logs, not only from responses</li>
+          <li>Write the Kubernetes migration design doc</li>
+        </ul>
+
+        <h3>In Progress</h3>
+        <p>N/A</p>
+
+        <h3>Not Begun</h3>
+        <ul>
+          <li>Kubernetes manifests: the design is written, implementation has not started</li>
+          <li>Deploy App to AWS (ECS or EKS) with Terraform</li>
+          <li>TLS via ACM + Route53 custom domain</li>
+          <li>Secrets management via AWS Secrets Manager</li>
+          <li>Explore failover process handling</li>
+        </ul>
+
+        <h3>Lessons Learned: Phase 6 (5/21/2026 – 6/11/2026)</h3>
+        <ul>
+          <li>
+            Grafana's <code>traces</code> panel renders "No data" on a provisioned dashboard even
+            when the query returns results. A table panel using a TraceQL search works, and each row
+            still links through to the waterfall view.
+          </li>
+          <li>
+            That table panel builds its links with <code>new Function()</code>, which a strict CSP
+            blocks. Rather than loosen the policy sitewide, <code>'unsafe-eval'</code> is allowed
+            only under <code>/grafana/</code> and <code>/prometheus/</code>. nginx replaces the
+            whole inherited header set when a location declares its own, so every header has to be
+            redeclared there.
+          </li>
+          <li>
+            Loki and Tempo ship as distroless images. No shell means no Docker healthcheck, so
+            readiness is polled from the Prometheus container instead.
+          </li>
+          <li>
+            <code>requests</code> puts the full URL, query string included, into its exception text.
+            Logging that exception verbatim wrote the user's API key into Loki. Redacting the
+            response was not enough; the log line needed scrubbing too.
+          </li>
+          <li>
+            Mounting the Docker socket into an app container hands that container the host. Moving
+            it behind a proxy that only allows the calls the app needs was a small change for what
+            it removes.
+          </li>
+          <li>
+            <b>Tools &amp; Software used:</b>
+            <i
+              >VSCode, Python, Flask, Docker, Docker Compose, GitHub Actions, pytest, OpenTelemetry,
+              Tempo, Trivy, Dependabot, Prometheus, Grafana, Loki, Promtail, nginx, Bash.</i
             >
           </li>
         </ul>

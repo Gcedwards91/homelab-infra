@@ -8,7 +8,7 @@ A structured homelab project built to apply modern DevOps and SRE practices in a
 
 ## What This Is
 
-A full-stack observability and application platform running on a single Proxmox host, built across four phases:
+A full-stack observability and application platform running on a single Proxmox host, built across six phases and covering:
 
 - **Infrastructure as Code:** VMs provisioned with Terraform, configured with Ansible
 - **Containerized application stack:** Flask portfolio app, custom Prometheus exporter, Grafana, Loki, Promtail, Alertmanager, nginx reverse proxy

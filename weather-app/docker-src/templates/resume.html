@@ -501,7 +501,7 @@
           environment at Inspire Brands. Four years of hands-on exposure to Docker, Kubernetes, and
           SIEM tooling in enterprise customer environments at Tripwire and Tenable. Building toward
           full-stack DevOps ownership through a structured homelab project, active AWS certification
-          study, and Kubernetes migration work.
+          study, and a planned Kubernetes migration.
         </p>
       </section>
 
@@ -519,7 +519,8 @@
           <div class="skill-category">
             <p class="skill-category__label">Observability</p>
             <p class="skill-category__items">
-              Prometheus, Grafana, Loki, Promtail, Wazuh, SIEM Tools, Custom Exporter Development
+              Prometheus, Alertmanager, Grafana, Loki, Promtail, OpenTelemetry, Tempo, Wazuh, SIEM
+              Tools, Custom Exporter Development
             </p>
           </div>
           <div class="skill-category">
@@ -535,7 +536,8 @@
           <div class="skill-category">
             <p class="skill-category__label">Security</p>
             <p class="skill-category__items">
-              CIS Benchmarks, Image Hardening, Vulnerability Management, Tenable Suite
+              CIS Benchmarks, Image Hardening, Container Hardening, Vulnerability Management, Trivy,
+              Tenable Suite
             </p>
           </div>
           <div class="skill-category">
@@ -718,9 +720,9 @@
           </p>
           <ul class="project-entry__bullets">
             <li>
-              Built a structured, five-phase DevOps homelab project demonstrating end-to-end
+              Built a structured, six-phase DevOps homelab project demonstrating end-to-end
               infrastructure ownership, from bare-metal Proxmox provisioning through containerized
-              application deployment and custom observability tooling.
+              application deployment, custom observability tooling, and a tested, hardened stack.
             </li>
             <li>
               Phase 1 &amp; 2: Provisioned Proxmox hypervisor, built VM templates (Ubuntu, Debian,
@@ -732,20 +734,34 @@
               Phase 3 &amp; 4: Containerized the full observability and application stack using
               Docker Compose: Flask weather app served by Gunicorn, nginx reverse proxy with
               sub-path routing, Prometheus, Grafana (dashboards provisioned as code), Loki, and
-              Promtail with Docker socket autodiscovery. All images pinned to specific versions. All
-              services have healthchecks. Credentials managed via environment variables, excluded
-              from version control.
+              Promtail with Docker socket autodiscovery. Vendor images pinned to specific versions;
+              own images built and published by GitHub Actions. Healthchecks on the application and
+              core monitoring services. Credentials managed via environment variables, excluded from
+              version control.
             </li>
             <li>
               Built Statporter, a custom Prometheus exporter written in Python/Flask/Gunicorn that
               collects per-container CPU, memory, network, and disk I/O metrics by querying the
-              Docker socket directly. Built to work around cgroups v2 compatibility issues with
-              existing exporters at the time.
+              Docker API through a filtered socket proxy. Built to work around cgroups v2
+              compatibility issues with existing exporters at the time.
             </li>
             <li>
-              Phase 5 (In Progress): Kubernetes manifest migration and AWS deployment: ALB, ACM,
-              Route53, Secrets Manager, Terraform. AWS Solutions Architect Associate certification
-              in progress.
+              Phase 5: Built an Observability Playground, a passphrase-gated demo (rotating
+              HMAC-derived passphrase) where a visitor stops a disposable container or spikes its
+              CPU and watches real Prometheus alerts fire and resolve.
+            </li>
+            <li>
+              Phase 6: Added distributed tracing with OpenTelemetry, an OTel Collector, and Tempo,
+              surfaced alongside metrics and logs in a single Grafana dashboard. Hardened the stack:
+              Docker socket isolated behind a filtered proxy on an internal network, non-root
+              containers with all capabilities dropped, a scoped Content Security Policy, and nginx
+              rate limiting. Backed by 35 unit tests, a pytest integration suite in GitHub Actions,
+              and Trivy image scanning.
+            </li>
+            <li>
+              Next: Kubernetes migration (design written, implementation not yet started) and AWS
+              deployment: ALB, ACM, Route53, Secrets Manager, Terraform. AWS Solutions Architect
+              Associate certification in progress.
             </li>
           </ul>
         </article>

@@ -144,8 +144,8 @@
         <p>
           What you're looking at right now is a containerized, fully instrumented application stack:
           a Flask web application served by Gunicorn behind an nginx reverse proxy, with Prometheus
-          metrics, Loki log aggregation, Promtail autodiscovery, and Grafana dashboards provisioned
-          as code.
+          metrics, Loki log aggregation, Promtail autodiscovery, OpenTelemetry traces stored in
+          Tempo, and Grafana dashboards provisioned as code.
         </p>
         <p>
           The
@@ -154,8 +154,8 @@
             <span class="tooltip"
               >Powered by Statporter, a custom Prometheus exporter written from scratch in Python.
               Collects per-container CPU, memory, network, and disk I/O metrics by querying the
-              Docker socket directly. Built to work around cgroups v2 compatibility issues with
-              existing exporters.</span
+              Docker API through a filtered socket proxy. Built to work around cgroups v2
+              compatibility issues with existing exporters.</span
             >
           </span>
           is powered by a custom Prometheus exporter I wrote called Statporter. I built it because
@@ -163,8 +163,9 @@
           someone else to fix it, I built my own.
         </p>
         <p>
-          Every service that can expose a healthcheck has one; Loki and Tempo are distroless images
-          with no shell to probe, so their readiness is verified out-of-band. Vendor images are
+          The application and core monitoring services carry Docker healthchecks; Loki and Tempo are
+          distroless images with no shell to probe, so their readiness is verified out-of-band. The
+          Docker socket sits behind a filtered proxy on an internal network. Vendor images are
           pinned to specific versions, and my own images rebuild and publish on every push.
           Credentials are managed via environment variables and excluded from version control. The
           entire stack deploys from a single
