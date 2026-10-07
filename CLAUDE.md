@@ -43,10 +43,13 @@ homelab-infra/
 ├── PRODUCT.md               # Brand/design strategy (Impeccable teach output)
 ├── DESIGN.md                # Visual design system (Impeccable document output)
 ├── .impeccable/design.json  # Impeccable live panel sidecar
-├── PLAYGROUND_DESIGN.md     # Design doc for the playground feature (SHIPPED)
-├── TESTING_CHECKLIST.md     # End-to-end test checklist
-├── CI_LOOP_DESIGN.md        # Design doc for CI self-healing loop (SHIPPED)
-├── TRACE_LOGS_DESIGN.md     # Design doc for distributed tracing (SHIPPED)
+├── docs/design/             # Feature design docs (PRODUCT.md and DESIGN.md stay at the root for Impeccable)
+│   ├── PLAYGROUND_DESIGN.md     # Playground feature (SHIPPED)
+│   ├── CI_LOOP_DESIGN.md        # CI self-healing loop (SHIPPED)
+│   ├── TRACE_LOGS_DESIGN.md     # Distributed tracing (SHIPPED)
+│   ├── UNIT_TESTS_DESIGN.md     # Unit test suite (SHIPPED)
+│   ├── K8S_MIGRATION_DESIGN.md  # Kubernetes migration (design only)
+│   └── TESTING_CHECKLIST.md     # End-to-end test checklist
 ├── Makefile                 # build-weather, build-statporter, push-*, all, scan
 └── .pre-commit-config.yaml  # black, flake8, yamllint, prettier, end-of-file-fixer
 ```
@@ -319,7 +322,7 @@ Run: `python3 -m pytest weather-app/docker-src/tests/ weather-app/docker-final/s
 
 Unit tests trigger `unit-tests.yml` on pushes to `docker-src/**` and `statporter/**`. No `__init__.py` in either test directory -- required to avoid `ImportPathMismatchError` when running both trees together.
 
-New test files must follow the naming convention in `CI_LOOP_DESIGN.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
+New test files must follow the naming convention in `docs/design/CI_LOOP_DESIGN.md` Part 4 : file and class names must include the service name for the CI self-healing loop to apply correct labels on failure.
 
 ### Security (session cookie hardening : deferred to AWS)
 

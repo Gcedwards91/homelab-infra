@@ -1,6 +1,6 @@
 # test: unit test suite - weather client, playground auth, statporter collector
 
-**STATUS: PLANNED**
+**STATUS: SHIPPED**
 **Branch target:** `master`
 **Estimated scope:** ~3 test files created, ~2 `__init__.py` created, 1 workflow created, `requirements-dev.txt` referenced
 

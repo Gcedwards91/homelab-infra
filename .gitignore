@@ -11,6 +11,7 @@ group_vars/*/secrets.yml
 .vault_pass.txt
 weather-app/docker-final/statporter/.venv/
 .claude/
+.vscode/
 node_modules/
 .agents/
 skills-lock.json

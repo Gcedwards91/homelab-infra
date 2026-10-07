@@ -198,13 +198,18 @@ homelab-infra/
 │       │   └── tests/       # Unit tests: statporter collector (no stack)
 │       ├── tests/           # Integration tests (full stack required)
 │       └── logrotate/       # Host-level log rotation config (copy to /etc/logrotate.d/)
+├── docs/
+│   ├── design/              # Feature design docs and the end-to-end testing checklist
+│   │   ├── PLAYGROUND_DESIGN.md     # Playground feature (SHIPPED)
+│   │   ├── CI_LOOP_DESIGN.md        # CI self-healing loop (SHIPPED)
+│   │   ├── TRACE_LOGS_DESIGN.md     # Distributed tracing (SHIPPED)
+│   │   ├── UNIT_TESTS_DESIGN.md     # Unit test suite (SHIPPED)
+│   │   ├── K8S_MIGRATION_DESIGN.md  # Kubernetes migration (design only)
+│   │   └── TESTING_CHECKLIST.md     # End-to-end testing checklist
+│   └── screenshots/
 ├── CLAUDE.md                # Persistent context for Claude Code sessions
 ├── PRODUCT.md               # Brand and design strategy
-├── DESIGN.md                # Visual design system tokens and component specs
-├── PLAYGROUND_DESIGN.md     # Design doc for the playground feature (SHIPPED)
-├── CI_LOOP_DESIGN.md        # CI self-healing loop design doc (SHIPPED)
-├── TRACE_LOGS_DESIGN.md     # Distributed tracing design doc (SHIPPED)
-└── TESTING_CHECKLIST.md     # End-to-end testing checklist
+└── DESIGN.md                # Visual design system tokens and component specs
 ```
 
 ---
