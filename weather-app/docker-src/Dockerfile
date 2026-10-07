@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install curl for healthcheck (no build tools needed — all deps are pure Python)
+# Install curl for healthcheck (no build tools needed: all deps are pure Python)
 # hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get upgrade -y \

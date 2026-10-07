@@ -6,7 +6,7 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 # Event semantics: is_set() == True means stress is currently running.
-# set() to start, clear() to stop (or when the 30s deadline expires).
+# set() to start, clear() to stop (or when the 60s deadline expires).
 _stop_event = threading.Event()
 
 

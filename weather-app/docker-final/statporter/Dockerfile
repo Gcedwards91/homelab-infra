@@ -10,6 +10,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY requirements.txt .
+# apt-get upgrade pulls patched OS packages at build time, so a rebuild is
+# what clears base-image CVEs.
 # hadolint ignore=DL3008
 RUN pip install --no-cache-dir -r requirements.txt && \
     apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && \
