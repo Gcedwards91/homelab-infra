@@ -58,6 +58,12 @@ _KNOWN_SAFE: dict[str, list[str]] = {
         "amazonprometheus",
         # Transient SQLite lock during initialization : resolves immediately.
         "database is locked",
+        # Grafana 13's background installer tries to refresh bundled plugins
+        # (e.g. elasticsearch) at startup and cannot unlink files in the read-only
+        # plugins-bundled dir. The bundled copy keeps working and no dashboard here
+        # uses those plugins. Scoped to the installer's logger so any other
+        # plugin error still fails the test.
+        "logger=plugin.backgroundinstaller",
     ],
     "loki": [
         # Ring hasn't formed yet on single-node startup : transient.

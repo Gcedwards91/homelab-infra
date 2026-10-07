@@ -471,8 +471,29 @@ jobs:
               ].join("\n");
             }
 
-            // Duplicate check — don't open a second issue for the same commit
-            const existing = await github.rest.issues.listForRepo({
+            // Failure signature: a hash of the sorted failing test node IDs, so the
+            // same failure on a later commit updates the existing issue instead of
+            // opening another one. pytest summary lines look like
+            // "FAILED path::Class::test[param] - message"; ERROR lines (collection or
+            // fixture errors) use the same shape. Output with neither (or no output
+            // at all) falls back to a per-commit signature, matching the old behavior.
+            const crypto = require("crypto");
+            const failingIds = [
+              ...new Set(
+                rawOutput
+                  .split("\n")
+                  .map((l) => l.trim())
+                  .filter((l) => l.startsWith("FAILED ") || l.startsWith("ERROR "))
+                  .map((l) => l.replace(/^(FAILED|ERROR)\s+/, "").split(" - ")[0].trim())
+                  .filter((id) => id.includes("::"))
+              ),
+            ].sort();
+            const signatureSource = failingIds.length > 0 ? failingIds.join("\n") : `commit:${shortSha}`;
+            const signature = crypto.createHash("sha256").update(signatureSource).digest("hex").slice(0, 16);
+            const marker = `<!-- failure-signature: ${signature} -->`;
+            body += `\n\n${marker}`;
+
+            const existing = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open",
@@ -480,9 +501,24 @@ jobs:
               per_page: 100,
             });
 
-            const duplicate = existing.data.find((i) => i.title.includes(shortSha));
+            const duplicate = existing.find((i) => (i.body || "").includes(marker));
             if (duplicate) {
-              console.log(`Duplicate suppressed — issue #${duplicate.number} already exists for ${shortSha}`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: duplicate.number,
+                body: [
+                  "## Same failure on a later run",
+                  "",
+                  `**Run:** ${runUrl}`,
+                  `**Commit:** ${shortSha}`,
+                  "",
+                  failingIds.length > 0
+                    ? "Failing tests are unchanged:\n```\n" + failingIds.join("\n") + "\n```"
+                    : "No test IDs were captured for this run.",
+                ].join("\n"),
+              });
+              console.log(`Duplicate suppressed: commented on issue #${duplicate.number} (signature ${signature})`);
               return;
             }
 
