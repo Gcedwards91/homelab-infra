@@ -61,12 +61,12 @@ A full-stack observability and application platform running on a single Proxmox 
 | demo-container | `burningstar4/demo-container`                  | Disposable dummy container, playground toggle target |
 | prometheus     | `prom/prometheus:v3.11.3`                      | Metrics collection, alerting, and storage            |
 | alertmanager   | `prom/alertmanager:v0.32.1`                    | Alert routing (null receiver, alerts visible in UI)  |
-| grafana        | `grafana/grafana:13.0.2`                       | Metrics and log visualization                        |
+| grafana        | `grafana/grafana:13.0.10`                      | Metrics and log visualization                        |
 | loki           | `grafana/loki:3.7.2`                           | Log aggregation                                      |
 | promtail       | `grafana/promtail:3.6.11`                      | Log shipping, Docker socket autodiscovery            |
 | statporter     | `burningstar4/statporter`                      | Custom Prometheus exporter for Docker stats          |
 | tempo          | `grafana/tempo:2.10.0`                         | Distributed trace storage backend                    |
-| otel-collector | `otel/opentelemetry-collector-contrib:0.152.0` | OTLP span receiver, batches traces to Tempo          |
+| otel-collector | `otel/opentelemetry-collector-contrib:0.162.0` | OTLP span receiver, batches traces to Tempo          |
 
 Every container is configured with explicit CPU and memory limits, reservations, and log rotation (`max-size: 50m`, `max-file: 5`). Healthchecks are configured on all services except Loki (distroless, no shell), Promtail, and nginx. Grafana exposes anonymous read-only access by default; admin credentials are set via `.env`.
 

@@ -36,7 +36,7 @@ services:
   # mounting the socket themselves - a compromised app can at worst
   # start/stop containers, never exec/create/mount.
   docker-socket-proxy:
-    image: tecnativa/docker-socket-proxy:v0.4.2
+    image: tecnativa/docker-socket-proxy:v0.5.0
     container_name: docker-socket-proxy
     restart: unless-stopped
     deploy:
@@ -186,7 +186,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:13.0.2
+    image: grafana/grafana:13.0.10
     container_name: grafana
     restart: unless-stopped
     deploy:
@@ -364,7 +364,7 @@ services:
       - monitoring
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.152.0
+    image: otel/opentelemetry-collector-contrib:0.162.0
     container_name: otel-collector
     restart: unless-stopped
     deploy:
