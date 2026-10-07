@@ -27,4 +27,10 @@ EXPOSE 9800
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:9800/healthz || exit 1
 
-CMD ["gunicorn", "--workers=2", "--bind=0.0.0.0:9800", "--access-logfile=-", "--error-logfile=-", "statporter:app"]
+# Single worker only: the metrics registry and the background collector thread
+# are process-local singletons. Running >1 worker spawns a second collector with
+# its own registry, doubling Docker stats load and making Prometheus scrapes
+# alternate between two unsynchronised registries, which flaps absent()/stale
+# label removal and the DemoContainerDown alert. Concurrency for the trivial
+# /metrics and /healthz endpoints is provided by threads instead.
+CMD ["gunicorn", "--workers=1", "--threads=4", "--bind=0.0.0.0:9800", "--access-logfile=-", "--error-logfile=-", "statporter:app"]
