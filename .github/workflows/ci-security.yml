@@ -33,7 +33,7 @@ jobs:
           scan-ref: "."
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           # Required by gitleaks-action to read PR commits; without it every
           # pull_request run fails before scanning.
