@@ -15,8 +15,15 @@ datasources:
         datasourceUid: prometheus
       nodeGraph:
         enabled: false
-      tracesToLogs:
+      # Map the resource attribute service.name onto Promtail's `container`
+      # label (the `job` label keeps Docker's leading slash), then filter
+      # lines by trace ID: {container="weather-app"} |= "<traceId>".
+      tracesToLogsV2:
         datasourceUid: loki
+        spanStartTimeShift: "-5m"
+        spanEndTimeShift: "5m"
         filterByTraceID: true
         filterBySpanID: false
-        mapTagNamesEnabled: true
+        tags:
+          - key: service.name
+            value: container

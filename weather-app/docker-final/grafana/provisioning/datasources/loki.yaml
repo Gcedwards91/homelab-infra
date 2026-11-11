@@ -9,3 +9,13 @@ datasources:
     url: http://loki:3100
     isDefault: false
     editable: true
+    jsonData:
+      # Turn the otelTraceID field in JSON log lines into a link to Tempo.
+      # 32 hex chars skips the "0" emitted for logs outside any span.
+      # $$ escapes Grafana's env-var interpolation in provisioning files.
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '"otelTraceID": "([0-9a-f]{32})"'
+          datasourceUid: tempo
+          url: "$${__value.raw}"
+          urlDisplayLabel: View trace

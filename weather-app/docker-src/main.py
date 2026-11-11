@@ -21,14 +21,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from playground import playground_bp
 from prometheus_flask_exporter import PrometheusMetrics
-from weather import get_weather
+from weather import get_weather, redact_span_url
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 _provider = TracerProvider()
 _provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
 trace.set_tracer_provider(_provider)
 
-RequestsInstrumentor().instrument()
+RequestsInstrumentor().instrument(request_hook=redact_span_url)
 LoggingInstrumentor().instrument(set_logging_format=True)
 
 # Explicit folders ensure Flask looks in /app/templates and /app/static

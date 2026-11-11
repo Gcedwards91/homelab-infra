@@ -139,3 +139,37 @@ class TestWeatherAppWeatherClient:
             "API key leaked into the connection-error log line - _scrub() did "
             "not redact the appid embedded in the requests exception URL"
         )
+
+
+class TestWeatherAppSpanRedaction:
+    """redact_span_url strips the appid key from RequestsInstrumentor span URLs."""
+
+    @staticmethod
+    def _span(attributes):
+        from opentelemetry.sdk.trace import TracerProvider
+
+        tracer = TracerProvider().get_tracer(__name__)
+        return tracer.start_span("GET", attributes=attributes)
+
+    def test_weather_app_span_url_appid_redacted(self):
+        span = self._span(
+            {
+                "http.url": "https://api.openweathermap.org/data/2.5/weather"
+                f"?q=Atlanta&appid={_SENTINEL_KEY}&units=imperial"
+            }
+        )
+        weather.redact_span_url(span, None)
+        url = span.attributes["http.url"]
+        assert _SENTINEL_KEY not in url
+        assert "appid=REDACTED&units=imperial" in url
+
+    def test_weather_app_span_url_full_attribute_redacted(self):
+        span = self._span({"url.full": f"https://x.test/?appid={_SENTINEL_KEY}"})
+        weather.redact_span_url(span, None)
+        assert span.attributes["url.full"] == "https://x.test/?appid=REDACTED"
+
+    def test_weather_app_span_url_without_key_untouched(self):
+        url = "http://demo-container:8080/stress_status"
+        span = self._span({"http.url": url})
+        weather.redact_span_url(span, None)
+        assert span.attributes["http.url"] == url

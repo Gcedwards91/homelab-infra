@@ -11,8 +11,10 @@ Prerequisites:
     pytest tests/test_stack_startup.py -v
 """
 
+import json
 import re
 import time
+from datetime import datetime
 
 import docker.errors
 import pytest
@@ -40,9 +42,67 @@ HEALTHCHECK_SERVICES = [
     "demo-container",
 ]
 
-_ERROR_RE = re.compile(r"error|fatal|panic|exception", re.IGNORECASE)
-# Prometheus/Grafana/Loki logfmt lines at info level may contain "error" incidentally.
-_INFO_LEVEL_RE = re.compile(r"level=info", re.IGNORECASE)
+# Only lines a service itself tagged as error-level or worse count. A bare word
+# match on "error" flagged info lines whose message merely mentioned an error.
+_ERROR_LEVELS = {
+    "error",
+    "err",
+    "eror",
+    "crit",
+    "critical",
+    "fatal",
+    "panic",
+    "dpanic",
+    "alert",
+    "emerg",
+}
+_LEVEL_ALT = "|".join(sorted(_ERROR_LEVELS))
+_ERROR_LEVEL_PATTERNS = [
+    # logfmt: Prometheus, Alertmanager, Loki, Tempo, Promtail, Grafana
+    re.compile(rf"\b(?:level|lvl)=\"?(?:{_LEVEL_ALT})\b", re.IGNORECASE),
+    # bracketed: nginx [error], gunicorn and statporter [ERROR], haproxy [ALERT]
+    re.compile(rf"\[(?:{_LEVEL_ALT})\]", re.IGNORECASE),
+    # zap console encoder (otel-collector): "<timestamp>\terror\t<caller>"
+    re.compile(rf"\t(?:{_LEVEL_ALT})\t", re.IGNORECASE),
+]
+# Crash output that carries no level tag at all.
+_CRASH_PATTERNS = [
+    re.compile(r"^panic: "),
+    re.compile(r"^fatal error: "),
+    re.compile(r"Traceback \(most recent call last\)"),
+]
+_JSON_LEVEL_KEYS = ("level", "levelname", "severity")
+
+# Startup is judged on this window after the container started, cut short at
+# the moment the test session began. Long-running local stacks would otherwise
+# be judged on weeks of runtime logs, and CI runs on errors the suite provoked.
+_STARTUP_WINDOW_S = 120
+
+
+def _is_error_line(line: str) -> bool:
+    stripped = line.strip()
+    if stripped.startswith("{"):
+        try:
+            record = json.loads(stripped)
+        except ValueError:
+            record = None
+        if isinstance(record, dict):
+            for key in _JSON_LEVEL_KEYS:
+                value = record.get(key)
+                if isinstance(value, str):
+                    return value.lower() in _ERROR_LEVELS
+    if any(p.search(line) for p in _ERROR_LEVEL_PATTERNS):
+        return True
+    return any(p.search(stripped) for p in _CRASH_PATTERNS)
+
+
+def _started_at(container) -> float:
+    """Container start time as a Unix timestamp. Docker reports nanoseconds,
+    which datetime cannot parse, so the fraction is trimmed to microseconds."""
+    raw = container.attrs["State"]["StartedAt"]
+    trimmed = re.sub(r"(\.\d{6})\d*", r"\1", raw).replace("Z", "+00:00")
+    return datetime.fromisoformat(trimmed).timestamp()
+
 
 # Known benign startup messages excluded per container.
 # Each entry is a substring that identifies a safe log line.
@@ -66,6 +126,10 @@ _KNOWN_SAFE: dict[str, list[str]] = {
         "logger=plugin.backgroundinstaller",
     ],
     "loki": [
+        # After a host restart, Promtail backfills container logs it had not
+        # shipped; anything older than Loki's 7-day ingest limit is rejected.
+        # Expected after more than a week of downtime; a fresh stack never sees it.
+        "timestamp too old",
         # Ring hasn't formed yet on single-node startup : transient.
         "empty ring",
         # Known Loki 3.x quirk with fake tenant on first ingest : benign.
@@ -74,6 +138,10 @@ _KNOWN_SAFE: dict[str, list[str]] = {
         # migration fail tsdb path validation. Local volumes only : CI starts clean.
         # Clears automatically once 168h retention expires the old boltdb tables.
         "invalid tsdb path",
+    ],
+    "promtail": [
+        # Promtail's side of the same backfill rejection (see the loki entry).
+        "timestamp too old",
     ],
     "tempo": [
         # WAL block directory exists but meta.json was not written (unclean shutdown).
@@ -107,9 +175,9 @@ class TestAllServicesUp:
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
     def test_container_exists(self, containers, name):
-        assert containers[name] is not None, (
-            f"'{name}' not found : run 'docker compose up -d' and retry"
-        )
+        assert (
+            containers[name] is not None
+        ), f"'{name}' not found : run 'docker compose up -d' and retry"
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
     def test_container_is_running(self, containers, name):
@@ -117,9 +185,9 @@ class TestAllServicesUp:
         if c is None:
             pytest.skip(f"'{name}' not found")
         c.reload()
-        assert c.status == "running", (
-            f"'{name}' status is '{c.status}', expected 'running'"
-        )
+        assert (
+            c.status == "running"
+        ), f"'{name}' status is '{c.status}', expected 'running'"
 
 
 class TestHealthChecks:
@@ -145,9 +213,9 @@ class TestNoUnexpectedRestarts:
         if c is None:
             pytest.skip(f"'{name}' not found")
         c.reload()
-        assert c.status != "restarting", (
-            f"'{name}' is stuck in 'restarting' state : check 'docker compose logs {name}'"
-        )
+        assert (
+            c.status != "restarting"
+        ), f"'{name}' is stuck in 'restarting' state : check 'docker compose logs {name}'"
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
     def test_restart_count_is_zero(self, containers, name):
@@ -165,25 +233,30 @@ class TestNoUnexpectedRestarts:
 class TestCleanStartupLogs:
 
     @pytest.mark.parametrize("name", ALL_SERVICES)
-    def test_no_error_log_lines(self, containers, name):
+    def test_no_error_log_lines(self, containers, session_start, name):
         c = containers[name]
         if c is None:
             pytest.skip(f"'{name}' not found")
-        raw = c.logs(stdout=True, stderr=True).decode("utf-8", errors="replace")
+        c.reload()
+        started = _started_at(c)
+        until = min(started + _STARTUP_WINDOW_S, session_start)
+        if until <= started:
+            pytest.skip(f"'{name}' started after the test session began")
+        raw = c.logs(stdout=True, stderr=True, since=started, until=until).decode(
+            "utf-8", errors="replace"
+        )
         safe_substrings = _KNOWN_SAFE.get(name, [])
         error_lines = [
             line
             for line in raw.splitlines()
-            if _ERROR_RE.search(line)
-            and not _INFO_LEVEL_RE.search(line)
-            and not any(s in line for s in safe_substrings)
+            if _is_error_line(line) and not any(s in line for s in safe_substrings)
         ]
         if error_lines:
             sample = "\n".join(f"  {ln}" for ln in error_lines[:10])
             tail = "\n  ..." if len(error_lines) > 10 else ""
             pytest.fail(
-                f"'{name}' has {len(error_lines)} unexpected error log line(s):\n"
-                f"{sample}{tail}"
+                f"'{name}' has {len(error_lines)} unexpected error-level log line(s) "
+                f"in its first {_STARTUP_WINDOW_S}s:\n{sample}{tail}"
             )
 
 
@@ -211,9 +284,9 @@ class TestDistrolessReadiness:
             result = prom.exec_run(f"wget -q -O- {url}", demux=False)
             if result.exit_code == 0:
                 body = result.output.decode("utf-8", errors="replace").strip()
-                assert "ready" in body.lower(), (
-                    f"{url} response did not contain 'ready': {body!r}"
-                )
+                assert (
+                    "ready" in body.lower()
+                ), f"{url} response did not contain 'ready': {body!r}"
                 return
             if time.monotonic() >= deadline:
                 pytest.fail(
@@ -244,10 +317,12 @@ class TestStatporterCollector:
         result = c.exec_run("curl -s http://localhost:9800/metrics")
         assert result.exit_code == 0, "curl to statporter /metrics failed"
         output = result.output.decode("utf-8", errors="replace")
-        assert "container_cpu_percent" in output, (
-            "container_cpu_percent metric missing : collector may not have run yet"
-        )
-        entries = [ln for ln in output.splitlines() if ln.startswith("container_cpu_percent{")]
+        assert (
+            "container_cpu_percent" in output
+        ), "container_cpu_percent metric missing : collector may not have run yet"
+        entries = [
+            ln for ln in output.splitlines() if ln.startswith("container_cpu_percent{")
+        ]
         assert len(entries) >= 2, (
             f"Expected metrics for at least 2 containers, got {len(entries)} : "
             f"collector may not have completed its first round (wait 15s and retry)"

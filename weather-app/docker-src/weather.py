@@ -1,3 +1,4 @@
+import re
 from typing import TypedDict
 
 import requests
@@ -27,6 +28,26 @@ def _scrub(text: str, secret: str) -> str:
     the user's key into Loki - which is world-readable via anonymous Grafana.
     """
     return text.replace(secret, "***REDACTED***") if secret else text
+
+
+_APPID_PARAM = re.compile(r"(appid=)[^&\s]+")
+_URL_SPAN_ATTRS = ("http.url", "url.full")
+
+
+def redact_span_url(span, request) -> None:
+    """RequestsInstrumentor request_hook: strip the API key from span URLs.
+
+    The instrumentation records the full outbound URL as a span attribute, and
+    OpenWeatherMap only accepts the key as the appid query param. Without this
+    hook every user's key lands in Tempo, which is browsable via anonymous
+    Grafana. The otel-collector applies the same redaction as a second layer.
+    """
+    if not span.is_recording():
+        return
+    for key in _URL_SPAN_ATTRS:
+        value = span.attributes.get(key)
+        if value:
+            span.set_attribute(key, _APPID_PARAM.sub(r"\1REDACTED", value))
 
 
 def get_weather(

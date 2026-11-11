@@ -50,6 +50,7 @@ PROM_JOBS = [
     "loki",
     "promtail",
     "statporter",
+    "otel_collector",
 ]
 
 # Alert groups and their rules, from prometheus/rules/alerts.yml.
@@ -395,4 +396,111 @@ class TestLokiReceivingLogs:
         assert _poll(find_request_id, timeout=40, interval=4), (
             "No weather-app log line containing 'request_id' found in Loki "
             "(Flask logging middleware should add it on every request)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Tracing: API key redaction + trace-to-log correlation
+# ---------------------------------------------------------------------------
+
+
+class TestWeatherAppTraceRedaction:
+    """The user's OpenWeatherMap key travels as the appid query param, and
+    RequestsInstrumentor records the full outbound URL on the client span.
+    Tempo is browsable via anonymous Grafana, so the key must be scrubbed
+    (weather.redact_span_url in the app, transform/redact in otel-collector).
+
+    Tempo is not exposed via nginx; query it with wget inside the prometheus
+    container, same as the Loki checks."""
+
+    @pytest.fixture(scope="class")
+    def prom_container(self, docker_client):
+        import docker.errors
+
+        try:
+            return docker_client.containers.get("prometheus")
+        except docker.errors.NotFound:
+            pytest.skip("prometheus container not found: cannot query Tempo via exec")
+
+    @staticmethod
+    def _wget(prom_container, url):
+        result = prom_container.exec_run(["wget", "-q", "-O-", url])
+        assert result.exit_code == 0, f"wget failed (exit {result.exit_code}): {url}"
+        return result.output.decode("utf-8", errors="replace")
+
+    @pytest.fixture(scope="class")
+    def weather_trace(self, prom_container):
+        """POST /weather with a unique location and sentinel key, then return
+        (raw trace JSON, trace ID, sentinel) for the trace it produced."""
+        token = f"redactcheck{int(time.time())}"
+        sentinel = f"SENTINEL_TRACE_KEY_{token}"
+        resp = http.post(
+            f"{BASE_URL}/weather",
+            json={"location": token, "api_key": sentinel, "mode": "city"},
+            timeout=20,
+        )
+        assert resp.status_code == 200, f"POST /weather returned {resp.status_code}"
+
+        traceql = (
+            '{ resource.service.name="weather-app" && kind=client '
+            '&& span.http.url =~ ".*openweathermap.*" }'
+        )
+
+        def find():
+            now = int(time.time())
+            qs = urllib.parse.urlencode(
+                {"q": traceql, "limit": 20, "start": now - 300, "end": now}
+            )
+            found = json.loads(
+                self._wget(prom_container, f"http://tempo:3200/api/search?{qs}")
+            )
+            for t in found.get("traces", []):
+                body = self._wget(
+                    prom_container, f"http://tempo:3200/api/traces/{t['traceID']}"
+                )
+                if token in body:
+                    return body, t["traceID"], sentinel
+            return None
+
+        result = _poll(find, timeout=45, interval=5)
+        assert result, (
+            f"No weather-app trace for location {token!r} reached Tempo within "
+            "45s - check otel-collector and tempo logs"
+        )
+        return result
+
+    def test_weather_app_trace_omits_api_key(self, weather_trace):
+        body, trace_id, sentinel = weather_trace
+        assert sentinel not in body, (
+            f"API key found in Tempo trace {trace_id} - span URL redaction failed"
+        )
+
+    def test_weather_app_trace_url_marked_redacted(self, weather_trace):
+        body, trace_id, _ = weather_trace
+        assert "appid=REDACTED" in body, (
+            f"Trace {trace_id} has no 'appid=REDACTED' marker - the outbound "
+            "span URL is missing or was redacted unexpectedly"
+        )
+
+    def test_weather_app_logs_carry_trace_id(self, prom_container, weather_trace):
+        """Grafana's trace-to-logs link (tempo.yaml tracesToLogsV2) runs
+        {container="<service.name>"} |= "<traceId>"; that query must find lines."""
+        _, trace_id, _ = weather_trace
+        logql = f'{{container="weather-app"}} |= "{trace_id}"'
+
+        def find():
+            end_ns = int(time.time() * 1e9)
+            qs = urllib.parse.urlencode(
+                {"query": logql, "start": end_ns - 600 * 10**9, "end": end_ns}
+            )
+            payload = json.loads(
+                self._wget(
+                    prom_container, f"http://loki:3100/loki/api/v1/query_range?{qs}"
+                )
+            )
+            return payload.get("data", {}).get("result") or None
+
+        assert _poll(find, timeout=40, interval=4), (
+            f"Loki returned no weather-app lines for {logql} - "
+            "trace-to-log correlation is broken"
         )
